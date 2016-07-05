@@ -106,6 +106,7 @@ void loop()
 		}
 	}
 	*/
+
 	if (currModeReceived && lightOnDurationReceived)
 	{
 		if (tripped && !trippMessageToRelay)
@@ -127,7 +128,6 @@ void receive(const MyMessage &message)
 {
 	if (message.type == V_VAR1)
 	{
-		disableMotionSensor();
 		if (currModeReceived)
 		{
 			LOG("if (currModeReceived)");
@@ -170,14 +170,9 @@ void receive(const MyMessage &message)
 		}
 		else
 		{
-			LOG("else(currModeReceived)");
+			//LOG("else(currModeReceived)");
 			currMode = message.getInt();
 			currModeReceived = true;
-			if (message.getInt() == SENSOR_MODE)
-			{
-				trippMessageToRelay = false;
-				enableMotionSensor();
-			}
 		}
 	}
 	if (message.type == V_VAR2)
@@ -207,7 +202,11 @@ void receive(const MyMessage &message)
 void checkCurrModeRequestStatus()
 {
 	if (currModeReceived)
+	{
 		Alarm.free(currModeTimer);
+		sendCurrModeRequest = false;
+		request(CURR_MODE_ID, V_VAR1);
+	}
 	else
 		sendCurrModeRequest = true;
 }
@@ -215,7 +214,11 @@ void checkCurrModeRequestStatus()
 void checkLightOnDurationRequest()
 {
 	if (lightOnDurationReceived)
+	{
 		Alarm.free(lightOnDurationTimer);
+		sendlightOnDurationRequest = false;
+		request(LIGHT_DURATION_ID, V_VAR2);
+	}
 	else
 		sendlightOnDurationRequest = true;
 }
