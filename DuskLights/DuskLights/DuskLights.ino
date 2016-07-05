@@ -18,14 +18,18 @@
 #define APPLICATION_VERSION "06Jul2016"
 #define SENSOR_POLL_TIME 120
 #define DEFAULT_LIGHT_ON_DURATION 300
+#define ONE_MINUTE 60
 
 byte currMode;
 boolean firstRun;
 boolean tripped;
 boolean trippMessageToRelay;
 boolean currModeReceived;
-boolean lightIntervalReceived;
+boolean lightOnDurationReceived;
 int lightOnDuration;
+boolean sendCurrModeRequest;
+boolean sendlightOnDurationRequest;
+
 AlarmId motionSensor;
 AlarmId currModeTimer;
 AlarmId lightOnDurationTimer;
@@ -44,10 +48,12 @@ void setup()
 {
 	digitalWrite(LIGHT_RELAY_PIN, LOW);
 	currModeReceived = false;
-	lightIntervalReceived = false;
+	lightOnDurationReceived = false;
 	tripped = false;
 	trippMessageToRelay = false;
 	firstRun = true;
+	sendCurrModeRequest = true;
+	sendlightOnDurationRequest = true;
 }
 
 void presentation()
@@ -62,11 +68,6 @@ void presentation()
 	present(LIGHT_DURATION_ID, S_CUSTOM, "Light On Duration");
 }
 
-void checkRequestCurrMode()
-{
-	if (currModeReceived)
-		Alarm.free(currModeTimer);
-}
 void loop()
 {
 	if (firstRun)
@@ -77,6 +78,20 @@ void loop()
 		firstRun = false;
 	}
 
+	if (sendCurrModeRequest)
+	{
+		sendCurrModeRequest = false;
+		request(CURR_MODE_ID, V_VAR1);
+		currModeTimer = Alarm.timerOnce(ONE_MINUTE, checkCurrModeRequestStatus);
+	}
+
+	if (sendlightOnDurationRequest)
+	{
+		sendlightOnDurationRequest = false;
+		request(LIGHT_DURATION_ID, V_VAR2);
+		lightOnDurationTimer = Alarm.timerOnce(ONE_MINUTE, checkLightOnDurationRequest);
+	}
+	/*
 	if (!currModeReceived)
 	{
 		request(CURR_MODE_ID, V_VAR1);
@@ -84,14 +99,14 @@ void loop()
 	}
 	else
 	{
-		if (!lightIntervalReceived)
+		if (!lightOnDurationReceived)
 		{
 			request(LIGHT_DURATION_ID, V_VAR2);
 			Alarm.delay(1000);
 		}
 	}
-
-	if (currModeReceived && lightIntervalReceived)
+	*/
+	if (currModeReceived && lightOnDurationReceived)
 	{
 		if (tripped && !trippMessageToRelay)
 		{
@@ -167,7 +182,7 @@ void receive(const MyMessage &message)
 	}
 	if (message.type == V_VAR2)
 	{
-		if (lightIntervalReceived)
+		if (lightOnDurationReceived)
 		{
 			int newLightOnDuration = message.getInt();
 			if (newLightOnDuration > 0 && newLightOnDuration <= 600)
@@ -184,9 +199,25 @@ void receive(const MyMessage &message)
 				MyMessage lightOnDurationMessage(LIGHT_DURATION_ID, V_VAR2);
 				send(lightOnDurationMessage.set(lightOnDuration));
 			}
-			lightIntervalReceived = true;
+			lightOnDurationReceived = true;
 		}
 	}
+}
+
+void checkCurrModeRequestStatus()
+{
+	if (currModeReceived)
+		Alarm.free(currModeTimer);
+	else
+		sendCurrModeRequest = true;
+}
+
+void checkLightOnDurationRequest()
+{
+	if (lightOnDurationReceived)
+		Alarm.free(lightOnDurationTimer);
+	else
+		sendlightOnDurationRequest = true;
 }
 
 void sendMotionSensorData()
