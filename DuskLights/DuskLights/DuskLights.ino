@@ -15,7 +15,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Dusk Light with PIR"
-#define APPLICATION_VERSION "29Jun2016"
+#define APPLICATION_VERSION "06Jul2016"
 #define SENSOR_POLL_TIME 120
 #define DEFAULT_LIGHT_ON_DURATION 300
 
@@ -27,6 +27,8 @@ boolean currModeReceived;
 boolean lightIntervalReceived;
 int lightOnDuration;
 AlarmId motionSensor;
+AlarmId currModeTimer;
+AlarmId lightOnDurationTimer;
 
 MyMessage sensorMessage(MOTION_SENSOR_ID, V_TRIPPED);
 MyMessage lightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
@@ -60,6 +62,11 @@ void presentation()
 	present(LIGHT_DURATION_ID, S_CUSTOM, "Light On Duration");
 }
 
+void checkRequestCurrMode()
+{
+	if (currModeReceived)
+		Alarm.free(currModeTimer);
+}
 void loop()
 {
 	if (firstRun)
@@ -73,7 +80,7 @@ void loop()
 	if (!currModeReceived)
 	{
 		request(CURR_MODE_ID, V_VAR1);
-		Alarm.delay(1000);
+		currModeTimer = Alarm.timerOnce(ONE_MINUTE,checkRequestCurrMode);
 	}
 	else
 	{
