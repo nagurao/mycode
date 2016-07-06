@@ -4,6 +4,7 @@
 
 #define MOTION_SENSOR_WITH_LIGHT
 #define NODE_HAS_RELAY
+#define LOG_THIS_NODE_DATA
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -37,7 +38,6 @@ AlarmId lightOnDurationTimer;
 MyMessage sensorMessage(MOTION_SENSOR_ID, V_TRIPPED);
 MyMessage lightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
 
-#define LOG(X) Serial.println(X)
 void before()
 {
 	pinMode(LIGHT_RELAY_PIN, OUTPUT);
@@ -72,6 +72,7 @@ void loop()
 {
 	if (firstRun)
 	{
+		LOG("first run");
 		send(sensorMessage.set(NO_MOTION_DETECTED));
 		wait(WAIT_50MS);
 		send(lightRelayMessage.set(RELAY_OFF));
@@ -201,6 +202,7 @@ void receive(const MyMessage &message)
 
 void checkCurrModeRequestStatus()
 {
+	LOG("checkCurrModeRequestStatus");
 	if (currModeReceived)
 	{
 		Alarm.free(currModeTimer);
@@ -213,6 +215,7 @@ void checkCurrModeRequestStatus()
 
 void checkLightOnDurationRequest()
 {
+	LOG("checkLightOnDurationRequest");
 	if (lightOnDurationReceived)
 	{
 		Alarm.free(lightOnDurationTimer);
