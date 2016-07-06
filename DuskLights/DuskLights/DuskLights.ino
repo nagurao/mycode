@@ -4,7 +4,7 @@
 
 #define MOTION_SENSOR_WITH_LIGHT
 #define NODE_HAS_RELAY
-#define LOG_THIS_NODE_DATA
+//#define LOG_THIS_NODE_DATA
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -72,7 +72,6 @@ void loop()
 {
 	if (firstRun)
 	{
-		LOG("first run");
 		send(sensorMessage.set(NO_MOTION_DETECTED));
 		wait(WAIT_50MS);
 		send(lightRelayMessage.set(RELAY_OFF));
@@ -92,27 +91,11 @@ void loop()
 		request(LIGHT_DURATION_ID, V_VAR2);
 		lightOnDurationTimer = Alarm.timerOnce(ONE_MINUTE, checkLightOnDurationRequest);
 	}
-	/*
-	if (!currModeReceived)
-	{
-		request(CURR_MODE_ID, V_VAR1);
-		currModeTimer = Alarm.timerOnce(ONE_MINUTE,checkRequestCurrMode);
-	}
-	else
-	{
-		if (!lightOnDurationReceived)
-		{
-			request(LIGHT_DURATION_ID, V_VAR2);
-			Alarm.delay(1000);
-		}
-	}
-	*/
 
 	if (currModeReceived && lightOnDurationReceived)
 	{
 		if (tripped && !trippMessageToRelay)
 		{
-			LOG("if (tripped && !trippMessageToRelay)");
 			digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 			send(lightRelayMessage.set(RELAY_ON));
 			trippMessageToRelay = true;
@@ -131,7 +114,6 @@ void receive(const MyMessage &message)
 	{
 		if (currModeReceived)
 		{
-			LOG("if (currModeReceived)");
 			switch (message.getInt())
 			{
 			case STANDBY_MODE:
@@ -171,9 +153,11 @@ void receive(const MyMessage &message)
 		}
 		else
 		{
-			//LOG("else(currModeReceived)");
 			currMode = message.getInt();
 			currModeReceived = true;
+			Alarm.free(currModeTimer);
+			sendCurrModeRequest = false;
+			request(CURR_MODE_ID, V_VAR1);
 		}
 	}
 	if (message.type == V_VAR2)
@@ -196,46 +180,34 @@ void receive(const MyMessage &message)
 				send(lightOnDurationMessage.set(lightOnDuration));
 			}
 			lightOnDurationReceived = true;
+			Alarm.free(lightOnDurationTimer);
+			sendlightOnDurationRequest = false;
+			request(LIGHT_DURATION_ID, V_VAR2);
 		}
 	}
 }
 
 void checkCurrModeRequestStatus()
 {
-	LOG("checkCurrModeRequestStatus");
-	if (currModeReceived)
-	{
-		Alarm.free(currModeTimer);
-		sendCurrModeRequest = false;
-		request(CURR_MODE_ID, V_VAR1);
-	}
-	else
+	if (!currModeReceived)
 		sendCurrModeRequest = true;
 }
 
 void checkLightOnDurationRequest()
 {
-	LOG("checkLightOnDurationRequest");
-	if (lightOnDurationReceived)
-	{
-		Alarm.free(lightOnDurationTimer);
-		sendlightOnDurationRequest = false;
-		request(LIGHT_DURATION_ID, V_VAR2);
-	}
-	else
+	if (!lightOnDurationReceived)
 		sendlightOnDurationRequest = true;
 }
 
 void sendMotionSensorData()
 {
-	LOG("sendMotionSensorData");
 	tripped = digitalRead(MOTION_SENSOR_PIN);
 	send(sensorMessage.set(tripped ? MOTION_DETECTED : NO_MOTION_DETECTED));
 	trippMessageToRelay = false;
 }
+
 void turnOffLightRelay()
 {
-	LOG("turnOffLightRelay");
 	digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 	send(lightRelayMessage.set(RELAY_OFF));
 	enableMotionSensor();
@@ -243,7 +215,6 @@ void turnOffLightRelay()
 
 void enableMotionSensor()
 {
-	LOG("enableMotionSensor");
 	attachInterrupt(INTERRUPT_MOTION, sendMotionSensorData, CHANGE);
 	motionSensor = Alarm.timerRepeat(SENSOR_POLL_TIME, sendMotionSensorData);
 	trippMessageToRelay = false;
@@ -251,7 +222,6 @@ void enableMotionSensor()
 
 void disableMotionSensor()
 {
-	LOG("disableMotionSensor");
 	detachInterrupt(INTERRUPT_MOTION);
 	Alarm.free(motionSensor);
 	detachInterrupt(INTERRUPT_MOTION);
