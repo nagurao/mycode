@@ -9,7 +9,7 @@
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
 #define MY_NODE_ID 200
-#define MY_DEBUG 
+//#define MY_DEBUG 
 
 #include <MyNodes.h>
 #include <MySensors.h>
