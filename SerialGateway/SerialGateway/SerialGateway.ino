@@ -45,5 +45,3 @@ void presentation() {
 void loop() {
 	// Send locally attached sensor data here 
 }
-
-
