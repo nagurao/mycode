@@ -15,7 +15,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Dusk Light with PIR"
-#define APPLICATION_VERSION "06Jul2016"
+#define APPLICATION_VERSION "10Jul2016"
 #define SENSOR_POLL_TIME 120
 #define DEFAULT_LIGHT_ON_DURATION 300
 #define ONE_MINUTE 60
