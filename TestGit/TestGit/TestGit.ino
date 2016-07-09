@@ -8,6 +8,7 @@
 void setup() {
 	Serial.begin(115200);
 	Serial.println("hello world");
+	Serial.println("hello again");
 }
 
 // the loop function runs over and over again until power down or reset
