@@ -21,7 +21,6 @@
 #define ONE_MINUTE 60
 
 byte currMode;
-boolean firstRun;
 boolean tripped;
 boolean trippMessageToRelay;
 boolean currModeReceived;
@@ -50,7 +49,6 @@ void setup()
 	lightOnDurationReceived = false;
 	tripped = false;
 	trippMessageToRelay = false;
-	firstRun = true;
 	sendCurrModeRequest = true;
 	sendlightOnDurationRequest = true;
 }
@@ -65,18 +63,14 @@ void presentation()
 	present(CURR_MODE_ID, S_CUSTOM, "Operating Mode");
 	wait(WAIT_50MS);
 	present(LIGHT_DURATION_ID, S_CUSTOM, "Light On Duration");
+	wait(WAIT_50MS);
+	send(sensorMessage.set(NO_MOTION_DETECTED));
+	wait(WAIT_50MS);
+	send(lightRelayMessage.set(RELAY_OFF));
 }
 
 void loop()
 {
-	if (firstRun)
-	{
-		send(sensorMessage.set(NO_MOTION_DETECTED));
-		wait(WAIT_50MS);
-		send(lightRelayMessage.set(RELAY_OFF));
-		firstRun = false;
-	}
-
 	if (sendCurrModeRequest)
 	{
 		sendCurrModeRequest = false;
@@ -161,15 +155,13 @@ void receive(const MyMessage &message)
 	}
 	if (message.type == V_VAR2)
 	{
-		if (lightOnDurationReceived)
+		int newLightOnDuration = message.getInt();
+
+		if (lightOnDurationReceived && newLightOnDuration > 0 && newLightOnDuration <= 600)
+			lightOnDuration = newLightOnDuration;
+
+		if (!lightOnDurationReceived)
 		{
-			int newLightOnDuration = message.getInt();
-			if (newLightOnDuration > 0 && newLightOnDuration <= 600)
-				lightOnDuration = newLightOnDuration;
-		}
-		else
-		{
-			int newLightOnDuration = message.getInt();
 			if (newLightOnDuration > 0 && newLightOnDuration <= 600)
 				lightOnDuration = newLightOnDuration;
 			else
