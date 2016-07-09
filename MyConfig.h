@@ -418,7 +418,7 @@
  * This acts as base value for sensor nodeId addresses. Change this (or channel) if you have more than one sensor network.
  */
 #ifndef MY_RF24_BASE_RADIO_ID
-#define MY_RF24_BASE_RADIO_ID 0x00,0xFC,0xE1,0xA8,0xA9
+#define MY_RF24_BASE_RADIO_ID 0x00,0xFC,0xE1,0xA8,0xA8
 #endif
 
 /**
