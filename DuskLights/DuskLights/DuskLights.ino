@@ -176,6 +176,19 @@ void receive(const MyMessage &message)
 			request(LIGHT_DURATION_ID, V_VAR2);
 		}
 	}
+	if (message.type == V_STATUS)
+	{
+		if (currModeReceived && lightOnDurationReceived)
+		{
+			MyMessage staircaseLightMessage(1, V_STATUS);
+			staircaseLightMessage.setDestination(STAIRCASE_NODE);
+			if (digitalRead(LIGHT_RELAY_PIN))
+				staircaseLightMessage.set(RELAY_ON);
+			else
+				staircaseLightMessage.set(RELAY_OFF);
+			send(staircaseLightMessage);
+		}
+	}
 }
 
 void checkCurrModeRequestStatus()
