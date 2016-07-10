@@ -53,7 +53,7 @@ void loop()
 	{
 		sendLightStatusRequest = false;
 		lightStatusTimer = Alarm.timerOnce(ONE_MINUTE, checkLightStatusRequest);
-		request(DUSK_LIGHT_RELAY_ID , V_STATUS, DUSKLIGHT_WITH_PIR_NODE01);
+		request(DUSK_LIGHT_RELAY_ID , V_STATUS, BALCONYLIGHT_WITH_PIR_NODE);
 	}
 	Alarm.delay(1);
 }
