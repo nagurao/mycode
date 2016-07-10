@@ -20,7 +20,6 @@
 #define SENSOR_POLL_TIME 120
 #define DEFAULT_LIGHT_ON_DURATION 300
 
-
 byte currMode;
 boolean tripped;
 boolean trippMessageToRelay;

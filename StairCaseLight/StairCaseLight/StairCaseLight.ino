@@ -7,7 +7,7 @@
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID STAIRCASE_NODE_ID
+#define MY_NODE_ID STAIRCASE_LIGHT_NODE
 #define MY_DEBUG 
 
 #include <MyNodes.h>
@@ -19,7 +19,7 @@
 
 #define LIGHT_RELAY_PIN 7
 #define LIGHT_RELAY_ID 1
-#define ONE_MINUTE 60
+#define DUSK_LIGHT_RELAY_ID 2
 
 boolean lightStatusReceived;
 boolean sendLightStatusRequest;
@@ -53,23 +53,23 @@ void loop()
 	{
 		sendLightStatusRequest = false;
 		lightStatusTimer = Alarm.timerOnce(ONE_MINUTE, checkLightStatusRequest);
-		request(2, V_STATUS, 200);
+		request(DUSK_LIGHT_RELAY_ID , V_STATUS, DUSKLIGHT_WITH_PIR_NODE01);
 	}
-
+	Alarm.delay(1);
 }
 
 void receive(const MyMessage &message)
 {
 	if (message.type == V_STATUS)
 	{
-		if (message.getBool())
+		if (message.getInt())
 		{
-			digitalWrite(LIGHT_RELAY_ID, RELAY_ON);
+			digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 			send(lightRelayMessage.set(RELAY_ON));
 		}
 		else
 		{
-			digitalWrite(LIGHT_RELAY_ID, RELAY_OFF);
+			digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 			send(lightRelayMessage.set(RELAY_OFF));
 
 		}
