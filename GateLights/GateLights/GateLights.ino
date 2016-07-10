@@ -8,14 +8,14 @@
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID BALCONYLIGHT_WITH_PIR_NODE
+#define MY_NODE_ID GATELIGHT_WITH_PIR_NODE
 #define MY_DEBUG 
 
 #include <MyNodes.h>
 #include <MySensors.h>
 #include <MyConfig.h>
 
-#define APPLICATION_NAME "PIR Balcony Light"
+#define APPLICATION_NAME "PIR Gate Light"
 #define APPLICATION_VERSION "11Jul2016"
 #define SENSOR_POLL_TIME 120
 #define DEFAULT_LIGHT_ON_DURATION 300
@@ -61,9 +61,9 @@ void setup()
 void presentation()
 {
 	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
-	present(MOTION_SENSOR_ID, S_MOTION, "Balcony Motion Sensor");
+	present(MOTION_SENSOR_ID, S_MOTION, "Gate Motion Sensor");
 	wait(WAIT_50MS);
-	present(LIGHT_RELAY_ID, S_BINARY, "Balcony Light Relay");
+	present(LIGHT_RELAY_ID, S_BINARY, "Gate Light Relay");
 	wait(WAIT_50MS);
 	present(CURR_MODE_ID, S_CUSTOM, "Operating Mode");
 	wait(WAIT_50MS);
@@ -72,8 +72,6 @@ void presentation()
 	send(sensorMessage.set(NO_MOTION_DETECTED));
 	wait(WAIT_50MS);
 	send(lightRelayMessage.set(RELAY_OFF));
-	wait(WAIT_50MS);
-	send(staircaseLightRelayMessage.set(RELAY_OFF));
 }
 
 void loop()
@@ -120,14 +118,12 @@ void receive(const MyMessage &message)
 			case STANDBY_MODE:
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 				send(lightRelayMessage.set(RELAY_OFF));
-				send(staircaseLightRelayMessage.set(RELAY_OFF));
 				disableMotionSensor();
 				currMode = message.getInt();
 				break;
 			case DUSKLIGHT_MODE:
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 				send(lightRelayMessage.set(RELAY_ON));
-				send(staircaseLightRelayMessage.set(RELAY_ON));
 				disableMotionSensor();
 				currMode = message.getInt();
 				break;
@@ -145,13 +141,11 @@ void receive(const MyMessage &message)
 				{
 					digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 					send(lightRelayMessage.set(RELAY_OFF));
-					send(staircaseLightRelayMessage.set(RELAY_OFF));
 				}
 				else
 				{
 					digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 					send(lightRelayMessage.set(RELAY_ON));
-					send(staircaseLightRelayMessage.set(RELAY_ON));
 				}
 				currMode = message.getInt();
 				break;
@@ -187,16 +181,6 @@ void receive(const MyMessage &message)
 			Alarm.free(lightOnDurationTimer);
 			sendlightOnDurationRequest = false;
 			request(LIGHT_DURATION_ID, V_VAR2);
-		}
-	}
-	if (message.type == V_STATUS)
-	{
-		if (currModeReceived && lightOnDurationReceived)
-		{
-			if (digitalRead(LIGHT_RELAY_PIN))
-				send(staircaseLightRelayMessage.set(RELAY_ON));
-			else
-				send(staircaseLightRelayMessage.set(RELAY_OFF));
 		}
 	}
 }
