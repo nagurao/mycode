@@ -4,10 +4,11 @@
 
 #define MOTION_SENSOR_WITH_LIGHT
 #define NODE_HAS_RELAY
+#define STAIRCASE_NODE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID 200
+#define MY_NODE_ID DUSKLIGHT_WITH_PIR_NODE01
 #define MY_DEBUG 
 
 #include <MyNodes.h>
@@ -18,7 +19,7 @@
 #define APPLICATION_VERSION "10Jul2016"
 #define SENSOR_POLL_TIME 120
 #define DEFAULT_LIGHT_ON_DURATION 300
-#define ONE_MINUTE 60
+
 
 byte currMode;
 boolean tripped;
@@ -35,6 +36,8 @@ AlarmId lightOnDurationTimer;
 
 MyMessage sensorMessage(MOTION_SENSOR_ID, V_TRIPPED);
 MyMessage lightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
+MyMessage staircaseLightRelayMessage(STAIRCASE_LIGHT_RELAY_ID, V_STATUS);
+
 
 void before()
 {
@@ -51,6 +54,9 @@ void setup()
 	trippMessageToRelay = false;
 	sendCurrModeRequest = true;
 	sendlightOnDurationRequest = true;
+	staircaseLightRelayMessage.setDestination(STAIRCASE_LIGHT_NODE);
+	staircaseLightRelayMessage.setType(V_STATUS);
+	staircaseLightRelayMessage.setSensor(LIGHT_RELAY_ID);
 }
 
 void presentation()
@@ -67,6 +73,8 @@ void presentation()
 	send(sensorMessage.set(NO_MOTION_DETECTED));
 	wait(WAIT_50MS);
 	send(lightRelayMessage.set(RELAY_OFF));
+	wait(WAIT_50MS);
+	send(staircaseLightRelayMessage.set(RELAY_OFF));
 }
 
 void loop()
@@ -92,6 +100,7 @@ void loop()
 			digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 			send(lightRelayMessage.set(RELAY_ON));
 			trippMessageToRelay = true;
+			send(staircaseLightRelayMessage.set(RELAY_ON));
 			Alarm.timerOnce(lightOnDuration, turnOffLightRelay);
 			disableMotionSensor();
 			tripped = false;
@@ -112,12 +121,14 @@ void receive(const MyMessage &message)
 			case STANDBY_MODE:
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 				send(lightRelayMessage.set(RELAY_OFF));
+				send(staircaseLightRelayMessage.set(RELAY_OFF));
 				disableMotionSensor();
 				currMode = message.getInt();
 				break;
 			case DUSKLIGHT_MODE:
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 				send(lightRelayMessage.set(RELAY_ON));
+				send(staircaseLightRelayMessage.set(RELAY_ON));
 				disableMotionSensor();
 				currMode = message.getInt();
 				break;
@@ -125,6 +136,7 @@ void receive(const MyMessage &message)
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 				send(lightRelayMessage.set(RELAY_OFF));
 				trippMessageToRelay = false;
+				send(staircaseLightRelayMessage.set(RELAY_OFF));
 				enableMotionSensor();
 				currMode = message.getInt();
 				break;
@@ -134,11 +146,13 @@ void receive(const MyMessage &message)
 				{
 					digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 					send(lightRelayMessage.set(RELAY_OFF));
+					send(staircaseLightRelayMessage.set(RELAY_OFF));
 				}
 				else
 				{
 					digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 					send(lightRelayMessage.set(RELAY_ON));
+					send(staircaseLightRelayMessage.set(RELAY_ON));
 				}
 				currMode = message.getInt();
 				break;
@@ -180,13 +194,10 @@ void receive(const MyMessage &message)
 	{
 		if (currModeReceived && lightOnDurationReceived)
 		{
-			MyMessage staircaseLightMessage(1, V_STATUS);
-			staircaseLightMessage.setDestination(STAIRCASE_NODE);
 			if (digitalRead(LIGHT_RELAY_PIN))
-				staircaseLightMessage.set(RELAY_ON);
+				send(staircaseLightRelayMessage.set(RELAY_ON));
 			else
-				staircaseLightMessage.set(RELAY_OFF);
-			send(staircaseLightMessage);
+				send(staircaseLightRelayMessage.set(RELAY_OFF));
 		}
 	}
 }
@@ -214,6 +225,7 @@ void turnOffLightRelay()
 {
 	digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 	send(lightRelayMessage.set(RELAY_OFF));
+	send(staircaseLightRelayMessage.set(RELAY_OFF));
 	enableMotionSensor();
 }
 

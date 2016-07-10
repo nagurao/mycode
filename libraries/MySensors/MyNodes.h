@@ -5,8 +5,13 @@
 #define MyNodes_h
 
 #define WAIT_50MS 50
+#define ONE_MINUTE 60
+
 // Static Repeater Nodes //
 #define HALL_REPEATER_NODE 51
+#define DUSKLIGHT_WITH_PIR_NODE01 200
+#define DUSKLIGHT_WITH_PIR_NODE02 201
+#define STAIRCASE_LIGHT_NODE 202
 
 #if defined NODE_HAS_RELAY
 #define RELAY_ON 1
@@ -81,8 +86,8 @@
 
 #endif
 
-#if defined STAIRECASE_NODE
-#define STAIRCASE_NODE_ID 202
+#if defined STAIRCASE_NODE
+#define STAIRCASE_LIGHT_RELAY_ID 1
 
 #endif
 
