@@ -65,11 +65,13 @@ void receive(const MyMessage &message)
 		if (message.getInt())
 		{
 			digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
+			Alarm.delay(WAIT_50MS);
 			send(lightRelayMessage.set(RELAY_ON));
 		}
 		else
 		{
 			digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
+			Alarm.delay(WAIT_50MS);
 			send(lightRelayMessage.set(RELAY_OFF));
 
 		}
