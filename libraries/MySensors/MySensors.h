@@ -172,6 +172,11 @@
 #endif
 
 
+// FLASH
+#if defined(MY_OTA_FIRMWARE_FEATURE)
+	#include "drivers/SPIFlash/SPIFlash.cpp"
+	#include "core/MyOTAFirmwareUpdate.cpp"
+#endif
 
 // GATEWAY - TRANSPORT
 #if defined(MY_GATEWAY_MQTT_CLIENT)
@@ -195,7 +200,7 @@
 		#error You must define a unique MY_MQTT_CLIENT_ID for this MQTT client
 	#endif
 
-	#include "drivers/pubsubclient/src/PubSubClient.cpp"
+	#include "drivers/PubSubClient/PubSubClient.cpp"
 	#include "core/MyGatewayTransport.cpp"
 	#include "core/MyGatewayTransportMQTTClient.cpp"
 #elif defined(MY_GATEWAY_FEATURE)
@@ -245,11 +250,6 @@
 		#include "drivers/AVR/DigitalIO/DigitalIO.h"
 	#endif
 
-	// FLASH
-	#ifdef MY_OTA_FIRMWARE_FEATURE
-		#include "drivers/SPIFlash/SPIFlash.cpp"
-		#include "core/MyOTAFirmwareUpdate.cpp"
-	#endif
 	#include "core/MyTransport.cpp"
 	#if (defined(MY_RADIO_NRF24) && defined(MY_RADIO_RFM69)) || (defined(MY_RADIO_NRF24) && defined(MY_RS485)) || (defined(MY_RADIO_RFM69) && defined(MY_RS485))
 		#error Only one forward link driver can be activated

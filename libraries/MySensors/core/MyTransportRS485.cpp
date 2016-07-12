@@ -1,4 +1,4 @@
-/**
+/*
  * The MySensors Arduino library handles the wireless radio link and protocol
  * between your home built sensors/actuators and HA controller of choice.
  * The sensors forms a self healing radio network with optional repeaters. Each
@@ -126,7 +126,7 @@ void _serialReset(){
 // our station ID, then look for a registered command that matches the
 // command code.  If all the above is true, execute the command's
 // function.
-boolean _serialProcess()
+bool _serialProcess()
 {
     char inch;
     unsigned char i;
@@ -332,15 +332,14 @@ uint8_t transportGetAddress() {
 }
 
 
-bool transportAvailable(uint8_t *to) {
+bool transportAvailable() {
 	_serialProcess();
-	if (_packet_received == true) {
-		if (_recStation==BROADCAST_ADDRESS) {
-			*to = BROADCAST_ADDRESS;
-		}
-		else { *to = _nodeId; }
-	}
 	return _packet_received;
+}
+
+bool transportSanityCheck() {
+	// not implemented yet
+	return true;
 }
 
 uint8_t transportReceive(void* data) {

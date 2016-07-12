@@ -1,35 +1,14 @@
-#ifndef ATSHA204_H
-#define ATSHA204_H
-#if !DOXYGEN
 #include "Arduino.h"
 
-/* This is a scaled down variant of the ATSHA204 library, tweaked to meet the specific needs of the MySensors library. */
-
-/* Library return codes */
-#define SHA204_SUCCESS              ((uint8_t)  0x00) //!< Function succeeded.
-#define SHA204_PARSE_ERROR          ((uint8_t)  0xD2) //!< response status byte indicates parsing error
-#define SHA204_CMD_FAIL             ((uint8_t)  0xD3) //!< response status byte indicates command execution error
-#define SHA204_STATUS_CRC           ((uint8_t)  0xD4) //!< response status byte indicates CRC error
-#define SHA204_STATUS_UNKNOWN       ((uint8_t)  0xD5) //!< response status byte is unknown
-#define SHA204_FUNC_FAIL            ((uint8_t)  0xE0) //!< Function could not execute due to incorrect condition / state.
-#define SHA204_GEN_FAIL             ((uint8_t)  0xE1) //!< unspecified error
-#define SHA204_BAD_PARAM            ((uint8_t)  0xE2) //!< bad argument (out of range, null pointer, etc.)
-#define SHA204_INVALID_ID           ((uint8_t)  0xE3) //!< invalid device id, id not set
-#define SHA204_INVALID_SIZE         ((uint8_t)  0xE4) //!< Count value is out of range or greater than buffer size.
-#define SHA204_BAD_CRC              ((uint8_t)  0xE5) //!< incorrect CRC received
-#define SHA204_RX_FAIL              ((uint8_t)  0xE6) //!< Timed out while waiting for response. Number of bytes received is > 0.
-#define SHA204_RX_NO_RESPONSE       ((uint8_t)  0xE7) //!< Not an error while the Command layer is polling for a command response.
-#define SHA204_RESYNC_WITH_WAKEUP   ((uint8_t)  0xE8) //!< re-synchronization succeeded, but only after generating a Wake-up
-
-#define SHA204_COMM_FAIL            ((uint8_t)  0xF0) //!< Communication with device failed. Same as in hardware dependent modules.
-#define SHA204_TIMEOUT              ((uint8_t)  0xF1) //!< Timed out while waiting for response. Number of bytes received is 0.
+#ifndef sha204_library_H
+#define sha204_library_H
 
 /* bitbang_config.h */
 
 #define PORT_ACCESS_TIME  		(630)	//! time it takes to toggle the pin at CPU clock of 16 MHz (ns)
 #define START_PULSE_WIDTH  		(4340)	//! width of start pulse (ns)
 #define BIT_DELAY	      		(4)		//! delay macro for width of one pulse (start pulse or zero pulse, in ns)
-#define RX_TX_DELAY        		(15)	//! turn around time when switching from receive to transmit
+#define RX_TX_DELAY        		(15)		//! turn around time when switching from receive to transmit
 #define START_PULSE_TIME_OUT	(255)	//! This value is decremented while waiting for the falling edge of a start pulse.
 #define ZERO_PULSE_TIME_OUT		(26)	//! This value is decremented while waiting for the falling edge of a zero pulse.
 
@@ -56,16 +35,26 @@
 
 /* sha204_comm_marshaling.h */
 // command op-code definitions
+#define SHA204_CHECKMAC                 ((uint8_t) 0x28)       //!< CheckMac command op-code
+#define SHA204_DERIVE_KEY               ((uint8_t) 0x1C)       //!< DeriveKey command op-code
+#define SHA204_DEVREV                   ((uint8_t) 0x30)       //!< DevRev command op-code
 #define SHA204_GENDIG                   ((uint8_t) 0x15)       //!< GenDig command op-code
 #define SHA204_HMAC                     ((uint8_t) 0x11)       //!< HMAC command op-code
+#define SHA204_LOCK                     ((uint8_t) 0x17)       //!< Lock command op-code
+#define SHA204_MAC                      ((uint8_t) 0x08)       //!< MAC command op-code
 #define SHA204_NONCE                    ((uint8_t) 0x16)       //!< Nonce command op-code
+#define SHA204_PAUSE                    ((uint8_t) 0x01)       //!< Pause command op-code
 #define SHA204_RANDOM                   ((uint8_t) 0x1B)       //!< Random command op-code
 #define SHA204_READ                     ((uint8_t) 0x02)       //!< Read command op-code
-#define SHA204_SHA                      ((uint8_t) 0x47)       //!< SHA command op-code
+#define SHA204_UPDATE_EXTRA             ((uint8_t) 0x20)       //!< UpdateExtra command op-code
 #define SHA204_WRITE                    ((uint8_t) 0x12)       //!< Write command op-code
 
 // packet size definitions
 #define SHA204_RSP_SIZE_VAL             ((uint8_t)  7)         //!< size of response packet containing four bytes of data
+
+// parameter range definitions
+#define SHA204_KEY_ID_MAX               ((uint8_t) 15)         //!< maximum value for key id
+#define SHA204_OTP_BLOCK_MAX            ((uint8_t)  1)         //!< maximum value for OTP block
 
 // definitions for command packet indexes common to all commands
 #define SHA204_COUNT_IDX                ( 0)                   //!< command packet index for count
@@ -86,6 +75,32 @@
 #define SHA204_ADDRESS_MASK_OTP         (         0x000F)      //!< Address bits 4 to 7 are 0 for OTP zone.
 #define SHA204_ADDRESS_MASK             (         0x007F)      //!< Address bit 7 to 15 are always 0.
 
+// CheckMAC command definitions
+#define CHECKMAC_MODE_IDX               SHA204_PARAM1_IDX      //!< CheckMAC command index for mode
+#define CHECKMAC_KEYID_IDX              SHA204_PARAM2_IDX      //!< CheckMAC command index for key identifier
+#define CHECKMAC_CLIENT_CHALLENGE_IDX   SHA204_DATA_IDX        //!< CheckMAC command index for client challenge
+#define CHECKMAC_CLIENT_RESPONSE_IDX    (37)                   //!< CheckMAC command index for client response
+#define CHECKMAC_DATA_IDX               (69)                   //!< CheckMAC command index for other data
+#define CHECKMAC_COUNT                  (84)                   //!< CheckMAC command packet size
+#define CHECKMAC_MODE_MASK              ((uint8_t) 0x27)       //!< CheckMAC mode bits 3, 4, 6, and 7 are 0.
+#define CHECKMAC_CLIENT_CHALLENGE_SIZE  (32)                   //!< CheckMAC size of client challenge
+#define CHECKMAC_CLIENT_RESPONSE_SIZE   (32)                   //!< CheckMAC size of client response
+#define CHECKMAC_OTHER_DATA_SIZE        (13)                   //!< CheckMAC size of "other data"
+
+// DeriveKey command definitions
+#define DERIVE_KEY_RANDOM_IDX           SHA204_PARAM1_IDX      //!< DeriveKey command index for random bit
+#define DERIVE_KEY_TARGETKEY_IDX        SHA204_PARAM2_IDX      //!< DeriveKey command index for target slot
+#define DERIVE_KEY_MAC_IDX              SHA204_DATA_IDX        //!< DeriveKey command index for optional MAC
+#define DERIVE_KEY_COUNT_SMALL          SHA204_CMD_SIZE_MIN    //!< DeriveKey command packet size without MAC
+#define DERIVE_KEY_COUNT_LARGE          (39)                   //!< DeriveKey command packet size with MAC
+#define DERIVE_KEY_RANDOM_FLAG          ((uint8_t) 4)          //!< DeriveKey 1. parameter
+#define DERIVE_KEY_MAC_SIZE             (32)                   //!< DeriveKey MAC size
+
+// DevRev command definitions
+#define DEVREV_PARAM1_IDX               SHA204_PARAM1_IDX      //!< DevRev command index for 1. parameter (ignored)
+#define DEVREV_PARAM2_IDX               SHA204_PARAM2_IDX      //!< DevRev command index for 2. parameter (ignored)
+#define DEVREV_COUNT                    SHA204_CMD_SIZE_MIN    //!< DevRev command packet size
+
 // GenDig command definitions
 #define GENDIG_ZONE_IDX                 SHA204_PARAM1_IDX      //!< GenDig command index for zone
 #define GENDIG_KEYID_IDX                SHA204_PARAM2_IDX      //!< GenDig command index for key id
@@ -102,7 +117,30 @@
 #define HMAC_KEYID_IDX                  SHA204_PARAM2_IDX      //!< HMAC command index for key id
 #define HMAC_COUNT                      SHA204_CMD_SIZE_MIN    //!< HMAC command packet size
 #define HMAC_MODE_MASK                  ((uint8_t) 0x74)       //!< HMAC mode bits 0, 1, 3, and 7 are 0.
-#define HMAC_MODE_SOURCE_FLAG_MATCH     ((uint8_t) 0x04)       //!< HMAC mode bit  2: match TempKey.SourceFlag
+
+// Lock command definitions
+#define LOCK_ZONE_IDX                   SHA204_PARAM1_IDX      //!< Lock command index for zone
+#define LOCK_SUMMARY_IDX                SHA204_PARAM2_IDX      //!< Lock command index for summary
+#define LOCK_COUNT                      SHA204_CMD_SIZE_MIN    //!< Lock command packet size
+#define LOCK_ZONE_NO_CONFIG             ((uint8_t) 0x01)       //!< Lock zone is OTP or Data
+#define LOCK_ZONE_NO_CRC                ((uint8_t) 0x80)       //!< Lock command: Ignore summary.
+#define LOCK_ZONE_MASK                  (0x81)                 //!< Lock parameter 1 bits 2 to 6 are 0.
+
+// Mac command definitions
+#define MAC_MODE_IDX                    SHA204_PARAM1_IDX      //!< MAC command index for mode
+#define MAC_KEYID_IDX                   SHA204_PARAM2_IDX      //!< MAC command index for key id
+#define MAC_CHALLENGE_IDX               SHA204_DATA_IDX        //!< MAC command index for optional challenge
+#define MAC_COUNT_SHORT                 SHA204_CMD_SIZE_MIN    //!< MAC command packet size without challenge
+#define MAC_COUNT_LONG                  (39)                   //!< MAC command packet size with challenge
+#define MAC_MODE_BLOCK2_TEMPKEY         ((uint8_t) 0x01)       //!< MAC mode bit   0: second SHA block from TempKey
+#define MAC_MODE_BLOCK1_TEMPKEY         ((uint8_t) 0x02)       //!< MAC mode bit   1: first SHA block from TempKey
+#define MAC_MODE_SOURCE_FLAG_MATCH      ((uint8_t) 0x04)       //!< MAC mode bit   2: match TempKey.SourceFlag
+#define MAC_MODE_PASSTHROUGH            ((uint8_t) 0x07)       //!< MAC mode bit 0-2: pass-through mode
+#define MAC_MODE_INCLUDE_OTP_88         ((uint8_t) 0x10)       //!< MAC mode bit   4: include first 88 OTP bits
+#define MAC_MODE_INCLUDE_OTP_64         ((uint8_t) 0x20)       //!< MAC mode bit   5: include first 64 OTP bits
+#define MAC_MODE_INCLUDE_SN             ((uint8_t) 0x40)       //!< MAC mode bit   6: include serial number
+#define MAC_CHALLENGE_SIZE              (32)                   //!< MAC size of challenge
+#define MAC_MODE_MASK                   ((uint8_t) 0x77)       //!< MAC mode bits 3 and 7 are 0.
 
 // Nonce command definitions
 #define NONCE_MODE_IDX                  SHA204_PARAM1_IDX      //!< Nonce command index for mode
@@ -118,6 +156,11 @@
 #define NONCE_NUMIN_SIZE                (20)                   //!< Nonce data length
 #define NONCE_NUMIN_SIZE_PASSTHROUGH    (32)                   //!< Nonce data length in pass-through mode (mode = 3)
 
+// Pause command definitions
+#define PAUSE_SELECT_IDX                SHA204_PARAM1_IDX      //!< Pause command index for Selector
+#define PAUSE_PARAM2_IDX                SHA204_PARAM2_IDX      //!< Pause command index for 2. parameter
+#define PAUSE_COUNT                     SHA204_CMD_SIZE_MIN    //!< Pause command packet size
+
 // Random command definitions
 #define RANDOM_MODE_IDX                 SHA204_PARAM1_IDX      //!< Random command index for mode
 #define RANDOM_PARAM2_IDX               SHA204_PARAM2_IDX      //!< Random command index for 2. parameter
@@ -132,14 +175,11 @@
 #define READ_ZONE_MASK                  ((uint8_t) 0x83)       //!< Read zone bits 2 to 6 are 0.
 #define READ_ZONE_MODE_32_BYTES         ((uint8_t) 0x80)       //!< Read mode: 32 bytes
 
-// SHA command definitions
-#define SHA_MODE_IDX                    SHA204_PARAM1_IDX      //!< SHA command index for mode
-#define SHA_PARAM2_IDX                  SHA204_PARAM2_IDX      //!< SHA command index for 2. parameter
-#define SHA_COUNT_SHORT                 SHA204_CMD_SIZE_MIN    //!< SHA command packet size for init
-#define SHA_COUNT_LONG                  (71)                   //!< SHA command packet size for calculation
-#define SHA_MSG_SIZE                    (64)                   //!< SHA message data size
-#define SHA_INIT                        ((uint8_t) 0x00)       //!< SHA mode for init
-#define SHA_CALC                        ((uint8_t) 0x01)       //!< SHA mode for calculation
+// UpdateExtra command definitions
+#define UPDATE_MODE_IDX                  SHA204_PARAM1_IDX     //!< UpdateExtra command index for mode
+#define UPDATE_VALUE_IDX                 SHA204_PARAM2_IDX     //!< UpdateExtra command index for new value
+#define UPDATE_COUNT                     SHA204_CMD_SIZE_MIN   //!< UpdateExtra command packet size
+#define UPDATE_CONFIG_BYTE_86            ((uint8_t) 0x01)      //!< UpdateExtra mode: update Config byte 86
 
 // Write command definitions
 #define WRITE_ZONE_IDX                  SHA204_PARAM1_IDX      //!< Write command index for zone
@@ -156,33 +196,53 @@
 #define WRITE_ZONE_WITH_MAC             ((uint8_t) 0x40)       //!< Write zone bit 6: write encrypted with MAC
 
 // Response size definitions
+#define CHECKMAC_RSP_SIZE               SHA204_RSP_SIZE_MIN    //!< response size of DeriveKey command
+#define DERIVE_KEY_RSP_SIZE             SHA204_RSP_SIZE_MIN    //!< response size of DeriveKey command
+#define DEVREV_RSP_SIZE                 SHA204_RSP_SIZE_VAL    //!< response size of DevRev command returns 4 bytes
 #define GENDIG_RSP_SIZE                 SHA204_RSP_SIZE_MIN    //!< response size of GenDig command
 #define HMAC_RSP_SIZE                   SHA204_RSP_SIZE_MAX    //!< response size of HMAC command
+#define LOCK_RSP_SIZE                   SHA204_RSP_SIZE_MIN    //!< response size of Lock command
+#define MAC_RSP_SIZE                    SHA204_RSP_SIZE_MAX    //!< response size of MAC command
 #define NONCE_RSP_SIZE_SHORT            SHA204_RSP_SIZE_MIN    //!< response size of Nonce command with mode[0:1] = 3
 #define NONCE_RSP_SIZE_LONG             SHA204_RSP_SIZE_MAX    //!< response size of Nonce command
+#define PAUSE_RSP_SIZE                  SHA204_RSP_SIZE_MIN    //!< response size of Pause command
 #define RANDOM_RSP_SIZE                 SHA204_RSP_SIZE_MAX    //!< response size of Random command
 #define READ_4_RSP_SIZE                 SHA204_RSP_SIZE_VAL    //!< response size of Read command when reading 4 bytes
 #define READ_32_RSP_SIZE                SHA204_RSP_SIZE_MAX    //!< response size of Read command when reading 32 bytes
-#define SHA_RSP_SIZE_SHORT              SHA204_RSP_SIZE_MIN    //!< response size of SHA command with mode[0:1] = 0
-#define SHA_RSP_SIZE_LONG               SHA204_RSP_SIZE_MAX    //!< response size of SHA command
+#define TEMP_SENSE_RSP_SIZE             SHA204_RSP_SIZE_VAL    //!< response size of TempSense command returns 4 bytes
+#define UPDATE_RSP_SIZE                 SHA204_RSP_SIZE_MIN    //!< response size of UpdateExtra command
 #define WRITE_RSP_SIZE                  SHA204_RSP_SIZE_MIN    //!< response size of Write command
 
 // command timing definitions for minimum execution times (ms)
+#define CHECKMAC_DELAY                  ((uint8_t) (12.0 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
+#define DERIVE_KEY_DELAY                ((uint8_t) (14.0 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
+#define DEVREV_DELAY                    ((uint8_t) ( 0.4 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
 #define GENDIG_DELAY                    ((uint8_t) (11.0 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
 #define HMAC_DELAY                      ((uint8_t) (27.0 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
+#define LOCK_DELAY                      ((uint8_t) ( 5.0 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
+#define MAC_DELAY                       ((uint8_t) (12.0 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
 #define NONCE_DELAY                     ((uint8_t) (22.0 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
+#define PAUSE_DELAY                     ((uint8_t) ( 0.4 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
 #define RANDOM_DELAY                    ((uint8_t) (11.0 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
 #define READ_DELAY                      ((uint8_t) ( 0.4 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
-#define SHA_DELAY                       ((uint8_t) (11.0 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
+#define TEMP_SENSE_DELAY                ((uint8_t) ( 4.0 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
+#define UPDATE_DELAY                    ((uint8_t) ( 4.0 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
 #define WRITE_DELAY                     ((uint8_t) ( 4.0 * CPU_CLOCK_DEVIATION_NEGATIVE - 0.5))
 
 // command timing definitions for maximum execution times (ms)
+#define CHECKMAC_EXEC_MAX                ((uint8_t) (38.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
+#define DERIVE_KEY_EXEC_MAX              ((uint8_t) (62.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
+#define DEVREV_EXEC_MAX                  ((uint8_t) ( 2.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
 #define GENDIG_EXEC_MAX                  ((uint8_t) (43.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
 #define HMAC_EXEC_MAX                    ((uint8_t) (69.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
+#define LOCK_EXEC_MAX                    ((uint8_t) (24.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
+#define MAC_EXEC_MAX                     ((uint8_t) (35.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
 #define NONCE_EXEC_MAX                   ((uint8_t) (60.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
+#define PAUSE_EXEC_MAX                   ((uint8_t) ( 2.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
 #define RANDOM_EXEC_MAX                  ((uint8_t) (50.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
 #define READ_EXEC_MAX                    ((uint8_t) ( 4.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
-#define SHA_EXEC_MAX                     ((uint8_t) (22.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
+#define TEMP_SENSE_EXEC_MAX              ((uint8_t) (11.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
+#define UPDATE_EXEC_MAX                  ((uint8_t) ( 6.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
 #define WRITE_EXEC_MAX                   ((uint8_t) (42.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))
 
 /* from sha204_config.h */
@@ -200,7 +260,7 @@
 #define SHA204_COMMAND_EXEC_MAX      ((uint8_t) (69.0 * CPU_CLOCK_DEVIATION_POSITIVE + 0.5))  //! maximum command delay
 #define SHA204_CMD_SIZE_MIN          ((uint8_t)  7)  //! minimum number of bytes in command (from count byte to second CRC byte)
 #ifndef SHA204_CMD_SIZE_MAX
-#define SHA204_CMD_SIZE_MAX          ((uint8_t) SHA_COUNT_LONG)  //! maximum size of command packet (SHA)
+#define SHA204_CMD_SIZE_MAX          ((uint8_t) 84)  //! maximum size of command packet (CheckMac)
 #endif
 #define SHA204_CRC_SIZE              ((uint8_t)  2)  //! number of CRC bytes
 #define SHA204_BUFFER_POS_STATUS     (1)  //! buffer index of status byte in status response
@@ -212,16 +272,14 @@
 
 /* EEPROM Addresses */
 /* Configuration Zone */
-#define ADDRESS_SN03        0   // SN[0:3] are bytes 0->3 of configuration zone
-#define ADDRESS_RevNum      4   // bytes 4->7 of config zone are RevNum
-#define ADDRESS_SN47        8   // SN[4:7] are bytes 8->11 of config zone
-#define ADDRESS_SN8         12  // SN[8] is byte 12 of config zone, should be 0xEE
-#define ADDRESS_I2CEN       14  // I2C Enable, bit 0 represents I2C enable status
-#define ADDRESS_I2CADD      16  // Defines I2C address of SHA204
-#define ADDRESS_OTPMODE     18  // Sets the One-time-programmable mode
-#define ADDRESS_SELECTOR    19  // Controls writability of Selector
-
-#define SHA204_SERIAL_SZ    9   // The number of bytes the serial number consists of
+#define ADDRESS_SN03		0	// SN[0:3] are bytes 0->3 of configuration zone
+#define ADDRESS_RevNum		4	// bytes 4->7 of config zone are RevNum
+#define ADDRESS_SN47		8	// SN[4:7] are bytes 8->11 of config zone
+#define ADDRESS_SN8			12	// SN[8] is byte 12 of config zone, should be 0xEE
+#define ADDRESS_I2CEN		14	// I2C Enable, bit 0 represents I2C enable status
+#define ADDRESS_I2CADD		16	// Defines I2C address of SHA204
+#define	ADDRESS_OTPMODE		18	// Sets the One-time-programmable mode
+#define	ADDRESS_SELECTOR	19	// Controls writability of Selector
 
 /* Low level HW access macros */
 /* function calls is not working, as it will have too much overhead */
@@ -239,14 +297,44 @@
 #define SHA204_PIN_READ() (*device_port_IN & device_pin)
 #endif
 
-void atsha204_init(uint8_t pin);
-void atsha204_idle(void);
-void atsha204_sleep(void);
-uint8_t atsha204_wakeup(uint8_t *response);
-uint8_t atsha204_execute(uint8_t op_code, uint8_t param1, uint16_t param2,
-												uint8_t datalen1, uint8_t *data1, uint8_t tx_size,
-												uint8_t *tx_buffer, uint8_t rx_size, uint8_t *rx_buffer);
-uint8_t atsha204_getSerialNumber(uint8_t *response);
+class atsha204Class
+{
+private:
+	uint8_t device_pin;
+	#ifdef ARDUINO_ARCH_AVR
+	volatile uint8_t *device_port_DDR, *device_port_OUT, *device_port_IN;
+	#endif
+	void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc);
+	uint8_t sha204c_check_crc(uint8_t *response);
+	void swi_set_signal_pin(uint8_t is_high);
+	uint8_t swi_receive_bytes(uint8_t count, uint8_t *buffer);
+	uint8_t swi_send_bytes(uint8_t count, uint8_t *buffer);
+	uint8_t swi_send_byte(uint8_t value);
+	uint8_t sha204p_receive_response(uint8_t size, uint8_t *response);
+	uint8_t sha204p_wakeup();
+	uint8_t sha204p_send_command(uint8_t count, uint8_t * command);
+	uint8_t sha204p_sleep();
+	uint8_t sha204p_resync(uint8_t size, uint8_t *response);
+	
 
-#endif
+public:
+	atsha204Class(uint8_t pin);	// Constructor
+	uint8_t sha204c_wakeup(uint8_t *response);
+	uint8_t sha204c_send_and_receive(uint8_t *tx_buffer, uint8_t rx_size, uint8_t *rx_buffer, uint8_t execution_delay, uint8_t execution_timeout);
+	uint8_t sha204c_resync(uint8_t size, uint8_t *response);	
+	uint8_t sha204m_random(uint8_t * tx_buffer, uint8_t * rx_buffer, uint8_t mode);
+	uint8_t sha204m_dev_rev(uint8_t *tx_buffer, uint8_t *rx_buffer);
+	uint8_t sha204m_read(uint8_t *tx_buffer, uint8_t *rx_buffer, uint8_t zone, uint16_t address);
+	uint8_t sha204m_execute(uint8_t op_code, uint8_t param1, uint16_t param2,
+			uint8_t datalen1, uint8_t *data1, uint8_t datalen2, uint8_t *data2, uint8_t datalen3, uint8_t *data3,
+			uint8_t tx_size, uint8_t *tx_buffer, uint8_t rx_size, uint8_t *rx_buffer);
+	uint8_t sha204m_check_parameters(uint8_t op_code, uint8_t param1, uint16_t param2,
+			uint8_t datalen1, uint8_t *data1, uint8_t datalen2, uint8_t *data2, uint8_t datalen3, uint8_t *data3,
+			uint8_t tx_size, uint8_t *tx_buffer, uint8_t rx_size, uint8_t *rx_buffer);
+
+	uint8_t getSerialNumber(uint8_t *response);
+	uint16_t calculateAndUpdateCrc(uint8_t length, uint8_t *data, uint16_t current_crc);
+	
+};
+
 #endif
