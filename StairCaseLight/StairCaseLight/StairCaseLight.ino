@@ -24,6 +24,7 @@
 boolean lightStatusReceived;
 boolean sendLightStatusRequest;
 AlarmId lightStatusTimer;
+AlarmId heartbeatTimer;
 
 MyMessage lightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
 
@@ -37,6 +38,7 @@ void setup()
 	digitalWrite(LIGHT_RELAY_PIN, LOW);
 	lightStatusReceived = false;
 	sendLightStatusRequest = true;
+	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
 void presentation()
