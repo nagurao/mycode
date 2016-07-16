@@ -35,6 +35,7 @@ boolean sendlightOnDurationRequest;
 AlarmId motionSensor;
 AlarmId currModeTimer;
 AlarmId lightOnDurationTimer;
+AlarmId heartbeatTimer;
 
 MyMessage sensorMessage(MOTION_SENSOR_ID, V_TRIPPED);
 MyMessage lightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
@@ -61,6 +62,7 @@ void setup()
 	staircaseLightRelayMessage.setSensor(STAIRCASE_LIGHT_RELAY_ID);
 	currModeRequestCount = 0;
 	lightOnDurationRequestCount = 0;
+	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
 void presentation()

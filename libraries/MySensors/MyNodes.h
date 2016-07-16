@@ -6,6 +6,7 @@
 
 #define WAIT_50MS 50
 #define ONE_MINUTE 60
+#define HEARTBEAT_INTERVAL 600
 
 // Static Repeater Nodes //
 #define HALL_REPEATER_NODE 51
