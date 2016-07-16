@@ -19,14 +19,30 @@
 #define RELAY_OFF 0
 #endif
 
+#if defined NODE_INTERACTS_WITH_RELAY
+#define RELAY_ON 1
+#define RELAY_OFF 0
+#endif
+
 // Sensor Nodes and there child sensors
 
 #if defined TANK01_NODE
 #define TANK_01_NODE_ID 101
 #endif
 
-#if defined TANK02_NODE
-#define TANK_02_NODE_ID 102
+#if defined OVERHEAD_TANK_02_NODE
+#define OVERHEAD_TANK_02_NODE_ID 102
+#define SUMP_RELAY_NODE_ID 110
+#define SUMP_RELAY_ID 1
+
+#define SENSOR_1 0
+#define SENSOR_2 1
+#define SENSOR_3 2
+#define SENSOR_4 3
+#define SENSOR_5 4
+
+#define LOW_LEVEL_SENSOR_ID 1
+
 #endif
 
 #if defined TANK03_NODE
