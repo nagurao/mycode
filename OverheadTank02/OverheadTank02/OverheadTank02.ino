@@ -15,8 +15,12 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Overhead Tank 02"
-#define APPLICATION_VERSION "16Jul2016"
+#define APPLICATION_VERSION "22Jul2016"
 #define NUMBER_OF_SENSORS 5
+#define DEFAULT_LOW_LEVEL NUMBER_OF_SENSORS/2
+#define DEFAULT_POLL_INTERVAL_SECS 900
+#define RISING_LEVEL_POLL_INTERVAL_SECS 60
+
 #define SENSOR_1_PIN 4
 #define SENSOR_2_PIN 5
 #define SENSOR_3_PIN 6
@@ -31,10 +35,13 @@
 
 boolean waterLowLevelSensorReceived;
 boolean sendWaterLowLevelSensorRequest;
+boolean isWaterLevelRising;
+byte sendWaterLowLevelSensorRequesCount;
+byte lowLevel;
 
 AlarmId waterLowLevelSensorTimer;
 AlarmId heartbeatTimer;
-
+AlarmId pollingTimer;
 MyMessage lightRelayMessage(SUMP_RELAY_ID, V_STATUS);
 
 void before()
@@ -51,6 +58,8 @@ void setup()
 	waterLowLevelSensorReceived = false;
 	sendWaterLowLevelSensorRequest = true;
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
+	sendWaterLowLevelSensorRequesCount = 0;
+	isWaterLevelRising = false;
 }
 
 void presentation()
@@ -67,6 +76,12 @@ void loop()
 		waterLowLevelSensorReceived = false;
 		waterLowLevelSensorTimer = Alarm.timerOnce(ONE_MINUTE, checkWaterLevelStatusRequest);
 		request(LOW_LEVEL_SENSOR_ID, V_VAR1);
+		sendWaterLowLevelSensorRequesCount++;
+		if (sendWaterLowLevelSensorRequesCount == 10)
+		{
+			MyMessage lowLevelMessage(LOW_LEVEL_SENSOR_ID, V_VAR1);
+			send(lowLevelMessage.set(DEFAULT_LOW_LEVEL));
+		}
 	}
 
 	Alarm.delay(1);
@@ -77,25 +92,17 @@ void receive(const MyMessage &message)
 	if (message.type == V_VAR1)
 	{
 		byte receivedLevel = message.getByte();
-
-		if (message.getInt())
-		{
-			digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
-			Alarm.delay(WAIT_50MS);
-			send(lightRelayMessage.set(RELAY_ON));
-		}
+		if (receivedLevel >= NUMBER_OF_SENSORS)
+			lowLevel = DEFAULT_LOW_LEVEL;
 		else
-		{
-			digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
-			Alarm.delay(WAIT_50MS);
-			send(lightRelayMessage.set(RELAY_OFF));
+			lowLevel = receivedLevel;
 
-		}
-		if (!lightStatusReceived)
+		if (!waterLowLevelSensorReceived)
 		{
-			lightStatusReceived = true;
-			Alarm.free(lightStatusTimer);
-			sendLightStatusRequest = false;
+			waterLowLevelSensorReceived = true;
+			Alarm.free(waterLowLevelSensorTimer);
+			sendWaterLowLevelSensorRequest = false;
+			pollingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_INTERVAL_SECS, getWaterLevel);
 		}
 	}
 }
@@ -104,4 +111,9 @@ void checkWaterLevelStatusRequest()
 {
 	if (!waterLowLevelSensorReceived)
 		sendWaterLowLevelSensorRequest = true;
+}
+
+void getWaterLevel()
+{
+
 }
