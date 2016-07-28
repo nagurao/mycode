@@ -27,22 +27,18 @@
 #define SENSOR_4_PIN 7
 #define SENSOR_5_PIN 8
 
-#define SENSOR_1 1
-#define SENSOR_2 1
-#define SENSOR_3 1
-#define SENSOR_4 1
-#define SENSOR_5 1
-
 boolean waterLowLevelSensorReceived;
 boolean sendWaterLowLevelSensorRequest;
 boolean isWaterLevelRising;
 byte sendWaterLowLevelSensorRequesCount;
 byte lowLevel;
-
+byte prevLevel;
 AlarmId waterLowLevelSensorTimer;
 AlarmId heartbeatTimer;
 AlarmId pollingTimer;
 MyMessage lightRelayMessage(SUMP_RELAY_ID, V_STATUS);
+MyMessage lcdDisplayMessage(LCD_DISPLAY_ID, V_TEXT);
+MyMessage sumpRelayMessage(SUMP_RELAY_ID, V_STATUS);
 
 void before()
 {
@@ -60,6 +56,14 @@ void setup()
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	sendWaterLowLevelSensorRequesCount = 0;
 	isWaterLevelRising = false;
+	lcdDisplayMessage.setDestination(LCD_DISPLAY_NODE_ID);
+	lcdDisplayMessage.setType(V_TEXT);
+	lcdDisplayMessage.setSensor(LCD_DISPLAY_ID);
+	sumpRelayMessage.setDestination(SUMP_RELAY_NODE_ID);
+	sumpRelayMessage.setType(V_STATUS);
+	sumpRelayMessage.setSensor(SUMP_RELAY_ID);
+	prevLevel = 0;
+	getWaterLevel();
 }
 
 void presentation()
@@ -102,7 +106,6 @@ void receive(const MyMessage &message)
 			waterLowLevelSensorReceived = true;
 			Alarm.free(waterLowLevelSensorTimer);
 			sendWaterLowLevelSensorRequest = false;
-			pollingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_INTERVAL_SECS, getWaterLevel);
 		}
 	}
 }
@@ -115,5 +118,54 @@ void checkWaterLevelStatusRequest()
 
 void getWaterLevel()
 {
+	byte sensorArray[NUMBER_OF_SENSORS] = { SENSOR_1_PIN,SENSOR_2_PIN,SENSOR_3_PIN,SENSOR_4_PIN,SENSOR_5_PIN };
+	byte sensorData[NUMBER_OF_SENSORS] = { 0,0,0,0,0 };
+	byte dec = pow(2, NUMBER_OF_SENSORS);
+	byte currLevel = 0;
+	byte sensor;
+	byte pin;
+	for (sensor = 0, pin = sensorArray[sensor]; sensor < NUMBER_OF_SENSORS; sensor++)
+	{
+		sensorData[sensor] = digitalRead(sensorArray[sensor]);
+		if (sensorData[sensor] = HIGH)
+		{
+			sensor = NUMBER_OF_SENSORS;
+			currLevel = currLevel + dec;
+		}
+		dec = dec / 2;
+	}
+	
+	if(sensor == lowLevel)
+		send(sumpRelayMessage.set(RELAY_ON));
 
+	if (currLevel <= prevLevel)
+	{
+		Alarm.free(pollingTimer);
+		isWaterLevelRising = false;
+		pollingTimer = Alarm.timerRepeat(DEFAULT_POLL_INTERVAL_SECS, getWaterLevel);
+	}
+	else
+	{
+		Alarm.free(pollingTimer);
+		isWaterLevelRising = true;
+		pollingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_INTERVAL_SECS, getWaterLevel);
+	}
+
+	switch (currLevel)
+	{
+	case 0: send(sumpRelayMessage.set(RELAY_OFF));
+			Alarm.delay(WAIT_50MS);
+			send(lcdDisplayMessage.set("100"));
+			break;
+	case 1: send(lcdDisplayMessage.set("100"));
+			break;
+	case 2: send(lcdDisplayMessage.set("80"));
+			break;
+	case 4: send(lcdDisplayMessage.set("60"));
+			break;
+	case 8: send(lcdDisplayMessage.set("40"));
+			break;
+	case 16: send(lcdDisplayMessage.set("20"));
+			break;
+	}
 }

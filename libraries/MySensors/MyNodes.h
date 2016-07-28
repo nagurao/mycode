@@ -10,6 +10,7 @@
 
 // Static Repeater Nodes //
 #define HALL_REPEATER_NODE 51
+
 #define BALCONYLIGHT_WITH_PIR_NODE 200
 #define GATELIGHT_WITH_PIR_NODE 201
 #define STAIRCASE_LIGHT_NODE 202
@@ -34,6 +35,8 @@
 #define OVERHEAD_TANK_02_NODE_ID 102
 #define SUMP_RELAY_NODE_ID 110
 #define SUMP_RELAY_ID 1
+#define LCD_DISPLAY_NODE_ID 150
+#define LCD_DISPLAY_ID 1
 
 #define SENSOR_1 0
 #define SENSOR_2 1
@@ -65,7 +68,7 @@
 #define TRIGGER_PIN 6
 */
 #if defined SUMP_NODE
-#define SUMP_RELAY_NODE_ID 105
+#define SUMP_RELAY_NODE_ID 100
 #define SUMP_RELAY_SENSOR_ID 1
 #endif
 
