@@ -10,7 +10,8 @@
 
 // Static Repeater Nodes //
 #define HALL_REPEATER_NODE 51
-
+#define THINGSPEAK_NODE 50
+#define OVERHEAD_TANK_02_NODE_ID 102
 #define BALCONYLIGHT_WITH_PIR_NODE 200
 #define GATELIGHT_WITH_PIR_NODE 201
 #define STAIRCASE_LIGHT_NODE 202
@@ -32,7 +33,6 @@
 #endif
 
 #if defined OVERHEAD_TANK_02_NODE
-#define OVERHEAD_TANK_02_NODE_ID 102
 #define SUMP_RELAY_NODE_ID 110
 #define SUMP_RELAY_ID 1
 #define LCD_DISPLAY_NODE_ID 150
@@ -111,12 +111,19 @@
 
 #endif
 
+#if defined WIFI_NODE
+char ssid[] = "NAGU";          //  your network SSID (name) 
+char pass[] = "4ever.Nagu";   // your network password
+
+#endif
 void LOG(char *logmessage)
 {
 #if defined LOG_THIS_NODE_DATA
 	Serial.println(logmessage);
 #endif
 }
+
+
 
 #endif
 
