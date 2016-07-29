@@ -6,10 +6,9 @@
 #include <SPI.h>
 
 #define WIFI_NODE
-
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID THINGSPEAK_NODE
+#define MY_NODE_ID THINGSPEAK_NODE_ID
 #define MY_DEBUG
 
 #include <MyNodes.h>
@@ -57,6 +56,7 @@ void setup()
 void presentation()
 {
 	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
+	present(WIFI_NODEMCU_ID, S_CUSTOM, "Channel Data");
 }
 
 void loop()

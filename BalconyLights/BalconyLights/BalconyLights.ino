@@ -18,7 +18,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "PIR Balcony Light"
-#define APPLICATION_VERSION "11Jul2016"
+#define APPLICATION_VERSION "29Jul2016"
 #define SENSOR_POLL_TIME 120
 #define DEFAULT_CURR_MODE 0
 #define DEFAULT_LIGHT_ON_DURATION 300
@@ -42,7 +42,7 @@ AlarmId heartbeatTimer;
 MyMessage sensorMessage(MOTION_SENSOR_ID, V_TRIPPED);
 MyMessage lightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
 MyMessage staircaseLightRelayMessage(STAIRCASE_LIGHT_RELAY_ID, V_STATUS);
-
+MyMessage thingspeakMessage(WIFI_NODEMCU_ID,V_CUSTOM);
 
 void before()
 {
@@ -62,6 +62,9 @@ void setup()
 	staircaseLightRelayMessage.setDestination(STAIRCASE_LIGHT_NODE);
 	staircaseLightRelayMessage.setType(V_STATUS);
 	staircaseLightRelayMessage.setSensor(STAIRCASE_LIGHT_RELAY_ID);
+	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
+	thingspeakMessage.setType(V_CUSTOM);
+	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 	currModeRequestCount = 0;
 	lightOnDurationRequestCount = 0;
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
@@ -141,6 +144,7 @@ void receive(const MyMessage &message)
 			case STANDBY_MODE:
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 				send(lightRelayMessage.set(RELAY_OFF));
+				send(thingspeakMessage.set(RELAY_OFF));
 				send(staircaseLightRelayMessage.set(RELAY_OFF));
 				disableMotionSensor();
 				currMode = message.getInt();
@@ -148,6 +152,7 @@ void receive(const MyMessage &message)
 			case DUSKLIGHT_MODE:
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 				send(lightRelayMessage.set(RELAY_ON));
+				send(thingspeakMessage.set(RELAY_ON));
 				send(staircaseLightRelayMessage.set(RELAY_ON));
 				disableMotionSensor();
 				currMode = message.getInt();
@@ -155,6 +160,7 @@ void receive(const MyMessage &message)
 			case SENSOR_MODE:
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 				send(lightRelayMessage.set(RELAY_OFF));
+				send(thingspeakMessage.set(RELAY_OFF));
 				trippMessageToRelay = false;
 				send(staircaseLightRelayMessage.set(RELAY_OFF));
 				enableMotionSensor();
@@ -166,12 +172,14 @@ void receive(const MyMessage &message)
 				{
 					digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 					send(lightRelayMessage.set(RELAY_OFF));
+					send(thingspeakMessage.set(RELAY_OFF));
 					send(staircaseLightRelayMessage.set(RELAY_OFF));
 				}
 				else
 				{
 					digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 					send(lightRelayMessage.set(RELAY_ON));
+					send(thingspeakMessage.set(RELAY_ON));
 					send(staircaseLightRelayMessage.set(RELAY_ON));
 				}
 				currMode = message.getInt();
@@ -245,6 +253,7 @@ void turnOffLightRelay()
 {
 	digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 	send(lightRelayMessage.set(RELAY_OFF));
+	send(thingspeakMessage.set(RELAY_OFF));
 	send(staircaseLightRelayMessage.set(RELAY_OFF));
 	enableMotionSensor();
 }
