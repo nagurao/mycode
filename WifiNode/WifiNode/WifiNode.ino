@@ -26,7 +26,7 @@
 #define TANK03_LEVEL_FIELD 6
 #define SUMP_MOTOR_FIELD 7
 #define BOREWELL_FIELD 8
-#define THINGSPEAK_INTERVAL 20000
+#define THINGSPEAK_INTERVAL 20
 
 int status = WL_IDLE_STATUS;
 WiFiClient  client;
@@ -35,7 +35,7 @@ unsigned long myChannelNumber = 140352;
 const char * myWriteAPIKey = "E1Y9BE8CO5E7J8WR";
 const char * myReadAPIKey = "4LVCQYHL7A58MOTU";
 
-byte channelData[8] = { 0,0,0,0,0,0,0,0 };
+int channelData[8] = { -1,-1,-1,-1,-1,-1,-1,-1 };
 byte channelId;
 AlarmId heartbeatTimer;
 AlarmId thingspeakTimer;
@@ -68,7 +68,7 @@ void receive(const MyMessage &message)
 {
 	switch (message.type)
 	{
-	case V_STATUS: 
+	case V_CUSTOM: 
 		switch (message.sender)
 		{
 		case BALCONYLIGHT_WITH_PIR_NODE:
@@ -94,59 +94,63 @@ void receive(const MyMessage &message)
 
 void sendDataToThingspeak()
 {
-	boolean channelDataFound = false;
+	Serial.println("sendDataToThingspeak");
+	boolean channelDataNotFound = true;
 	byte startPos = channelId;
-	while (channelDataFound)
+	while (channelDataNotFound)
 	{
-		if (channelData[channelId] != 0)
+		Serial.print(channelId);
+		Serial.print(" - ");
+		Serial.println(channelData[channelId]);
+		if (channelData[channelId] != -1)
 		{
 			switch (channelData[channelId])
 			{
 				case BALCONY_LIGHTS_FIELD:
 					ThingSpeak.writeField(myChannelNumber, BALCONY_LIGHTS_FIELD, channelData[channelId], myWriteAPIKey);
-					channelData[channelId] = 0;
-					channelDataFound = true;
+					channelData[channelId] = -1;
+					channelDataNotFound = false;
 					break;
 				case STAIRCASE_LIGHTS_FIELD:
 					ThingSpeak.writeField(myChannelNumber, STAIRCASE_LIGHTS_FIELD, channelData[channelId], myWriteAPIKey);
-					channelData[channelId] = 0;
-					channelDataFound = true;
+					channelData[channelId] = -1;
+					channelDataNotFound = false;
 					break;
 				case GATE_LIGHTS_FIELD:
 					ThingSpeak.writeField(myChannelNumber, GATE_LIGHTS_FIELD, channelData[channelId], myWriteAPIKey);
-					channelData[channelId] = 0;
-					channelDataFound = true;
+					channelData[channelId] = -1;
+					channelDataNotFound = false;
 					break;
 				case TANK01_LEVEL_FIELD:
 					ThingSpeak.writeField(myChannelNumber, TANK01_LEVEL_FIELD, channelData[channelId], myWriteAPIKey);
-					channelData[channelId] = 0;
-					channelDataFound = true;
+					channelData[channelId] = -1;
+					channelDataNotFound = false;
 					break;
 				case TANK02_LEVEL_FIELD:
 					ThingSpeak.writeField(myChannelNumber, TANK02_LEVEL_FIELD, channelData[channelId], myWriteAPIKey);
-					channelData[channelId] = 0;
-					channelDataFound = true;
+					channelData[channelId] = -1;
+					channelDataNotFound = false;
 					break;
 				case TANK03_LEVEL_FIELD:
 					ThingSpeak.writeField(myChannelNumber, TANK03_LEVEL_FIELD, channelData[channelId], myWriteAPIKey);
-					channelData[channelId] = 0;
-					channelDataFound = true;
+					channelData[channelId] = -1;
+					channelDataNotFound = false;
 					break;
 				case SUMP_MOTOR_FIELD:
 					ThingSpeak.writeField(myChannelNumber, SUMP_MOTOR_FIELD, channelData[channelId], myWriteAPIKey);
-					channelData[channelId] = 0;
-					channelDataFound = true;
+					channelData[channelId] = -1;
+					channelDataNotFound = false;
 					break;
 				case BOREWELL_FIELD:
 					ThingSpeak.writeField(myChannelNumber, BOREWELL_FIELD, channelData[channelId], myWriteAPIKey);
-					channelData[channelId] = 0;
-					channelDataFound = true;
+					channelData[channelId] = -1;
+					channelDataNotFound = false;
 					break;
 			}
 		}
 		channelId = (channelId + 1) % 8;
 		if (channelId == startPos)
-			channelDataFound = true;
+			channelDataNotFound = false;
 
 	}
 }

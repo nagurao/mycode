@@ -124,6 +124,7 @@ void loop()
 			send(lightRelayMessage.set(RELAY_ON));
 			trippMessageToRelay = true;
 			send(staircaseLightRelayMessage.set(RELAY_ON));
+			send(thingspeakMessage.set(RELAY_ON));
 			Alarm.timerOnce(lightOnDuration, turnOffLightRelay);
 			disableMotionSensor();
 			tripped = false;
