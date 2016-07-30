@@ -4,17 +4,18 @@
 #ifndef MyNodes_h
 #define MyNodes_h
 
+#define WAIT_10MS 10
 #define WAIT_50MS 50
 #define ONE_MINUTE 60
 #define HEARTBEAT_INTERVAL 600
+
+ // NodeMCU Wifi Node details
+#define THINGSPEAK_NODE_ID 254
 #define WIFI_NODEMCU_ID 1
 
-// Static Repeater Nodes //
+#define GATELIGHT_WITH_PIR_NODE 4
 #define OVERHEAD_TANK_02_NODE_ID 102
-#define BALCONYLIGHT_WITH_PIR_NODE 200
-#define GATELIGHT_WITH_PIR_NODE 201
-#define STAIRCASE_LIGHT_NODE 202
-#define THINGSPEAK_NODE_ID 254
+
 
 #if defined NODE_HAS_RELAY
 #define RELAY_ON 1
@@ -107,8 +108,9 @@
 #endif
 
 #if defined STAIRCASE_NODE
+#define BALCONYLIGHT_WITH_PIR_NODE 2
+#define STAIRCASE_LIGHT_NODE 3
 #define STAIRCASE_LIGHT_RELAY_ID 1
-
 #endif
 
 #if defined WIFI_NODE

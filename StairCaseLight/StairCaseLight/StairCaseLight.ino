@@ -19,10 +19,11 @@
 
 #define LIGHT_RELAY_PIN 7
 #define LIGHT_RELAY_ID 1
-#define DUSK_LIGHT_RELAY_ID 2
+#define BALCONY_LIGHT_RELAY_ID 2
 
 boolean lightStatusReceived;
 boolean sendLightStatusRequest;
+byte lightStatusRequstCount;
 AlarmId lightStatusTimer;
 AlarmId heartbeatTimer;
 
@@ -39,6 +40,7 @@ void setup()
 	digitalWrite(LIGHT_RELAY_PIN, LOW);
 	lightStatusReceived = false;
 	sendLightStatusRequest = true;
+	lightStatusRequstCount = 0;
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	thingspeakMessage.setType(V_CUSTOM);
@@ -59,8 +61,15 @@ void loop()
 	if (sendLightStatusRequest)
 	{
 		sendLightStatusRequest = false;
+		request(BALCONY_LIGHT_RELAY_ID, V_STATUS, BALCONYLIGHT_WITH_PIR_NODE);
 		lightStatusTimer = Alarm.timerOnce(ONE_MINUTE, checkLightStatusRequest);
-		request(DUSK_LIGHT_RELAY_ID , V_STATUS, BALCONYLIGHT_WITH_PIR_NODE);
+		lightStatusRequstCount++;
+		if (lightStatusRequstCount == 10)
+		{
+			lightStatusReceived = true;
+			Alarm.free(lightStatusTimer);
+			sendLightStatusRequest = false;
+		}
 	}
 	Alarm.delay(1);
 }
