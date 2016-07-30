@@ -1,4 +1,5 @@
 #include <TimeAlarms.h>
+#include <TimeLib.h>
 #include <Time.h>
 #include <SPI.h>
 
@@ -16,7 +17,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "PIR Gate Light"
-#define APPLICATION_VERSION "11Jul2016"
+#define APPLICATION_VERSION "31Jul2016"
 #define SENSOR_POLL_TIME 120
 #define DEFAULT_CURR_MODE 0
 #define DEFAULT_LIGHT_ON_DURATION 300
@@ -35,11 +36,12 @@ boolean sendlightOnDurationRequest;
 AlarmId motionSensor;
 AlarmId currModeTimer;
 AlarmId lightOnDurationTimer;
+AlarmId heartbeatTimer;
 
 MyMessage sensorMessage(MOTION_SENSOR_ID, V_TRIPPED);
 MyMessage lightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
 MyMessage staircaseLightRelayMessage(STAIRCASE_LIGHT_RELAY_ID, V_STATUS);
-
+MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 
 void before()
 {
@@ -59,8 +61,12 @@ void setup()
 	staircaseLightRelayMessage.setDestination(STAIRCASE_LIGHT_NODE);
 	staircaseLightRelayMessage.setType(V_STATUS);
 	staircaseLightRelayMessage.setSensor(STAIRCASE_LIGHT_RELAY_ID);
+	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
+	thingspeakMessage.setType(V_CUSTOM);
+	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 	currModeRequestCount = 0;
 	lightOnDurationRequestCount = 0;
+	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
 void presentation()
@@ -77,6 +83,8 @@ void presentation()
 	send(sensorMessage.set(NO_MOTION_DETECTED));
 	wait(WAIT_50MS);
 	send(lightRelayMessage.set(RELAY_OFF));
+	wait(WAIT_50MS);
+	send(thingspeakMessage.set(RELAY_OFF));
 }
 
 void loop()
@@ -115,6 +123,7 @@ void loop()
 			send(lightRelayMessage.set(RELAY_ON));
 			trippMessageToRelay = true;
 			send(staircaseLightRelayMessage.set(RELAY_ON));
+			send(thingspeakMessage.set(RELAY_ON));
 			Alarm.timerOnce(lightOnDuration, turnOffLightRelay);
 			disableMotionSensor();
 			tripped = false;
@@ -135,18 +144,21 @@ void receive(const MyMessage &message)
 			case STANDBY_MODE:
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 				send(lightRelayMessage.set(RELAY_OFF));
+				send(thingspeakMessage.set(RELAY_OFF));
 				disableMotionSensor();
 				currMode = message.getInt();
 				break;
 			case DUSKLIGHT_MODE:
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 				send(lightRelayMessage.set(RELAY_ON));
+				send(thingspeakMessage.set(RELAY_ON));
 				disableMotionSensor();
 				currMode = message.getInt();
 				break;
 			case SENSOR_MODE:
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 				send(lightRelayMessage.set(RELAY_OFF));
+				send(thingspeakMessage.set(RELAY_OFF));
 				trippMessageToRelay = false;
 				send(staircaseLightRelayMessage.set(RELAY_OFF));
 				enableMotionSensor();
@@ -158,11 +170,13 @@ void receive(const MyMessage &message)
 				{
 					digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 					send(lightRelayMessage.set(RELAY_OFF));
+					send(thingspeakMessage.set(RELAY_OFF));
 				}
 				else
 				{
 					digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 					send(lightRelayMessage.set(RELAY_ON));
+					send(staircaseLightRelayMessage.set(RELAY_ON));
 				}
 				currMode = message.getInt();
 				break;
@@ -225,6 +239,7 @@ void turnOffLightRelay()
 {
 	digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 	send(lightRelayMessage.set(RELAY_OFF));
+	send(thingspeakMessage.set(RELAY_OFF));
 	send(staircaseLightRelayMessage.set(RELAY_OFF));
 	enableMotionSensor();
 }
@@ -237,7 +252,7 @@ void enableMotionSensor()
 }
 
 void disableMotionSensor()
-{
+{Balcon
 	detachInterrupt(INTERRUPT_MOTION);
 	Alarm.free(motionSensor);
 	detachInterrupt(INTERRUPT_MOTION);
