@@ -15,7 +15,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Staircase Light"
-#define APPLICATION_VERSION "10Jul2016"
+#define APPLICATION_VERSION "30Jul2016"
 
 #define LIGHT_RELAY_PIN 7
 #define LIGHT_RELAY_ID 1
@@ -27,6 +27,7 @@ AlarmId lightStatusTimer;
 AlarmId heartbeatTimer;
 
 MyMessage lightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
+MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 
 void before()
 {
@@ -39,6 +40,9 @@ void setup()
 	lightStatusReceived = false;
 	sendLightStatusRequest = true;
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
+	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
+	thingspeakMessage.setType(V_CUSTOM);
+	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 }
 
 void presentation()
@@ -47,6 +51,7 @@ void presentation()
 	present(LIGHT_RELAY_ID, S_BINARY, "Staircase Light");
 	wait(WAIT_50MS);
 	send(lightRelayMessage.set(RELAY_OFF));
+	send(thingspeakMessage.set(RELAY_OFF));
 }
 
 void loop()
@@ -69,12 +74,14 @@ void receive(const MyMessage &message)
 			digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 			Alarm.delay(WAIT_50MS);
 			send(lightRelayMessage.set(RELAY_ON));
+			send(thingspeakMessage.set(RELAY_ON));
 		}
 		else
 		{
 			digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 			Alarm.delay(WAIT_50MS);
 			send(lightRelayMessage.set(RELAY_OFF));
+			send(thingspeakMessage.set(RELAY_OFF));
 
 		}
 		if (!lightStatusReceived)

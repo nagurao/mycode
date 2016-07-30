@@ -18,7 +18,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "PIR Balcony Light"
-#define APPLICATION_VERSION "29Jul2016"
+#define APPLICATION_VERSION "30Jul2016"
 #define SENSOR_POLL_TIME 120
 #define DEFAULT_CURR_MODE 0
 #define DEFAULT_LIGHT_ON_DURATION 300
@@ -86,6 +86,7 @@ void presentation()
 	send(lightRelayMessage.set(RELAY_OFF));
 	wait(WAIT_50MS);
 	send(staircaseLightRelayMessage.set(RELAY_OFF));
+	send(thingspeakMessage.set(RELAY_OFF));
 }
 
 void loop()
