@@ -39,6 +39,7 @@ AlarmId pollingTimer;
 MyMessage lightRelayMessage(SUMP_RELAY_ID, V_STATUS);
 MyMessage lcdDisplayMessage(LCD_DISPLAY_ID, V_TEXT);
 MyMessage sumpRelayMessage(SUMP_RELAY_ID, V_STATUS);
+MyMessage waterLevelMessage()
 
 void before()
 {

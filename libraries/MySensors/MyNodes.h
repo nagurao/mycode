@@ -13,7 +13,7 @@
 #define THINGSPEAK_NODE_ID 254
 #define WIFI_NODEMCU_ID 1
 
-#define GATELIGHT_WITH_PIR_NODE 4
+
 #define OVERHEAD_TANK_02_NODE_ID 102
 
 
@@ -108,12 +108,19 @@
 #endif
 
 #if defined STAIRCASE_NODE
-#define BALCONYLIGHT_WITH_PIR_NODE 2
+
 #define STAIRCASE_LIGHT_NODE 3
 #define STAIRCASE_LIGHT_RELAY_ID 1
+
+#define BALCONYLIGHT_WITH_PIR_NODE 2
+#define GATELIGHT_WITH_PIR_NODE 4
 #endif
 
 #if defined WIFI_NODE
+#define BALCONYLIGHT_WITH_PIR_NODE 2
+#define STAIRCASE_LIGHT_NODE 3
+#define GATELIGHT_WITH_PIR_NODE 4
+
 char ssid[] = "NAGU";          //  your network SSID (name) 
 char pass[] = "4ever.Nagu";   // your network password
 
