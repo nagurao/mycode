@@ -29,9 +29,9 @@ boolean tripped;
 boolean trippMessageToRelay;
 boolean currModeReceived;
 boolean lightOnDurationReceived;
-int lightOnDuration;
 boolean sendCurrModeRequest;
 boolean sendlightOnDurationRequest;
+int lightOnDuration;
 
 AlarmId motionSensor;
 AlarmId currModeTimer;
@@ -252,7 +252,7 @@ void enableMotionSensor()
 }
 
 void disableMotionSensor()
-{Balcon
+{
 	detachInterrupt(INTERRUPT_MOTION);
 	Alarm.free(motionSensor);
 	detachInterrupt(INTERRUPT_MOTION);
