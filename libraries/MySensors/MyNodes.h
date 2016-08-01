@@ -13,10 +13,6 @@
 #define THINGSPEAK_NODE_ID 254
 #define WIFI_NODEMCU_ID 1
 
-
-#define OVERHEAD_TANK_02_NODE_ID 102
-
-
 #if defined NODE_HAS_RELAY
 #define RELAY_ON 1
 #define RELAY_OFF 0
@@ -27,17 +23,32 @@
 #define RELAY_OFF 0
 #endif
 
-// Sensor Nodes and there child sensors
-
-#if defined TANK01_NODE
-#define TANK_01_NODE_ID 101
+#if defined NODE_INTERACTS_WITH_LCD
+#define LCD_DISPLAY_NODE_ID 1
+#define LCD_DISPLAY_ID 1
 #endif
 
-#if defined OVERHEAD_TANK_02_NODE
-#define SUMP_RELAY_NODE_ID 110
+// Overhead Tank 01
+#if defined OVERHEAD_TANK_01_NODE
+#define OVERHEAD_TANK_01_NODE_ID 7
+#define SUMP_RELAY_NODE_ID 5
 #define SUMP_RELAY_ID 1
-#define LCD_DISPLAY_NODE_ID 150
-#define LCD_DISPLAY_ID 1
+
+
+#define SENSOR_1 0
+#define SENSOR_2 1
+#define SENSOR_3 2
+#define SENSOR_4 3
+#define SENSOR_5 4
+#define LOW_LEVEL_SENSOR_ID 1
+
+#endif
+
+// Overhead Tank 02
+#if defined OVERHEAD_TANK_02_NODE
+#define OVERHEAD_TANK_02_NODE_ID 8
+#define SUMP_RELAY_NODE_ID 5
+#define SUMP_RELAY_ID 1
 
 #define SENSOR_1 0
 #define SENSOR_2 1
@@ -49,14 +60,21 @@
 
 #endif
 
-#if defined TANK03_NODE
-#define TANK_03_NODE_ID 103
-#endif
+//Underground Tank
+#if defined UNDERGROUND_TANK_NODE
+#define UNDERGROUND_NODE_ID 9
+#define SUMP_RELAY_NODE_ID 5
+#define SUMP_RELAY_ID 1
 
-#if defined TANK04_NODE
-#define TANK_01_NODE_ID 104
-#endif
+#define SENSOR_1 0
+#define SENSOR_2 1
+#define SENSOR_3 2
+#define SENSOR_4 3
+#define SENSOR_5 4
 
+#define LOW_LEVEL_SENSOR_ID 1
+
+#endif
 
 /*
 #define WATER_SENSOR_ID 1
@@ -68,23 +86,17 @@
 #define ECHO_PIN 5
 #define TRIGGER_PIN 6
 */
-#if defined SUMP_NODE
-#define SUMP_RELAY_NODE_ID 100
-#define SUMP_RELAY_SENSOR_ID 1
+
+//Borewell Node
+#if defined SUMP_MOTOR_NODE
+#define SUMP_RELAY_NODE_ID 5
+#define SUMP_RELAY_ID 1
 #endif
 
 #if defined BOREWELL_NODE
-#define BOREWELL_RELAY_NODE_ID 106
+#define BOREWELL_RELAY_NODE_ID 6
 #define BORE_ON_RELAY_SENSOR_ID 1
 #define BORE_OFF_RELAY_SENSOR_ID 2
-#endif
-
-
-
-// Non-sensor Nodes and there child sensors
-#if defined MONITOR_NODE
-#define MONITOR_NODE_ID 151
-#define MONITOR_NODE_SENSOR_ID 1
 #endif
 
 #if defined MOTION_SENSOR_WITH_LIGHT

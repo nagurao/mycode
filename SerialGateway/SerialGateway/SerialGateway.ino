@@ -31,6 +31,9 @@
 #define MY_DEFAULT_RX_LED_PIN  6  // Receive led pin
 #define MY_DEFAULT_TX_LED_PIN  5  // the PCB, on board LED
 
+#define APPLICATION_NAME "Serial Gateway"
+#define APPLICATION_VERSION "02Aug2016"
+
 #include <SPI.h>
 #include <MySensors.h>  
 
@@ -40,6 +43,7 @@ void setup() {
 
 void presentation() {
 	// Present locally attached sensors 
+	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
 }
 
 void loop() {

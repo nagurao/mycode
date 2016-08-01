@@ -4,6 +4,7 @@
 
 #define OVERHEAD_TANK_02_NODE
 #define NODE_INTERACTS_WITH_RELAY
+#define NODE_INTERACTS_WITH_LCD
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -39,7 +40,7 @@ AlarmId pollingTimer;
 MyMessage lightRelayMessage(SUMP_RELAY_ID, V_STATUS);
 MyMessage lcdDisplayMessage(LCD_DISPLAY_ID, V_TEXT);
 MyMessage sumpRelayMessage(SUMP_RELAY_ID, V_STATUS);
-MyMessage waterLevelMessage()
+MyMessage waterLevelMessage();
 
 void before()
 {
