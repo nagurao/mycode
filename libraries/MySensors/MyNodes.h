@@ -23,6 +23,11 @@
 #define RELAY_OFF 0
 #endif
 
+#if defined NODE_HAS_ULTRASONIC_SENSOR
+#define ECHO_PIN 5
+#define TRIGGER_PIN 6
+#endif
+
 #if defined NODE_INTERACTS_WITH_LCD
 #define LCD_DISPLAY_NODE_ID 1
 #define LCD_DISPLAY_ID 1
@@ -49,6 +54,9 @@
 #define OVERHEAD_TANK_02_NODE_ID 8
 #define SUMP_RELAY_NODE_ID 5
 #define SUMP_RELAY_ID 1
+
+#define MAX_DISTANCE 250
+#define MIN_DISTANCE 25
 
 #define SENSOR_1 0
 #define SENSOR_2 1
@@ -83,8 +91,7 @@
 #define FULL_SENSOR_ID 4
 
 #define TRIP_PIN 3
-#define ECHO_PIN 5
-#define TRIGGER_PIN 6
+
 */
 
 //Borewell Node
@@ -132,6 +139,9 @@
 #define BALCONYLIGHT_WITH_PIR_NODE 2
 #define STAIRCASE_LIGHT_NODE 3
 #define GATELIGHT_WITH_PIR_NODE 4
+#define OVERHEAD_TANK_01_NODE_ID 7
+#define OVERHEAD_TANK_02_NODE_ID 8
+#define UNDERGROUND_NODE_ID 9
 
 char ssid[] = "NAGU";          //  your network SSID (name) 
 char pass[] = "4ever.Nagu";   // your network password
