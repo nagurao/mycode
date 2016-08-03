@@ -1,4 +1,3 @@
-#include <NewPing.h>
 #include <TimeAlarms.h>
 #include <TimeLib.h>
 #include <Time.h>
