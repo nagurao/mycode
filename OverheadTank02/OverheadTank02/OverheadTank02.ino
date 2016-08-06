@@ -2,9 +2,7 @@
 #include <Time.h>
 #include <SPI.h>
 
-#define OVERHEAD_TANK_02_NODE
-#define NODE_INTERACTS_WITH_RELAY
-#define NODE_INTERACTS_WITH_LCD
+#define NODE_HAS_ULTRASONIC_SENSOR
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -55,7 +53,6 @@ void setup()
 {
 	waterLowLevelSensorReceived = false;
 	sendWaterLowLevelSensorRequest = true;
-	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	sendWaterLowLevelSensorRequesCount = 0;
 	isWaterLevelRising = false;
 	lcdDisplayMessage.setDestination(LCD_DISPLAY_NODE_ID);
@@ -64,6 +61,7 @@ void setup()
 	sumpRelayMessage.setDestination(SUMP_RELAY_NODE_ID);
 	sumpRelayMessage.setType(V_STATUS);
 	sumpRelayMessage.setSensor(SUMP_RELAY_ID);
+	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	prevLevel = 0;
 	getWaterLevel();
 }

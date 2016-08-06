@@ -13,7 +13,7 @@
 #include <MySensors.h>
 #include <MyConfig.h>
 
-#define APPLICATION_NAME "Ovrehead Tank 02"
+#define APPLICATION_NAME "Overhead Tank 02"
 #define APPLICATION_VERSION "04Aug2016"
 
 AlarmId heartbeatTimer;

@@ -26,6 +26,14 @@
 #if defined NODE_HAS_ULTRASONIC_SENSOR
 #define ECHO_PIN 5
 #define TRIGGER_PIN 6
+#define MAX_DISTANCE 300
+
+// the following can be removed
+
+#define OVERHEAD_TANK_02_NODE_ID 8
+#define WATER_LEVEL_SENSOR_ID 1
+
+
 #endif
 
 #if defined NODE_INTERACTS_WITH_LCD
