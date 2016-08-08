@@ -23,12 +23,16 @@
 #define BALCONY_LIGHTS_FIELD 1
 #define STAIRCASE_LIGHTS_FIELD 2
 #define GATE_LIGHTS_FIELD 3
+#define SUMP_MOTOR_FIELD 7
+#define BOREWELL_FIELD 8
+
+//real-time logging channel
 #define TANK01_LEVEL_FIELD 4
 #define TANK02_LEVEL_FIELD 5
 #define TANK03_LEVEL_FIELD 6
-#define SUMP_MOTOR_FIELD 7
-#define BOREWELL_FIELD 8
+
 #define THINGSPEAK_INTERVAL 20
+
 
 int status = WL_IDLE_STATUS;
 WiFiClient  client;
@@ -36,6 +40,9 @@ WiFiClient  client;
 unsigned long myChannelNumber = 140352;
 const char * myWriteAPIKey = "E1Y9BE8CO5E7J8WR";
 const char * myReadAPIKey = "4LVCQYHL7A58MOTU";
+
+unsigned long realtimeChannelNumber = 141630;
+const char * myrealtimeWriteAPIKey = "QC5K9DN9COI9P4KU";
 
 int channelData[8] = { -1,-1,-1,-1,-1,-1,-1,-1 };
 byte channelId;
@@ -122,21 +129,21 @@ void sendDataToThingspeak()
 					}
 					break;
 				case TANK01_LEVEL_FIELD:
-					if (ThingSpeak.writeField(myChannelNumber, TANK01_LEVEL_FIELD, channelData[channelId], myWriteAPIKey) == OK_SUCCESS)
+					if (ThingSpeak.writeField(realtimeChannelNumber, TANK01_LEVEL_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
 					{
 						channelData[channelId] = -1;
 						channelDataNotFound = false;
 					}
 					break;
 				case TANK02_LEVEL_FIELD:
-					if (ThingSpeak.writeField(myChannelNumber, TANK02_LEVEL_FIELD, channelData[channelId], myWriteAPIKey) == OK_SUCCESS)
+					if (ThingSpeak.writeField(realtimeChannelNumber, TANK02_LEVEL_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
 					{
 						channelData[channelId] = -1;
 						channelDataNotFound = false;
 					}
 					break;
 				case TANK03_LEVEL_FIELD:
-					if (ThingSpeak.writeField(myChannelNumber, TANK03_LEVEL_FIELD, channelData[channelId], myWriteAPIKey) == OK_SUCCESS)
+					if (ThingSpeak.writeField(realtimeChannelNumber, TANK03_LEVEL_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
 					{
 						channelData[channelId] = -1;
 						channelDataNotFound = false;
