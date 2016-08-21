@@ -186,6 +186,8 @@ void receive(const MyMessage &message)
 				currMode = message.getInt();
 				break;
 			}
+			MyMessage currModeMessage(CURR_MODE_ID, V_VAR1);
+			send(currModeMessage.set(message.getInt()));
 		}
 		else
 		{
@@ -201,7 +203,11 @@ void receive(const MyMessage &message)
 		int newLightOnDuration = message.getInt();
 
 		if (lightOnDurationReceived && newLightOnDuration > 0 && newLightOnDuration <= 600)
+		{
 			lightOnDuration = newLightOnDuration;
+			MyMessage lightOnDurationMessage(LIGHT_DURATION_ID, V_VAR2);
+			send(lightOnDurationMessage.set(lightOnDuration));
+		}
 
 		if (!lightOnDurationReceived)
 		{

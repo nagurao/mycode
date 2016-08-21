@@ -104,14 +104,18 @@
 
 //Borewell Node
 #if defined SUMP_MOTOR_NODE
-#define SUMP_RELAY_NODE_ID 5
+#define SUMP_RELAY_NODE_ID 4
 #define SUMP_RELAY_ID 1
+#define SUMP_RELAY_PIN 7
 #endif
 
 #if defined BOREWELL_NODE
 #define BOREWELL_RELAY_NODE_ID 6
 #define BORE_ON_RELAY_SENSOR_ID 1
 #define BORE_OFF_RELAY_SENSOR_ID 2
+#define BORE_ON_RELAY_PIN 7
+#define BORE_OFF_RELAY_PIN 8
+
 #endif
 
 #if defined MOTION_SENSOR_WITH_LIGHT
