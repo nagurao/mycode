@@ -20,16 +20,34 @@
 #define APPLICATION_NAME "Thingspeak Node"
 #define APPLICATION_VERSION "29Jul2016"
 
+//static data logging channel
 #define BALCONY_LIGHTS_FIELD 1
 #define STAIRCASE_LIGHTS_FIELD 2
 #define GATE_LIGHTS_FIELD 3
-#define SUMP_MOTOR_FIELD 7
-#define BOREWELL_FIELD 8
+#define SUMP_MOTOR_FIELD 4
+#define BOREWELL_FIELD 5
 
 //real-time logging channel
-#define TANK01_LEVEL_FIELD 4
-#define TANK02_LEVEL_FIELD 5
-#define TANK03_LEVEL_FIELD 6
+#define OVERHEAD_TANK01_FIELD 1
+#define OVERHEAD_TANK02_FIELD 2
+#define SUMP_TANK_FIELD 3
+#define PHASE3_METER_FIELD 4
+#define PHASE1_METER_FIELD 5
+#define SOLAR_VOLT_FIELD 6
+#define BATTERY_VOLT_FIELD 7
+
+#define BALCONY_LIGHTS_IDX 0
+#define STAIRCASE_LIGHTS_IDX 1
+#define GATE_LIGHTS_IDX 2
+#define SUMP_MOTOR_IDX 3
+#define BOREWELL_MOTOR_IDX 4
+#define OVERHEAD_TANK01_IDX 5
+#define OVERHEAD_TANK02_IDX 6
+#define SUMP_TANK_IDX 7
+#define PHASE3_METER_IDX 8
+#define PHASE1_METER_IDX 9
+#define SOLAR_VOLTAGE_IDX 10
+#define BATTERY_VOLTAGE_IDX 11
 
 #define THINGSPEAK_INTERVAL 20
 
@@ -44,7 +62,7 @@ const char * myReadAPIKey = "4LVCQYHL7A58MOTU";
 unsigned long realtimeChannelNumber = 141630;
 const char * myrealtimeWriteAPIKey = "QC5K9DN9COI9P4KU";
 
-int channelData[8] = { -1,-1,-1,-1,-1,-1,-1,-1 };
+long channelData[12] = { -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1 };
 byte channelId;
 AlarmId heartbeatTimer;
 AlarmId thingspeakTimer;
@@ -81,16 +99,40 @@ void receive(const MyMessage &message)
 		switch (message.sender)
 		{
 		case BALCONYLIGHT_WITH_PIR_NODE:
-			channelData[BALCONY_LIGHTS_FIELD - 1] = message.getInt();
+			channelData[BALCONY_LIGHTS_IDX] = message.getInt();
 			break;
 		case STAIRCASE_LIGHT_NODE:
-			channelData[STAIRCASE_LIGHTS_FIELD - 1] = message.getInt();
+			channelData[STAIRCASE_LIGHTS_IDX] = message.getInt();
 			break;
 		case GATELIGHT_WITH_PIR_NODE:
-			channelData[GATE_LIGHTS_FIELD - 1] = message.getInt();
+			channelData[GATE_LIGHTS_IDX] = message.getInt();
+			break;
+		case SUMP_RELAY_NODE_ID:
+			channelData[SUMP_MOTOR_IDX] = message.getInt();
+			break;
+		case BOREWELL_RELAY_NODE_ID:
+			channelData[BOREWELL_MOTOR_IDX] = message.getInt();
+			break;
+		case OVERHEAD_TANK_01_NODE_ID:
+			channelData[OVERHEAD_TANK01_IDX] = message.getFloat();
 			break;
 		case OVERHEAD_TANK_02_NODE_ID:
-			channelData[TANK02_LEVEL_FIELD - 1] = message.getInt();
+			channelData[OVERHEAD_TANK02_IDX] = message.getFloat();
+			break;
+		case UNDERGROUND_NODE_ID:
+			channelData[SUMP_TANK_IDX] = message.getFloat();
+			break;
+		case PH3_NODE_ID:
+			channelData[PHASE3_METER_IDX] = message.getLong();
+			break;
+		case PH1_NODE_ID:
+			channelData[PHASE1_METER_IDX] = message.getLong();
+			break;
+		case SOLAR_VOLTAGE_NODE_ID:
+			channelData[SOLAR_VOLTAGE_IDX] = message.getFloat();
+			break;
+		case BATT_VOLTAGE_NODE_ID:
+			channelData[BATTERY_VOLTAGE_IDX] = message.getFloat();
 			break;
 		}
 		break;
@@ -105,59 +147,87 @@ void sendDataToThingspeak()
 	{
 		if (channelData[channelId] != -1)
 		{
-			switch (channelId + 1)
+			switch (channelId)
 			{
-				case BALCONY_LIGHTS_FIELD:
+				case BALCONY_LIGHTS_IDX:
 					if (ThingSpeak.writeField(myChannelNumber, BALCONY_LIGHTS_FIELD, channelData[channelId], myWriteAPIKey) == OK_SUCCESS)
 					{
 						channelData[channelId] = -1;
 						channelDataNotFound = false;
 					}
 					break;
-				case STAIRCASE_LIGHTS_FIELD:
+				case STAIRCASE_LIGHTS_IDX:
 					if (ThingSpeak.writeField(myChannelNumber, STAIRCASE_LIGHTS_FIELD, channelData[channelId], myWriteAPIKey) == OK_SUCCESS)
 					{
 						channelData[channelId] = -1;
 						channelDataNotFound = false;
 					}
 					break;
-				case GATE_LIGHTS_FIELD:
+				case GATE_LIGHTS_IDX:
 					if (ThingSpeak.writeField(myChannelNumber, GATE_LIGHTS_FIELD, channelData[channelId], myWriteAPIKey) == OK_SUCCESS)
 					{
 						channelData[channelId] = -1;
 						channelDataNotFound = false;
 					}
 					break;
-				case TANK01_LEVEL_FIELD:
-					if (ThingSpeak.writeField(realtimeChannelNumber, TANK01_LEVEL_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
-					{
-						channelData[channelId] = -1;
-						channelDataNotFound = false;
-					}
-					break;
-				case TANK02_LEVEL_FIELD:
-					if (ThingSpeak.writeField(realtimeChannelNumber, TANK02_LEVEL_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
-					{
-						channelData[channelId] = -1;
-						channelDataNotFound = false;
-					}
-					break;
-				case TANK03_LEVEL_FIELD:
-					if (ThingSpeak.writeField(realtimeChannelNumber, TANK03_LEVEL_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
-					{
-						channelData[channelId] = -1;
-						channelDataNotFound = false;
-					}
-					break;
-				case SUMP_MOTOR_FIELD:
+				case SUMP_MOTOR_IDX:
 					if (ThingSpeak.writeField(myChannelNumber, SUMP_MOTOR_FIELD, channelData[channelId], myWriteAPIKey) == OK_SUCCESS)
 					{
 						channelData[channelId] = -1;
 						channelDataNotFound = false;
 					}
 					break;
-				case BOREWELL_FIELD:
+				case BOREWELL_MOTOR_IDX:
 					if (ThingSpeak.writeField(myChannelNumber, BOREWELL_FIELD, channelData[channelId], myWriteAPIKey) == OK_SUCCESS)
+					{
+						channelData[channelId] = -1;
+						channelDataNotFound = false;
+					}
+					break;
+				case OVERHEAD_TANK01_IDX:
+					if (ThingSpeak.writeField(realtimeChannelNumber, OVERHEAD_TANK01_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
+					{
+						channelData[channelId] = -1;
+						channelDataNotFound = false;
+					}
+					break;
+				case OVERHEAD_TANK02_IDX:
+					if (ThingSpeak.writeField(realtimeChannelNumber, OVERHEAD_TANK02_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
+					{
+						channelData[channelId] = -1;
+						channelDataNotFound = false;
+					}
+					break;
+				case SUMP_TANK_IDX:
+					if (ThingSpeak.writeField(realtimeChannelNumber, SUMP_TANK_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
+					{
+						channelData[channelId] = -1;
+						channelDataNotFound = false;
+					}
+					break;
+				case PHASE3_METER_IDX:
+					if (ThingSpeak.writeField(realtimeChannelNumber, PHASE3_METER_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
+					{
+						channelData[channelId] = -1;
+						channelDataNotFound = false;
+					}
+					break;
+				case PHASE1_METER_IDX:
+					if (ThingSpeak.writeField(realtimeChannelNumber, PHASE1_METER_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
+					{
+						channelData[channelId] = -1;
+						channelDataNotFound = false;
+					}
+					break;
+				case SOLAR_VOLTAGE_IDX:
+					if (ThingSpeak.writeField(realtimeChannelNumber, SOLAR_VOLT_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
+					{
+						channelData[channelId] = -1;
+						channelDataNotFound = false;
+					}
+					break;
+				case BATTERY_VOLTAGE_IDX:
+					if (ThingSpeak.writeField(realtimeChannelNumber, BATTERY_VOLT_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
 					{
 						channelData[channelId] = -1;
 						channelDataNotFound = false;
@@ -165,7 +235,7 @@ void sendDataToThingspeak()
 					break;
 			}
 		}
-		channelId = (channelId + 1) % 8;
+		channelId = (channelId + 1) % 12;
 		if (channelId == startPos)
 			channelDataNotFound = false;
 
