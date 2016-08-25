@@ -16,13 +16,14 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Borewell Motor"
-#define APPLICATION_VERSION "21Aug2016"
+#define APPLICATION_VERSION "24Aug2016"
 
 AlarmId heartbeatTimer;
 
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
-MyMessage borewellMotorOnRelayMessage(BORE_ON_RELAY_SENSOR_ID, V_STATUS);
-MyMessage borewellMotorOffRelayMessage(BORE_OFF_RELAY_SENSOR_ID, V_STATUS);
+MyMessage borewellMotorMessage(BOREWELL_MOTOR_ID, V_STATUS);
+MyMessage borewellMotorOnRelayMessage(BORE_ON_RELAY_ID, V_STATUS);
+MyMessage borewellMotorOffRelayMessage(BORE_OFF_RELAY_ID, V_STATUS);
 
 void before()
 {
@@ -37,13 +38,16 @@ void setup()
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
+	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
 void presentation()
 {
 	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
-	present(BORE_ON_RELAY_SENSOR_ID, S_BINARY, "Bore On Relay");
-	present(BORE_OFF_RELAY_SENSOR_ID, S_BINARY, "Bore Off Relay");
+	present(BOREWELL_MOTOR_ID, S_BINARY, "Borewell Motor");
+	present(BORE_ON_RELAY_ID, S_BINARY, "Bore On Relay");
+	present(BORE_OFF_RELAY_ID, S_BINARY, "Bore Off Relay");
+	send(borewellMotorMessage.set(RELAY_OFF));
 	send(borewellMotorOnRelayMessage.set(RELAY_OFF));
 	send(borewellMotorOffRelayMessage.set(RELAY_OFF));
 	send(thingspeakMessage.set(RELAY_OFF));
@@ -56,5 +60,36 @@ void loop()
 
 void receive(const MyMessage &message)
 {
+	if (message.type == V_STATUS)
+	{
+		switch (message.sensor)
+		{
+		case BORE_ON_RELAY_ID:
+			digitalWrite(BORE_ON_RELAY_PIN, RELAY_ON);
+			send(borewellMotorOnRelayMessage.set(RELAY_ON));
+			Alarm.timerOnce(RELAY_TRIGGER_INTERVAL, toggleOnRelay);
+			break;
+		case BORE_OFF_RELAY_ID:
+			digitalWrite(BORE_OFF_RELAY_PIN, RELAY_ON);
+			send(borewellMotorOffRelayMessage.set(RELAY_ON));
+			Alarm.timerOnce(RELAY_TRIGGER_INTERVAL, toggleOffRelay);
+			break;
+		}
+	}
+}
 
+void toggleOnRelay()
+{
+	digitalWrite(BORE_ON_RELAY_PIN, RELAY_OFF);
+	send(borewellMotorOnRelayMessage.set(RELAY_OFF));
+	send(borewellMotorMessage.set(RELAY_ON));
+	send(thingspeakMessage.set(RELAY_ON));
+}
+
+void toggleOffRelay()
+{
+	digitalWrite(BORE_OFF_RELAY_PIN, RELAY_OFF);
+	send(borewellMotorOffRelayMessage.set(RELAY_OFF));
+	send(borewellMotorMessage.set(RELAY_OFF));
+	send(thingspeakMessage.set(RELAY_OFF));
 }

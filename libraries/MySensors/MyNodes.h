@@ -73,11 +73,11 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 
 #if defined STAIRCASE_NODE
 
-#define STAIRCASE_LIGHT_NODE 2
+#define STAIRCASE_LIGHT_NODE_ID 2
 #define STAIRCASE_LIGHT_RELAY_ID 1
 
-#define BALCONYLIGHT_WITH_PIR_NODE 1
-#define GATELIGHT_WITH_PIR_NODE 3
+#define BALCONYLIGHT_WITH_PIR_NODE_ID 1
+#define GATELIGHT_WITH_PIR_NODE_ID 3
 #endif
 
 #if defined SUMP_MOTOR_NODE
@@ -88,10 +88,12 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 
 #if defined BOREWELL_NODE
 #define BOREWELL_RELAY_NODE_ID 5
-#define BORE_ON_RELAY_SENSOR_ID 1
-#define BORE_OFF_RELAY_SENSOR_ID 2
+#define BOREWELL_MOTOR_ID 1
+#define BORE_ON_RELAY_ID 2
+#define BORE_OFF_RELAY_ID 3
 #define BORE_ON_RELAY_PIN 7
 #define BORE_OFF_RELAY_PIN 8
+#define RELAY_TRIGGER_INTERVAL 3
 
 #endif
 

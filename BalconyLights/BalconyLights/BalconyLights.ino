@@ -9,7 +9,7 @@
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID BALCONYLIGHT_WITH_PIR_NODE
+#define MY_NODE_ID BALCONYLIGHT_WITH_PIR_NODE_ID
 #define MY_DEBUG 
 
 #include <MyNodes.h>
@@ -17,10 +17,10 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "PIR Balcony Light"
-#define APPLICATION_VERSION "21Aug2016"
+#define APPLICATION_VERSION "24Aug2016"
 #define SENSOR_POLL_TIME 120
 #define DEFAULT_CURR_MODE 0
-#define DEFAULT_LIGHT_ON_DURATION 300
+#define DEFAULT_LIGHT_ON_DURATION 60
 
 byte currMode;
 byte currModeRequestCount;
@@ -58,7 +58,7 @@ void setup()
 	trippMessageToRelay = false;
 	sendCurrModeRequest = true;
 	sendlightOnDurationRequest = true;
-	staircaseLightRelayMessage.setDestination(STAIRCASE_LIGHT_NODE);
+	staircaseLightRelayMessage.setDestination(STAIRCASE_LIGHT_NODE_ID);
 	staircaseLightRelayMessage.setType(V_STATUS);
 	staircaseLightRelayMessage.setSensor(STAIRCASE_LIGHT_RELAY_ID);
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
@@ -85,6 +85,7 @@ void presentation()
 	send(lightRelayMessage.set(RELAY_OFF));
 	wait(WAIT_50MS);
 	send(staircaseLightRelayMessage.set(RELAY_OFF));
+	wait(WAIT_50MS);
 	send(thingspeakMessage.set(RELAY_OFF));
 }
 
@@ -124,6 +125,7 @@ void loop()
 			send(lightRelayMessage.set(RELAY_ON));
 			trippMessageToRelay = true;
 			send(staircaseLightRelayMessage.set(RELAY_ON));
+			wait(WAIT_50MS);
 			send(thingspeakMessage.set(RELAY_ON));
 			Alarm.timerOnce(lightOnDuration, turnOffLightRelay);
 			disableMotionSensor();

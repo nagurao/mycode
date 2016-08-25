@@ -61,6 +61,7 @@ const char * myReadAPIKey = "4LVCQYHL7A58MOTU";
 
 unsigned long realtimeChannelNumber = 141630;
 const char * myrealtimeWriteAPIKey = "QC5K9DN9COI9P4KU";
+const char * myrealtimeReadAPIKey = "X3JM31N6KQRNUG2P";
 
 long channelData[12] = { -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1 };
 byte channelId;

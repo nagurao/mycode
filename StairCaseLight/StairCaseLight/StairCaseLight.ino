@@ -7,7 +7,7 @@
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID STAIRCASE_LIGHT_NODE
+#define MY_NODE_ID STAIRCASE_LIGHT_NODE_ID
 #define MY_DEBUG 
 
 #include <MyNodes.h>
@@ -15,7 +15,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Staircase Light"
-#define APPLICATION_VERSION "30Jul2016"
+#define APPLICATION_VERSION "24Aug2016"
 
 #define LIGHT_RELAY_PIN 7
 #define LIGHT_RELAY_ID 1
@@ -53,6 +53,7 @@ void presentation()
 	present(LIGHT_RELAY_ID, S_BINARY, "Staircase Light");
 	wait(WAIT_50MS);
 	send(lightRelayMessage.set(RELAY_OFF));
+	Alarm.delay(WAIT_10MS);
 	send(thingspeakMessage.set(RELAY_OFF));
 }
 
@@ -61,7 +62,7 @@ void loop()
 	if (sendLightStatusRequest)
 	{
 		sendLightStatusRequest = false;
-		request(BALCONY_LIGHT_RELAY_ID, V_STATUS, BALCONYLIGHT_WITH_PIR_NODE);
+		request(BALCONY_LIGHT_RELAY_ID, V_STATUS, BALCONYLIGHT_WITH_PIR_NODE_ID);
 		lightStatusTimer = Alarm.timerOnce(ONE_MINUTE, checkLightStatusRequest);
 		lightStatusRequstCount++;
 		if (lightStatusRequstCount == 10)
@@ -83,6 +84,7 @@ void receive(const MyMessage &message)
 			digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 			Alarm.delay(WAIT_50MS);
 			send(lightRelayMessage.set(RELAY_ON));
+			Alarm.delay(WAIT_10MS);
 			send(thingspeakMessage.set(RELAY_ON));
 		}
 		else
@@ -90,6 +92,7 @@ void receive(const MyMessage &message)
 			digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 			Alarm.delay(WAIT_50MS);
 			send(lightRelayMessage.set(RELAY_OFF));
+			Alarm.delay(WAIT_10MS);
 			send(thingspeakMessage.set(RELAY_OFF));
 
 		}

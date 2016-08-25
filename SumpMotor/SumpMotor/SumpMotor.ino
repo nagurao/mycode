@@ -16,12 +16,12 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Sump Motor"
-#define APPLICATION_VERSION "21Aug2016"
+#define APPLICATION_VERSION "24Aug2016"
 
 AlarmId heartbeatTimer;
 
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
-MyMessage sumpMotorRelayMessage(LIGHT_RELAY_ID, V_STATUS);
+MyMessage sumpMotorRelayMessage(SUMP_RELAY_ID, V_STATUS);
 void before()
 {
 	pinMode(SUMP_RELAY_PIN, OUTPUT);
@@ -33,6 +33,7 @@ void setup()
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
+	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
 void presentation()
@@ -50,5 +51,10 @@ void loop()
 
 void receive(const MyMessage &message)
 {
-
+	if (message.type == V_STATUS)
+	{
+		digitalWrite(SUMP_RELAY_PIN, message.getInt() ? RELAY_ON : RELAY_OFF);
+		send(sumpMotorRelayMessage.set(message.getInt()));
+		send(thingspeakMessage.set(message.getInt()));
+	}
 }
