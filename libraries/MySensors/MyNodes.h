@@ -7,6 +7,7 @@
 #define WAIT_10MS 10
 #define WAIT_50MS 50
 #define ONE_MINUTE 60
+#define ONE_HOUR 3600
 #define HEARTBEAT_INTERVAL 600
 /*
 The following are the Nod Ids assigned, populated here as comments for easy reference.
@@ -151,6 +152,11 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 
 #if defined PHASE3_METER
 #define PH3_NODE_ID 10
+#define CURR_WATT_ID 1
+#define HOURLY_WATT_CONSUMPTION_ID 2
+#define DAILY_WATT_CONSUMPTION_ID 3
+#define ACCUMULATED_WATT_CONSUMPTION_ID 4
+#define CURR_PULSE_COUNT_ID 5
 #endif
 
 #if defined PHASE3_METER
