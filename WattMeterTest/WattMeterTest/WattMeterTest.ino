@@ -17,8 +17,9 @@
 
 AlarmId heartbeatTimer;
 AlarmId hourlyTimer;
-AlarmId refreshTimer;
 AlarmId midnightTimer;
+AlarmId refreshTimeTimer;
+
 MyMessage hrMessage(1, V_CUSTOM);
 MyMessage statMessage(2, V_CUSTOM);
 
@@ -56,41 +57,37 @@ void receiveTime(unsigned long controllerTime)
 	min = minute(controllerTime);
 	sec = second(controllerTime);
 	send(hrMessage.set(hr));
-	Alarm.free(refreshTimer);
 	Alarm.free(hourlyTimer);
 	Alarm.free(midnightTimer);
-	unsigned int secondsBeforeNextHour = (60 - sec) + ((60 - min - 1) * 60);
-	Alarm.timerOnce(secondsBeforeNextHour, createHourlyTimer);
-	unsigned int secondsForRefreshTimer = secondsBeforeNextHour + (ONE_HOUR * ((hr + 1) % 3));
-	Alarm.timerOnce(secondsForRefreshTimer, createRefreshTimer);
-	unsigned int secondsForMidnight = ((((24 - hr - 1) * 60) + (60 - min - 1)) * 60) + (60 - sec);
-	Alarm.timerOnce(secondsForMidnight, createMidnightTimer);
+	Alarm.free(refreshTimeTimer);
+	unsigned int secondsForNextHour = (60 - sec) + ((59 - min) * 60);
+	Alarm.timerOnce(secondsForNextHour, createHourlyTimer);
+	send(statMessage.set(secondsForNextHour));
+	unsigned int secondsForMidnight = (60 - sec) + ((23 - hr) * 60 + (59 - min)) * 60;
+	midnightTimer = Alarm.timerOnce(secondsForMidnight, resetWattDay);
+	refreshTimeTimer = Alarm.timerOnce(secondsForMidnight + ONE_HOUR, refreshNodeTime);
+	send(statMessage.set(secondsForMidnight));
 }
 
 void createHourlyTimer()
 {
+	Serial.println("CRTHRLYTMR");
 	send(statMessage.set("CRTHRLYTMR"));
 	hourlyTimer = Alarm.timerRepeat(ONE_HOUR, resetWattHour);
 	hr = (hr + 1) % 24;
 }
 
-void createRefreshTimer()
+void refreshNodeTime()
 {
-	send(statMessage.set("CRTREFRTMR"));
-	
-	refreshTimer = Alarm.timerRepeat(ONE_HOUR * 3, requestTime);
-}
-
-void createMidnightTimer()
-{
-	send(statMessage.set("CRTMIDTMR"));
-	
-	midnightTimer = Alarm.timerRepeat(ONE_HOUR * 24, requestTime);
+	send(statMessage.set("REFRTIME"));
+	Serial.println("REFRTIME");
+	requestTime();
 }
 
 void resetWattHour()
 {
 	send(statMessage.set("RSTWTHR"));
+	Serial.println("RSTWTHR");
 	send(hrMessage.set(hr));
 	hr = (hr + 1) % 24;
 }
@@ -98,4 +95,5 @@ void resetWattHour()
 void resetWattDay()
 {
 	send(statMessage.set("RSTWTDAY"));
+	Serial.println("RSTWTDAY");
 }

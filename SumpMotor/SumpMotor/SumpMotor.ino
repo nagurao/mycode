@@ -55,6 +55,7 @@ void receive(const MyMessage &message)
 	{
 		digitalWrite(SUMP_RELAY_PIN, message.getInt() ? RELAY_ON : RELAY_OFF);
 		send(sumpMotorRelayMessage.set(message.getInt()));
+		Alarm.delay(WAIT_10MS);
 		send(thingspeakMessage.set(message.getInt()));
 	}
 }
