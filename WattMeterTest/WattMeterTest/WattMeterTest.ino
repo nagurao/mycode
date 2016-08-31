@@ -19,6 +19,7 @@ AlarmId heartbeatTimer;
 AlarmId hourlyTimer;
 AlarmId midnightTimer;
 AlarmId refreshTimeTimer;
+AlarmId setHourlyTimer;
 
 MyMessage hrMessage(1, V_CUSTOM);
 MyMessage statMessage(2, V_CUSTOM);
@@ -27,9 +28,11 @@ byte hr;
 byte min ;
 byte sec ;
 
+boolean resetForMonth;
+
 void before()
 {
-
+	resetForMonth = true;
 }
 
 void setup()
@@ -52,7 +55,11 @@ void loop()
 
 void receiveTime(unsigned long controllerTime)
 {
-	send(statMessage.set("recTime"));
+	Alarm.free(hourlyTimer);
+	Alarm.free(midnightTimer);
+	Alarm.free(refreshTimeTimer);
+	Alarm.free(setHourlyTimer);
+	/*send(statMessage.set("recTime"));
 	hr = hour(controllerTime);
 	min = minute(controllerTime);
 	sec = second(controllerTime);
@@ -67,6 +74,19 @@ void receiveTime(unsigned long controllerTime)
 	midnightTimer = Alarm.timerOnce(secondsForMidnight, resetWattDay);
 	refreshTimeTimer = Alarm.timerOnce(secondsForMidnight + ONE_HOUR, refreshNodeTime);
 	send(statMessage.set(secondsForMidnight));
+	*/
+	setTime(controllerTime);
+	hr = hour(now());
+	hr = (hr + 1) % 24;
+
+	setHourlyTimer = Alarm.alarmOnce(hr, 0, 0, createHourlyTimer);
+	midnightTimer = Alarm.alarmRepeat(0, 0, 0, resetWattDay);
+	refreshTimeTimer = Alarm.alarmRepeat(23, 30, 0, refreshNodeTime);
+
+	if (day(now()) == 1 && resetForMonth)
+		resetWattMonth();
+	else
+		resetForMonth = false;
 }
 
 void createHourlyTimer()
@@ -96,4 +116,11 @@ void resetWattDay()
 {
 	send(statMessage.set("RSTWTDAY"));
 	Serial.println("RSTWTDAY");
+}
+
+void resetWattMonth()
+{
+	send(statMessage.set("RSTWTMON"));
+	Serial.println("RSTWTMON");
+	resetForMonth = false;
 }

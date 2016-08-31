@@ -72,6 +72,17 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define LCD_DISPLAY_ID 1
 #endif
 
+#if defined WATT_METER_NODE
+#define CURR_WATT_ID 1
+#define HOURLY_WATT_CONSUMPTION_ID 2
+#define DAILY_WATT_CONSUMPTION_ID 3
+#define ACCUMULATED_WATT_CONSUMPTION_ID 4
+#define CURR_PULSE_COUNT_ID 5
+
+#define PULSE_SENSOR_PIN 3
+#define INTERRUPT_PULSE 1 // PULSE_SENSOR_PIN - 2
+#endif
+
 #if defined STAIRCASE_NODE
 
 #define STAIRCASE_LIGHT_NODE_ID 2
@@ -152,14 +163,11 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 
 #if defined PHASE3_METER
 #define PH3_NODE_ID 10
-#define CURR_WATT_ID 1
-#define HOURLY_WATT_CONSUMPTION_ID 2
-#define DAILY_WATT_CONSUMPTION_ID 3
-#define ACCUMULATED_WATT_CONSUMPTION_ID 4
-#define CURR_PULSE_COUNT_ID 5
+
+
 #endif
 
-#if defined PHASE3_METER
+#if defined PHASE1_METER
 #define PH1_NODE_ID 11
 #endif
 
