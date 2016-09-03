@@ -1,18 +1,21 @@
 #include <TimeAlarms.h>
 #include <TimeLib.h>
 #include <Time.h>
+#include <SPI.h>
+
+#define NODE_TYPE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID 6
+#define MY_NODE_ID NODE_ID_FROM_MYNODES_HEADERFILE
+#define MY_DEBUG
 
-#include <SPI.h>
 #include <MySensors.h>
 #include <MyNodes.h>
 #include <MyConfig.h>
 
-#define APPLICATION_NAME "Testing MYS 6"
-#define APPLICATION_VERSION "20Aug2016"
+#define APPLICATION_NAME "Appl_Name"
+#define APPLICATION_VERSION "Appl_Date"
 
 AlarmId heartbeatTimer;
 
@@ -32,6 +35,10 @@ void presentation()
 }
 
 void loop()
+{
+	Alarm.delay(1);
+}
+void receive(const MyMessage &message)
 {
 
 }

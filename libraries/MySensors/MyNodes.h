@@ -24,6 +24,8 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 10 - 1-Phase Meter
 11 - Solar Voltage
 12 - Battery Voltage
+14 - Balcony Repeater Node
+15 - DB Repeater Node
 254 - Wifi Node
 */
 
@@ -180,8 +182,10 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #endif
 
 #if defined REPEATER_NODE
-
+#define BALCONY_REPEATER_NODE_ID 14
+#define DB_REPEATER_NODE_ID 15
 #endif
+
 #if defined WIFI_NODE
 #define BALCONYLIGHT_WITH_PIR_NODE 1
 #define STAIRCASE_LIGHT_NODE 2
