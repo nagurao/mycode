@@ -179,6 +179,9 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define BATT_VOLTAGE_NODE_ID 13
 #endif
 
+#if defined REPEATER_NODE
+
+#endif
 #if defined WIFI_NODE
 #define BALCONYLIGHT_WITH_PIR_NODE 1
 #define STAIRCASE_LIGHT_NODE 2
