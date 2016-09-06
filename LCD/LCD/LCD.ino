@@ -2,7 +2,7 @@
 #include <TimeLib.h>
 #include <Time.h>
 #include <SPI.h>
-#define NODE_INTERACTS_WITH_LCD
+#define LCD_NODE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
