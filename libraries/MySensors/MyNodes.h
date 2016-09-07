@@ -81,6 +81,8 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 
 #define ZERO_PULSE 0
 #define ACCUMULATION_FREQUENCY_SECS 20
+#define MAX_WATT 10000
+
 #define CURR_WATT_ID 1
 #define HOURLY_WATT_CONSUMPTION_ID 2
 #define DAILY_WATT_CONSUMPTION_ID 3

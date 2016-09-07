@@ -7,7 +7,8 @@
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID PH3_NODE_ID
+//#define MY_NODE_ID PH3_NODE_ID
+#define MY_NODE_ID 200
 #define MY_DEBUG
 
 #include <MyNodes.h>
@@ -19,14 +20,26 @@
 
 AlarmId heartbeatTimer;
 AlarmId pulseCountTimer;
+AlarmId pulsesPerWattHourTimer;
 AlarmId updateConsumptionTimer;
 
 boolean sendPulseCountRequest;
 boolean pulseCountReceived;
 byte pulseCountRequestCount;
 
+boolean sendPulsesPerWattHourRequest;
+boolean pulsesPerWattHourReceived;
+byte pulsesPerWattHourCount;
+
+
 volatile unsigned long currPulseCount;
 volatile unsigned long prevPulseCount;
+volatile unsigned long currWatt;
+volatile unsigned long prevWatt;
+volatile unsigned long lastBlink;
+double pulsesPerWattHour;
+double pulseFactor;
+
 void before()
 {
 	attachInterrupt(INTERRUPT_PULSE, onPulse, RISING);
@@ -38,6 +51,13 @@ void setup()
 	sendPulseCountRequest = true;
 	pulseCountReceived = false;
 	pulseCountRequestCount = 0;
+	sendPulsesPerWattHourRequest = true;
+	pulsesPerWattHourReceived = false;
+	pulsesPerWattHourCount = 0;
+	lastBlink = 0;
+	prevWatt = 0;
+	currWatt = 0;
+	pulseFactor = 0;
 }
 
 void presentation()
@@ -76,6 +96,19 @@ void loop()
 			send(pulseCountMessage.set(ZERO_PULSE));
 		}
 	}
+
+	if (sendPulsesPerWattHourRequest)
+	{
+		sendPulsesPerWattHourRequest = false;
+		request(PULSE_PER_KWH_ID, V_VAR2);
+		pulsesPerWattHourTimer = Alarm.timerOnce(ONE_MINUTE, checkPulsesPerWattHourRequest);
+		pulsesPerWattHourCount++;
+		if (pulsesPerWattHourCount == 10)
+		{
+			MyMessage pulsesPerWattHourMessage(CURR_PULSE_COUNT_ID, V_VAR2);
+			send(pulsesPerWattHourMessage.set(6400));
+		}
+	}
 	Alarm.delay(1);
 }
 void receive(const MyMessage &message)
@@ -96,6 +129,13 @@ void receive(const MyMessage &message)
 		}
 		break;
 	case V_VAR2:
+		if (!pulsesPerWattHourReceived)
+		{
+			pulsesPerWattHourReceived = true;
+			Alarm.free(pulsesPerWattHourTimer);
+		}
+		pulseFactor = message.getLong();
+		pulsesPerWattHour = pulseFactor / 1000;
 		break;
 	case V_VAR3:
 		switch (message.getInt())
@@ -121,12 +161,33 @@ void receive(const MyMessage &message)
 }
 void onPulse()
 {
-
+	unsigned long newBlink = micros();
+	unsigned long interval = newBlink - lastBlink;
+	if (interval < 10000L)
+	{
+		return;
+	}
+	currWatt = (3600000000.0 / interval) / pulsesPerWattHour;
+	lastBlink = newBlink;
+	currPulseCount++;
 }
 
 void updateConsumptionData()
 {
-
+	if (currWatt != prevWatt)
+	{
+		MyMessage currentConsumptionMessage(CURR_WATT_ID, V_WATT);
+		if(currWatt < MAX_WATT)
+			send(currentConsumptionMessage.set(currWatt));
+		prevWatt = currWatt;
+	}
+	if (currPulseCount != prevPulseCount)
+	{
+		MyMessage currentPulseCountMessage(CURR_PULSE_COUNT_ID, V_VAR1);
+		send(currentPulseCountMessage.set(currPulseCount));
+		prevPulseCount = currPulseCount;
+		double accumulatedKWH = ((double)currPulseCount / ((double)))
+	}
 }
 
 void resetHour()
@@ -153,4 +214,10 @@ void checkPulseCountRequestStatus()
 {
 	if (!pulseCountReceived)
 		sendPulseCountRequest = true;
+}
+
+void checkPulsesPerWattHourRequest()
+{
+	if (!pulsesPerWattHourReceived)
+		sendPulsesPerWattHourRequest = true;
 }
