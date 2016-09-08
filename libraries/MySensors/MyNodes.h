@@ -80,17 +80,18 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define PH1_NODE_ID 11
 
 #define ZERO_PULSE 0
-#define ACCUMULATION_FREQUENCY_SECS 20
+#define ACCUMULATION_FREQUENCY_SECS 5
 #define MAX_WATT 10000
 
 #define CURR_WATT_ID 1
 #define HOURLY_WATT_CONSUMPTION_ID 2
 #define DAILY_WATT_CONSUMPTION_ID 3
-#define ACCUMULATED_WATT_CONSUMPTION_ID 4
-#define DELTA_WATT_CONSUMPTION_ID 5
-#define CURR_PULSE_COUNT_ID 6
-#define PULSE_PER_KWH_ID 7
-#define RESET_TYPE_ID 8
+#define MONTHLY_WATT_CONSUMPTION_ID 4
+#define ACCUMULATED_WATT_CONSUMPTION_ID 5
+#define DELTA_WATT_CONSUMPTION_ID 6
+#define CURR_PULSE_COUNT_ID 7
+#define BLINKS_PER_KWH_ID 8
+#define RESET_TYPE_ID 9
 
 #define PULSE_SENSOR_PIN 3
 #define INTERRUPT_PULSE 1 // PULSE_SENSOR_PIN - 2
@@ -100,6 +101,12 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define RESET_DAY 2
 #define RESET_MONTH 3
 #define RESET_ALL 4
+#define ZERO 0
+
+#define GET_HOURLY_KWH 0
+#define GET_DAILY_KWH 1
+#define GET_MONTHLY_KWH 2
+#define ALL_DONE 3
 
 #endif
 

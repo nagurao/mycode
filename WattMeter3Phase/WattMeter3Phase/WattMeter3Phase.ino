@@ -18,6 +18,7 @@
 #define APPLICATION_NAME "3Phase Watt Meter"
 #define APPLICATION_VERSION "06Sep2016"
 
+#define DEFAULT_BLINKS_PER_KWH 6400 // value from energy meter
 AlarmId heartbeatTimer;
 AlarmId pulseCountTimer;
 AlarmId pulsesPerWattHourTimer;
@@ -27,19 +28,25 @@ boolean sendPulseCountRequest;
 boolean pulseCountReceived;
 byte pulseCountRequestCount;
 
-boolean sendPulsesPerWattHourRequest;
-boolean pulsesPerWattHourReceived;
-byte pulsesPerWattHourCount;
-
+boolean sendBlinksPerWattHourRequest;
+boolean blinksPerWattHourReceived;
+byte blinksPerWattHourCount;
+double blinksPerWattHour;
+double pulseFactor;
 
 volatile unsigned long currPulseCount;
 volatile unsigned long prevPulseCount;
 volatile unsigned long currWatt;
 volatile unsigned long prevWatt;
 volatile unsigned long lastBlink;
-double pulsesPerWattHour;
-double pulseFactor;
 
+double accumulatedKWH;
+double hourlyConsumptionInitKWH;
+double dailyConsumptionInitKWH;
+double monthlyConsumptionInitKWH;
+
+byte accumulationsStatus;
+boolean firstTime;
 void before()
 {
 	attachInterrupt(INTERRUPT_PULSE, onPulse, RISING);
@@ -51,13 +58,19 @@ void setup()
 	sendPulseCountRequest = true;
 	pulseCountReceived = false;
 	pulseCountRequestCount = 0;
-	sendPulsesPerWattHourRequest = true;
-	pulsesPerWattHourReceived = false;
-	pulsesPerWattHourCount = 0;
+	sendBlinksPerWattHourRequest = true;
+	blinksPerWattHourReceived = false;
+	blinksPerWattHourCount = 0;
 	lastBlink = 0;
 	prevWatt = 0;
 	currWatt = 0;
 	pulseFactor = 0;
+	accumulatedKWH = 0;
+	hourlyConsumptionInitKWH = 0;
+	dailyConsumptionInitKWH = 0;
+	monthlyConsumptionInitKWH = 0;
+	accumulationsStatus = GET_HOURLY_KWH;
+	firstTime = true;
 }
 
 void presentation()
@@ -75,7 +88,7 @@ void presentation()
 	Alarm.delay(WAIT_10MS);
 	present(CURR_PULSE_COUNT_ID, S_CUSTOM, "Pulse Count");
 	Alarm.delay(WAIT_10MS);
-	present(PULSE_PER_KWH_ID, S_CUSTOM, "Pulses per KWH");
+	present(BLINKS_PER_KWH_ID, S_CUSTOM, "Pulses per KWH");
 	Alarm.delay(WAIT_10MS);
 	present(RESET_TYPE_ID, S_CUSTOM, "Reset Consumption");
 	MyMessage resetTypeMessage(RESET_TYPE_ID, V_VAR3);
@@ -97,17 +110,21 @@ void loop()
 		}
 	}
 
-	if (sendPulsesPerWattHourRequest)
+	if (sendBlinksPerWattHourRequest)
 	{
-		sendPulsesPerWattHourRequest = false;
-		request(PULSE_PER_KWH_ID, V_VAR2);
-		pulsesPerWattHourTimer = Alarm.timerOnce(ONE_MINUTE, checkPulsesPerWattHourRequest);
-		pulsesPerWattHourCount++;
-		if (pulsesPerWattHourCount == 10)
+		sendBlinksPerWattHourRequest = false;
+		request(BLINKS_PER_KWH_ID, V_VAR2);
+		pulsesPerWattHourTimer = Alarm.timerOnce(ONE_MINUTE, checkBlinksPerWattHourRequest);
+		blinksPerWattHourCount++;
+		if (blinksPerWattHourCount == 10)
 		{
-			MyMessage pulsesPerWattHourMessage(CURR_PULSE_COUNT_ID, V_VAR2);
-			send(pulsesPerWattHourMessage.set(6400));
+			MyMessage blinksPerWattHourMessage(CURR_PULSE_COUNT_ID, V_VAR2);
+			send(blinksPerWattHourMessage.set(DEFAULT_BLINKS_PER_KWH));
 		}
+	}
+	if (!firstTime)
+	{
+		request(RESET_TYPE_ID, V_VAR3);
 	}
 	Alarm.delay(1);
 }
@@ -115,12 +132,16 @@ void receive(const MyMessage &message)
 {
 	if (message.sender == PH1_NODE_ID)
 	{
+		double monthlyConsumptionKWHPH1 = message.getLong();
+		double deltaKWH = (accumulatedKWH - monthlyConsumptionInitKWH) - monthlyConsumptionKWHPH1;
+		MyMessage deltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
+		send(deltaConsumptionMessage.set(deltaKWH, 4));
 		return;
 	}
 	switch (message.type)
 	{
 	case V_VAR1:
-		currPulseCount = prevPulseCount = message.getLong();
+		currPulseCount = currPulseCount + message.getLong();
 		if (!pulseCountReceived)
 		{
 			pulseCountReceived = true;
@@ -129,18 +150,30 @@ void receive(const MyMessage &message)
 		}
 		break;
 	case V_VAR2:
-		if (!pulsesPerWattHourReceived)
+		if (!blinksPerWattHourReceived)
 		{
-			pulsesPerWattHourReceived = true;
+			blinksPerWattHourReceived = true;
 			Alarm.free(pulsesPerWattHourTimer);
 		}
-		pulseFactor = message.getLong();
-		pulsesPerWattHour = pulseFactor / 1000;
+		blinksPerWattHour = message.getLong();
+		pulseFactor = blinksPerWattHour / 1000;
 		break;
 	case V_VAR3:
 		switch (message.getInt())
 		{
 		case 0:
+			switch (accumulationsStatus)
+			{
+			case GET_HOURLY_KWH:
+				request(HOURLY_WATT_CONSUMPTION_ID, V_KWH);
+				break;
+			case GET_DAILY_KWH:
+				request(DAILY_WATT_CONSUMPTION_ID, V_KWH);
+				break;
+			case GET_MONTHLY_KWH:
+				request(MONTHLY_WATT_CONSUMPTION_ID, V_KWH);
+				break;
+			}
 			break;
 		case 1:
 			resetHour();
@@ -156,6 +189,25 @@ void receive(const MyMessage &message)
 			break;
 		}
 		break;
+	case V_KWH:
+		switch (message.sensor)
+		{
+		case HOURLY_WATT_CONSUMPTION_ID:
+			hourlyConsumptionInitKWH = accumulatedKWH - message.getLong();
+			accumulationsStatus = GET_DAILY_KWH;
+			request(RESET_TYPE_ID, V_VAR3);
+			break;
+		case DAILY_WATT_CONSUMPTION_ID:
+			dailyConsumptionInitKWH = accumulatedKWH - message.getLong();
+			accumulationsStatus = GET_MONTHLY_KWH;
+			request(RESET_TYPE_ID, V_VAR3);
+			break;
+		case MONTHLY_WATT_CONSUMPTION_ID:
+			monthlyConsumptionInitKWH = accumulatedKWH - message.getLong();
+			accumulationsStatus = ALL_DONE;
+			break;
+		}
+		break;
 	}
 
 }
@@ -167,7 +219,7 @@ void onPulse()
 	{
 		return;
 	}
-	currWatt = (3600000000.0 / interval) / pulsesPerWattHour;
+	currWatt = (3600000000.0 / interval) / pulseFactor;
 	lastBlink = newBlink;
 	currPulseCount++;
 }
@@ -186,28 +238,70 @@ void updateConsumptionData()
 		MyMessage currentPulseCountMessage(CURR_PULSE_COUNT_ID, V_VAR1);
 		send(currentPulseCountMessage.set(currPulseCount));
 		prevPulseCount = currPulseCount;
-		double accumulatedKWH = ((double)currPulseCount / ((double)))
+		double currAccumulatedKWH = ((double)currPulseCount / ((double)blinksPerWattHour));
+		if (currAccumulatedKWH != accumulatedKWH)
+		{
+			MyMessage accumulatedKWMessage(ACCUMULATED_WATT_CONSUMPTION_ID, V_KWH);
+			send(accumulatedKWMessage.set(currAccumulatedKWH, 4));
+			accumulatedKWH = currAccumulatedKWH;
+			if (firstTime)
+			{
+				firstTime = false;
+				request(RESET_TYPE_ID, V_VAR3);
+			}
+		}
+		if (accumulationsStatus == ALL_DONE)
+		{
+			MyMessage hourlyConsumptionMessage(HOURLY_WATT_CONSUMPTION_ID, V_KWH);
+			send(hourlyConsumptionMessage.set((accumulatedKWH-hourlyConsumptionInitKWH), 4));
+
+			MyMessage dailyConsumptionMessage(DAILY_WATT_CONSUMPTION_ID, V_KWH);
+			send(dailyConsumptionMessage.set((accumulatedKWH - dailyConsumptionInitKWH), 4));
+
+			MyMessage deltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
+			send(deltaConsumptionMessage.set((accumulatedKWH - monthlyConsumptionInitKWH), 4));
+		}
 	}
 }
 
 void resetHour()
 {
-
+	hourlyConsumptionInitKWH = accumulatedKWH;
+	MyMessage hourlyConsumptionMessage(HOURLY_WATT_CONSUMPTION_ID, V_KWH);
+	send(hourlyConsumptionMessage.set((accumulatedKWH - hourlyConsumptionInitKWH), 4));
 }
 
 void resetDay()
 {
-
+	dailyConsumptionInitKWH = accumulatedKWH;
+	MyMessage dailyConsumptionMessage(DAILY_WATT_CONSUMPTION_ID, V_KWH);
+	send(dailyConsumptionMessage.set((accumulatedKWH - dailyConsumptionInitKWH), 4));
 }
 
 void resetMonth()
 {
-
+	monthlyConsumptionInitKWH = accumulatedKWH;
+	MyMessage deltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
+	send(deltaConsumptionMessage.set((accumulatedKWH - monthlyConsumptionInitKWH), 4));
 }
 
 void resetAll()
 {
+	MyMessage accumulatedKWMessage(ACCUMULATED_WATT_CONSUMPTION_ID, V_KWH);
+	send(accumulatedKWMessage.set((double)ZERO, 4));
+	
+	MyMessage pulseCountMessage(CURR_PULSE_COUNT_ID, V_VAR1);
+	send(pulseCountMessage.set(ZERO_PULSE));
+	request(CURR_PULSE_COUNT_ID, V_VAR1);
 
+	MyMessage hourlyConsumptionMessage(HOURLY_WATT_CONSUMPTION_ID, V_KWH);
+	send(hourlyConsumptionMessage.set((double)ZERO, 4));
+
+	MyMessage dailyConsumptionMessage(DAILY_WATT_CONSUMPTION_ID, V_KWH);
+	send(dailyConsumptionMessage.set((double)ZERO, 4));
+
+	MyMessage deltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
+	send(deltaConsumptionMessage.set((double)ZERO, 4));
 }
 
 void checkPulseCountRequestStatus()
@@ -216,8 +310,8 @@ void checkPulseCountRequestStatus()
 		sendPulseCountRequest = true;
 }
 
-void checkPulsesPerWattHourRequest()
+void checkBlinksPerWattHourRequest()
 {
-	if (!pulsesPerWattHourReceived)
-		sendPulsesPerWattHourRequest = true;
+	if (!blinksPerWattHourReceived)
+		sendBlinksPerWattHourRequest = true;
 }
