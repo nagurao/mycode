@@ -102,13 +102,13 @@ void presentation()
 	Alarm.delay(WAIT_10MS);
 	present(ACCUMULATED_WATT_CONSUMPTION_ID, S_POWER, "Total Consumption");
 	Alarm.delay(WAIT_10MS);
-	present(DELTA_WATT_CONSUMPTION_ID, S_POWER, "Delta Consumption");
-	Alarm.delay(WAIT_10MS);
 	present(CURR_PULSE_COUNT_ID, S_CUSTOM, "Pulse Count");
 	Alarm.delay(WAIT_10MS);
 	present(BLINKS_PER_KWH_ID, S_CUSTOM, "Pulses per KWH");
 	Alarm.delay(WAIT_10MS);
 	present(RESET_TYPE_ID, S_CUSTOM, "Reset Consumption");
+	Alarm.delay(WAIT_10MS);
+	present(DELTA_WATT_CONSUMPTION_ID, S_POWER, "Delta Consumption");
 }
 
 void loop()
@@ -141,15 +141,16 @@ void loop()
 }
 void receive(const MyMessage &message)
 {
+	/*
 	if (message.sender == PH1_NODE_ID)
 	{
 		double monthlyConsumptionKWHPH1 = message.getLong();
 		double deltaKWH = (accumulatedKWH - monthlyConsumptionInitKWH) - monthlyConsumptionKWHPH1;
-		MyMessage deltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
 		send(deltaConsumptionMessage.set(deltaKWH, 4));
 		send(thingspeakMessage.set(deltaKWH, 4));
 		return;
 	}
+	*/
 	switch (message.type)
 	{
 	case V_VAR1:
@@ -228,6 +229,12 @@ void receive(const MyMessage &message)
 			accumulationStatusCount = 0;
 			accumulationsStatus = ALL_DONE;
 			Alarm.free(accumulationTimer);
+			break;
+		case DELTA_WATT_CONSUMPTION_ID:
+			double monthlyConsumptionKWHPH1 = message.getLong();
+			double deltaKWH = (accumulatedKWH - monthlyConsumptionInitKWH) - monthlyConsumptionKWHPH1;
+			send(deltaConsumptionMessage.set(deltaKWH, 4));
+			send(thingspeakMessage.set(deltaKWH, 4));
 			break;
 		}
 		break;

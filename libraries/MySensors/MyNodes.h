@@ -88,10 +88,10 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define DAILY_WATT_CONSUMPTION_ID 3
 #define MONTHLY_WATT_CONSUMPTION_ID 4
 #define ACCUMULATED_WATT_CONSUMPTION_ID 5
-#define DELTA_WATT_CONSUMPTION_ID 6
-#define CURR_PULSE_COUNT_ID 7
-#define BLINKS_PER_KWH_ID 8
-#define RESET_TYPE_ID 9
+#define CURR_PULSE_COUNT_ID 6
+#define BLINKS_PER_KWH_ID 7
+#define RESET_TYPE_ID 8
+#define DELTA_WATT_CONSUMPTION_ID 9
 
 #define PULSE_SENSOR_PIN 3
 #define INTERRUPT_PULSE 1 // PULSE_SENSOR_PIN - 2
