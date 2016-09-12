@@ -50,11 +50,13 @@ byte accumulationsStatus;
 byte accumulationStatusCount;
 boolean firstTime;
 
-MyMessage accumulatedKWMessage(ACCUMULATED_WATT_CONSUMPTION_ID, V_KWH);
-MyMessage pulseCountMessage(CURR_PULSE_COUNT_ID, V_VAR1);
+MyMessage currentConsumptionMessage(CURR_WATT_ID, V_WATT);
 MyMessage hourlyConsumptionMessage(HOURLY_WATT_CONSUMPTION_ID, V_KWH);
 MyMessage dailyConsumptionMessage(DAILY_WATT_CONSUMPTION_ID, V_KWH);
-MyMessage monthlyConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
+MyMessage monthlyConsumptionMessage(MONTHLY_WATT_CONSUMPTION_ID, V_KWH);
+MyMessage accumulatedKWMessage(ACCUMULATED_WATT_CONSUMPTION_ID, V_KWH);
+MyMessage deltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
+MyMessage pulseCountMessage(CURR_PULSE_COUNT_ID, V_VAR1);
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 
 void before()
@@ -174,26 +176,31 @@ void receive(const MyMessage &message)
 		Serial.println(message.getInt());
 		Serial.print("The accum Status is ");
 		Serial.println(accumulationsStatus);
+		Serial.print("Accum count is : ");
+		Serial.println(accumulationStatusCount);
 		switch (message.getInt())
 		{
 		case 0:
 			switch (accumulationsStatus)
 			{
 			case GET_HOURLY_KWH:
+				Serial.println("GET_HOURLY_KWH");
 				accumulationStatusCount++;
-				if(accumulationStatusCount == 10)
+				if(accumulationStatusCount == 3)
 					send(hourlyConsumptionMessage.set((double)ZERO, 4));
 				request(HOURLY_WATT_CONSUMPTION_ID, V_KWH);
 				break;
 			case GET_DAILY_KWH:
+				Serial.println("GET_DAILY_KWH");
 				accumulationStatusCount++;
-				if (accumulationStatusCount == 10)
+				if (accumulationStatusCount == 3)
 					send(dailyConsumptionMessage.set((double)ZERO, 4));
 				request(DAILY_WATT_CONSUMPTION_ID, V_KWH);
 				break;
 			case GET_MONTHLY_KWH:
+				Serial.println("GET_MONTHLY_KWH");
 				accumulationStatusCount++;
-				if (accumulationStatusCount == 10)
+				if (accumulationStatusCount == 3)
 					send(monthlyConsumptionMessage.set((double)ZERO, 4));
 				request(MONTHLY_WATT_CONSUMPTION_ID, V_KWH);
 				break;
@@ -229,6 +236,7 @@ void receive(const MyMessage &message)
 		case MONTHLY_WATT_CONSUMPTION_ID:
 			monthlyConsumptionInitKWH = accumulatedKWH - message.getLong();
 			accumulationStatusCount = 0;
+			accumulationsStatus = ALL_DONE;
 			break;
 		}
 		break;
@@ -252,7 +260,6 @@ void updateConsumptionData()
 {
 	if (currWatt != prevWatt)
 	{
-		MyMessage currentConsumptionMessage(CURR_WATT_ID, V_WATT);
 		if(currWatt < MAX_WATT)
 			send(currentConsumptionMessage.set(currWatt));
 		prevWatt = currWatt;
