@@ -20,10 +20,11 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 6 - Overhead Tank 01
 7 - Overhead Tank 02
 8 - Underground Tank
-9 - 3-Phase Meter
-10 - 1-Phase Meter
-11 - Solar Voltage
-12 - Battery Voltage
+9 - LCD Node
+10 - 3-Phase Meter
+11 - 1-Phase Meter
+12 - Solar Voltage
+13 - Battery Voltage
 14 - Balcony Repeater Node
 15 - DB Repeater Node
 254 - Wifi Node

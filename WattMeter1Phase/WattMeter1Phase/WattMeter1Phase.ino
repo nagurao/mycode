@@ -7,8 +7,7 @@
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-//#define MY_NODE_ID PH1_NODE_ID
-#define MY_NODE_ID 201
+#define MY_NODE_ID PH1_NODE_ID
 #define MY_DEBUG
 
 #include <MyNodes.h>
@@ -85,8 +84,6 @@ void setup()
 	accumulationStatusCount = 0;
 	firstTime = true;
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
-	thingspeakMessage.setType(V_CUSTOM);
-	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 	deltaConsumptionMessage.setDestination(PH3_NODE_ID);
 	deltaConsumptionMessage.setType(V_KWH);
 	deltaConsumptionMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
@@ -278,6 +275,7 @@ void resetHour()
 {
 	double sendKHWValue = accumulatedKWH - hourlyConsumptionInitKWH;
 	send(hourlyConsumptionMessage.set(sendKHWValue, 4));
+	thingspeakMessage.setSensor(HOURLY_WATT_CONSUMPTION_ID);
 	send(thingspeakMessage.set(sendKHWValue, 4));
 	hourlyConsumptionInitKWH = accumulatedKWH;
 	MyMessage resetTypeMessage(RESET_TYPE_ID, V_VAR3);
@@ -288,6 +286,7 @@ void resetDay()
 {
 	double sendKHWValue = accumulatedKWH - dailyConsumptionInitKWH;
 	send(dailyConsumptionMessage.set(sendKHWValue, 4));
+	thingspeakMessage.setSensor(DAILY_WATT_CONSUMPTION_ID);
 	send(thingspeakMessage.set(sendKHWValue, 4));
 	dailyConsumptionInitKWH = accumulatedKWH;
 
@@ -301,6 +300,7 @@ void resetMonth()
 {
 	double sendKHWValue = accumulatedKWH - monthlyConsumptionInitKWH;
 	send(monthlyConsumptionMessage.set(sendKHWValue, 4));
+	thingspeakMessage.setSensor(MONTHLY_WATT_CONSUMPTION_ID);
 	send(thingspeakMessage.set(sendKHWValue, 4));
 	monthlyConsumptionInitKWH = accumulatedKWH;
 	MyMessage resetTypeMessage(RESET_TYPE_ID, V_VAR3);
@@ -316,6 +316,11 @@ void resetAll()
 	send(hourlyConsumptionMessage.set((double)ZERO, 4));
 	send(dailyConsumptionMessage.set((double)ZERO, 4));
 	send(monthlyConsumptionMessage.set((double)ZERO, 4));
+	thingspeakMessage.setSensor(HOURLY_WATT_CONSUMPTION_ID);
+	send(thingspeakMessage.set((double)ZERO, 4));
+	thingspeakMessage.setSensor(DAILY_WATT_CONSUMPTION_ID);
+	send(thingspeakMessage.set((double)ZERO, 4));
+	thingspeakMessage.setSensor(MONTHLY_WATT_CONSUMPTION_ID);
 	send(thingspeakMessage.set((double)ZERO, 4));
 }
 

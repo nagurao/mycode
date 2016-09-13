@@ -8,6 +8,8 @@
 #include <SPI.h>
 
 #define WIFI_NODE
+#define WATT_METER_NODE
+
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
 #define MY_NODE_ID THINGSPEAK_NODE_ID
@@ -62,9 +64,10 @@
 #define DELTA_KWH_IDX 16
 
 #define THINGSPEAK_INTERVAL 20
+#define DEFAULT_CHANNEL_VALUE -99.00
 
 byte maxDataInputs = 17;
-long channelData[17];
+float channelData[17];
 
 int status = WL_IDLE_STATUS;
 WiFiClient  client;
@@ -91,8 +94,6 @@ void before()
 {
 	WiFi.begin(ssid, pass);
 	ThingSpeak.begin(client);
-	for(byte index = 0; index < maxDataInputs; index++)
-		channelData[index]  = -99.99;
 }
 
 void setup()
@@ -100,6 +101,8 @@ void setup()
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	thingspeakTimer = Alarm.timerRepeat(THINGSPEAK_INTERVAL, sendDataToThingspeak);
 	channelId = 0;
+	for (byte index = 0; index < maxDataInputs; index++)
+		channelData[index] = DEFAULT_CHANNEL_VALUE;
 }
 
 void presentation()
@@ -146,13 +149,32 @@ void receive(const MyMessage &message)
 		case PH3_NODE_ID:
 			switch (message.sensor)
 			{
-
+			case HOURLY_WATT_CONSUMPTION_ID:
+				channelData[HOURLY_3PH_IDX] = message.getLong();
+				break;
+			case DAILY_WATT_CONSUMPTION_ID:
+				channelData[DAILY_3PH_IDX] = message.getLong();
+				break;
+			case MONTHLY_WATT_CONSUMPTION_ID:
+				channelData[MONTHLY_3PH_IDX] = message.getLong();
+				break;
+			case DELTA_WATT_CONSUMPTION_ID:
+				channelData[DELTA_KWH_IDX] = message.getLong();
+				break;
 			}
 			break;
 		case PH1_NODE_ID:
 			switch (message.sensor)
 			{
-
+			case HOURLY_WATT_CONSUMPTION_ID:
+				channelData[HOURLY_1PH_IDX] = message.getLong();
+				break;
+			case DAILY_WATT_CONSUMPTION_ID:
+				channelData[DAILY_1PH_IDX] = message.getLong();
+				break;
+			case MONTHLY_WATT_CONSUMPTION_ID:
+				channelData[MONTHLY_1PH_IDX] = message.getLong();
+				break;
 			}
 			break;
 		case SOLAR_VOLTAGE_NODE_ID:
@@ -172,126 +194,126 @@ void sendDataToThingspeak()
 	byte startPos = channelId;
 	while (channelDataNotFound)
 	{
-		if (channelData[channelId] != -99.99)
+		if (channelData[channelId] != DEFAULT_CHANNEL_VALUE)
 		{
 			switch (channelId)
 			{
 				case BALCONY_LIGHTS_IDX:
 					if (ThingSpeak.writeField(myChannelNumber, BALCONY_LIGHTS_FIELD, channelData[channelId], myWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case STAIRCASE_LIGHTS_IDX:
 					if (ThingSpeak.writeField(myChannelNumber, STAIRCASE_LIGHTS_FIELD, channelData[channelId], myWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case GATE_LIGHTS_IDX:
 					if (ThingSpeak.writeField(myChannelNumber, GATE_LIGHTS_FIELD, channelData[channelId], myWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case SUMP_MOTOR_IDX:
 					if (ThingSpeak.writeField(myChannelNumber, SUMP_MOTOR_FIELD, channelData[channelId], myWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case BOREWELL_MOTOR_IDX:
 					if (ThingSpeak.writeField(myChannelNumber, BOREWELL_FIELD, channelData[channelId], myWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case OVERHEAD_TANK01_IDX:
 					if (ThingSpeak.writeField(realtimeChannelNumber, OVERHEAD_TANK01_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case OVERHEAD_TANK02_IDX:
 					if (ThingSpeak.writeField(realtimeChannelNumber, OVERHEAD_TANK02_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case SUMP_TANK_IDX:
 					if (ThingSpeak.writeField(realtimeChannelNumber, SUMP_TANK_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case SOLAR_VOLTAGE_IDX:
 					if (ThingSpeak.writeField(realtimeChannelNumber, SOLAR_VOLT_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case BATTERY_VOLTAGE_IDX:
 					if (ThingSpeak.writeField(realtimeChannelNumber, BATTERY_VOLT_FIELD, channelData[channelId], myrealtimeWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case HOURLY_3PH_IDX:
 					if (ThingSpeak.writeField(powerStatChannelNumber, HOURLY_PH3_FIELD, channelData[channelId], myPowerStatWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case DAILY_3PH_IDX:
 					if (ThingSpeak.writeField(powerStatChannelNumber, DAILY_PH3_FIELD, channelData[channelId], myPowerStatWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case MONTHLY_3PH_IDX:
 					if (ThingSpeak.writeField(powerStatChannelNumber, MONTHLY_PH3_FIELD, channelData[channelId], myPowerStatWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case HOURLY_1PH_IDX:
 					if (ThingSpeak.writeField(powerStatChannelNumber, HOURLY_PH1_FIELD, channelData[channelId], myPowerStatWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case DAILY_1PH_IDX:
 					if (ThingSpeak.writeField(powerStatChannelNumber, DAILY_PH1_FIELD, channelData[channelId], myPowerStatWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case MONTHLY_1PH_IDX:
 					if (ThingSpeak.writeField(powerStatChannelNumber, MONTHLY_PH1_FIELD, channelData[channelId], myPowerStatWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
 				case DELTA_KWH_IDX:
 					if (ThingSpeak.writeField(powerStatChannelNumber, DELTA_PH3_PH1_FIELD, channelData[channelId], myPowerStatWriteAPIKey) == OK_SUCCESS)
 					{
-						channelData[channelId] = -99.99;
+						channelData[channelId] = DEFAULT_CHANNEL_VALUE;
 						channelDataNotFound = false;
 					}
 					break;
