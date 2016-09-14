@@ -20,7 +20,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Thingspeak Node"
-#define APPLICATION_VERSION "09Sep2016"
+#define APPLICATION_VERSION "14Sep2016"
 
 //static data logging channel
 #define BALCONY_LIGHTS_FIELD 1
@@ -150,16 +150,16 @@ void receive(const MyMessage &message)
 			switch (message.sensor)
 			{
 			case HOURLY_WATT_CONSUMPTION_ID:
-				channelData[HOURLY_3PH_IDX] = message.getLong();
+				channelData[HOURLY_3PH_IDX] = message.getFloat();
 				break;
 			case DAILY_WATT_CONSUMPTION_ID:
-				channelData[DAILY_3PH_IDX] = message.getLong();
+				channelData[DAILY_3PH_IDX] = message.getFloat();
 				break;
 			case MONTHLY_WATT_CONSUMPTION_ID:
-				channelData[MONTHLY_3PH_IDX] = message.getLong();
+				channelData[MONTHLY_3PH_IDX] = message.getFloat();
 				break;
 			case DELTA_WATT_CONSUMPTION_ID:
-				channelData[DELTA_KWH_IDX] = message.getLong();
+				channelData[DELTA_KWH_IDX] = message.getFloat();
 				break;
 			}
 			break;
@@ -167,13 +167,13 @@ void receive(const MyMessage &message)
 			switch (message.sensor)
 			{
 			case HOURLY_WATT_CONSUMPTION_ID:
-				channelData[HOURLY_1PH_IDX] = message.getLong();
+				channelData[HOURLY_1PH_IDX] = message.getFloat();
 				break;
 			case DAILY_WATT_CONSUMPTION_ID:
-				channelData[DAILY_1PH_IDX] = message.getLong();
+				channelData[DAILY_1PH_IDX] = message.getFloat();
 				break;
 			case MONTHLY_WATT_CONSUMPTION_ID:
-				channelData[MONTHLY_1PH_IDX] = message.getLong();
+				channelData[MONTHLY_1PH_IDX] = message.getFloat();
 				break;
 			}
 			break;
