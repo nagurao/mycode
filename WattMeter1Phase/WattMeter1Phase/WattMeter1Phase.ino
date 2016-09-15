@@ -31,7 +31,7 @@ byte pulseCountRequestCount;
 boolean sendBlinksPerWattHourRequest;
 boolean blinksPerWattHourReceived;
 byte blinksPerWattHourCount;
-float blinksPerWattHour;
+long blinksPerWattHour;
 float pulseFactor;
 
 volatile unsigned long currPulseCount;
@@ -168,19 +168,19 @@ void receive(const MyMessage &message)
 			case GET_HOURLY_KWH:
 				accumulationStatusCount++;
 				if (accumulationStatusCount == 3)
-					send(hourlyConsumptionMessage.set((float)ZERO, 2));
+					send(hourlyConsumptionMessage.set((float)ZERO, 5));
 				request(HOURLY_WATT_CONSUMPTION_ID, V_KWH);
 				break;
 			case GET_DAILY_KWH:
 				accumulationStatusCount++;
 				if (accumulationStatusCount == 3)
-					send(dailyConsumptionMessage.set((float)ZERO, 2));
+					send(dailyConsumptionMessage.set((float)ZERO, 5));
 				request(DAILY_WATT_CONSUMPTION_ID, V_KWH);
 				break;
 			case GET_MONTHLY_KWH:
 				accumulationStatusCount++;
 				if (accumulationStatusCount == 3)
-					send(monthlyConsumptionMessage.set((float)ZERO, 2));
+					send(monthlyConsumptionMessage.set((float)ZERO, 5));
 				request(MONTHLY_WATT_CONSUMPTION_ID, V_KWH);
 				break;
 			}
@@ -251,7 +251,7 @@ void updateConsumptionData()
 		float currAccumulatedKWH = ((float)currPulseCount / ((float)blinksPerWattHour));
 		if (currAccumulatedKWH != accumulatedKWH)
 		{
-			send(accumulatedKWMessage.set(currAccumulatedKWH, 2));
+			send(accumulatedKWMessage.set(currAccumulatedKWH, 5));
 			accumulatedKWH = currAccumulatedKWH;
 			if (firstTime)
 			{
@@ -264,9 +264,11 @@ void updateConsumptionData()
 		}
 		if (accumulationsStatus == ALL_DONE)
 		{
-			send(hourlyConsumptionMessage.set((accumulatedKWH - hourlyConsumptionInitKWH), 2));
-			send(dailyConsumptionMessage.set((accumulatedKWH - dailyConsumptionInitKWH), 2));
-			send(monthlyConsumptionMessage.set((accumulatedKWH - monthlyConsumptionInitKWH), 2));
+			send(hourlyConsumptionMessage.set((accumulatedKWH - hourlyConsumptionInitKWH), 5));
+			Alarm.delay(WAIT_5MS);
+			send(dailyConsumptionMessage.set((accumulatedKWH - dailyConsumptionInitKWH), 5));
+			Alarm.delay(WAIT_5MS);
+			send(monthlyConsumptionMessage.set((accumulatedKWH - monthlyConsumptionInitKWH), 5));
 		}
 	}
 }
@@ -275,9 +277,9 @@ void resetHour()
 {
 	float sendKHWValue = accumulatedKWH - hourlyConsumptionInitKWH;
 	hourlyConsumptionInitKWH = accumulatedKWH;
-	send(hourlyConsumptionMessage.set(sendKHWValue, 2));
+	send(hourlyConsumptionMessage.set(sendKHWValue, 5));
 	thingspeakMessage.setSensor(HOURLY_WATT_CONSUMPTION_ID);
-	send(thingspeakMessage.set(sendKHWValue, 2));
+	send(thingspeakMessage.set(sendKHWValue, 5));
 	MyMessage resetTypeMessage(RESET_TYPE_ID, V_VAR3);
 	send(resetTypeMessage.set(RESET_NONE));
 }
@@ -287,10 +289,10 @@ void resetDay()
 	float sendKHWValue = accumulatedKWH - dailyConsumptionInitKWH;
 	float deltaKWH = accumulatedKWH - monthlyConsumptionInitKWH;
 	dailyConsumptionInitKWH = accumulatedKWH;
-	send(dailyConsumptionMessage.set(sendKHWValue, 2));
+	send(dailyConsumptionMessage.set(sendKHWValue, 5));
+	send(deltaConsumptionMessage.set(deltaKWH, 5));
 	thingspeakMessage.setSensor(DAILY_WATT_CONSUMPTION_ID);
-	send(thingspeakMessage.set(sendKHWValue, 2));
-	send(deltaConsumptionMessage.set(deltaKWH, 2));
+	send(thingspeakMessage.set(sendKHWValue, 5));
 	MyMessage resetTypeMessage(RESET_TYPE_ID, V_VAR3);
 	send(resetTypeMessage.set(RESET_NONE));
 }
@@ -299,28 +301,28 @@ void resetMonth()
 {
 	float sendKHWValue = accumulatedKWH - monthlyConsumptionInitKWH;
 	monthlyConsumptionInitKWH = accumulatedKWH;
-	send(monthlyConsumptionMessage.set(sendKHWValue, 2));
+	send(monthlyConsumptionMessage.set(sendKHWValue, 5));
 	thingspeakMessage.setSensor(MONTHLY_WATT_CONSUMPTION_ID);
-	send(thingspeakMessage.set(sendKHWValue, 2));
+	send(thingspeakMessage.set(sendKHWValue, 5));
 	MyMessage resetTypeMessage(RESET_TYPE_ID, V_VAR3);
 	send(resetTypeMessage.set(RESET_NONE));
 }
 
 void resetAll()
 {
-	send(accumulatedKWMessage.set((float)ZERO, 2));
+	send(accumulatedKWMessage.set((float)ZERO, 5));
 	send(pulseCountMessage.set(ZERO_PULSE));
 	request(CURR_PULSE_COUNT_ID, V_VAR1);
 
-	send(hourlyConsumptionMessage.set((float)ZERO, 2));
-	send(dailyConsumptionMessage.set((float)ZERO, 2));
-	send(monthlyConsumptionMessage.set((float)ZERO, 2));
+	send(hourlyConsumptionMessage.set((float)ZERO, 5));
+	send(dailyConsumptionMessage.set((float)ZERO, 5));
+	send(monthlyConsumptionMessage.set((float)ZERO, 5));
 	thingspeakMessage.setSensor(HOURLY_WATT_CONSUMPTION_ID);
-	send(thingspeakMessage.set((float)ZERO, 2));
+	send(thingspeakMessage.set((float)ZERO, 5));
 	thingspeakMessage.setSensor(DAILY_WATT_CONSUMPTION_ID);
-	send(thingspeakMessage.set((float)ZERO, 2));
+	send(thingspeakMessage.set((float)ZERO, 5));
 	thingspeakMessage.setSensor(MONTHLY_WATT_CONSUMPTION_ID);
-	send(thingspeakMessage.set((float)ZERO, 2));
+	send(thingspeakMessage.set((float)ZERO, 5));
 }
 
 void checkPulseCountRequestStatus()

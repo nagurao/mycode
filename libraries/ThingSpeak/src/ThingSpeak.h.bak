@@ -1509,24 +1509,6 @@ private:
 		return OK_SUCCESS;
 	};
 
-	int convertFloatToChar(float value, char *valueString,int decimalPoints)
-	{
-		// Supported range is -999999000000 to 999999000000
-		if(0 == isinf(value) && (value > 999999000000 || value < -999999000000))
-		{
-			// Out of range
-			return ERR_OUT_OF_RANGE;
-		}
-		// Given that the resolution of Spark is 1 / 2^12, or ~0.00024 volts, assume that 5 places right of decimal should be sufficient for most applications
-        #ifdef PARTICLE_PHOTONELECTRON
-          //Photon doesn't have a dtostrf, but does have dtoa
-          dtoa((double)value,decimalPoints, valueString);
-        #else
-		  dtostrf(value,1,decimalPoints, valueString);
-        #endif
-		return OK_SUCCESS;
-	};
-
 	float convertStringToFloat(String value)
 	{
 		// There's a bug in the AVR function strtod that it doesn't decode -INF correctly (it maps it to INF)

@@ -319,7 +319,7 @@ void sendDataToThingspeak()
 					break;
 			}
 		}
-		channelId = (channelId + 1) % 12;
+		channelId = (channelId + 1) % maxDataInputs;
 		if (channelId == startPos)
 			channelDataNotFound = false;
 

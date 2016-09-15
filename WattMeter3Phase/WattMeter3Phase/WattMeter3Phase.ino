@@ -281,7 +281,9 @@ void updateConsumptionData()
 		if (accumulationsStatus == ALL_DONE)
 		{
 			send(hourlyConsumptionMessage.set((accumulatedKWH-hourlyConsumptionInitKWH), 5));
+			Alarm.delay(WAIT_5MS);
 			send(dailyConsumptionMessage.set((accumulatedKWH - dailyConsumptionInitKWH), 5));
+			Alarm.delay(WAIT_5MS);
 			send(monthlyConsumptionMessage.set((accumulatedKWH - monthlyConsumptionInitKWH), 5));
 		}
 	}

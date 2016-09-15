@@ -4,6 +4,7 @@
 #ifndef MyNodes_h
 #define MyNodes_h
 
+#define WAIT_5MS 5
 #define WAIT_10MS 10
 #define WAIT_50MS 50
 #define ONE_MINUTE 60
