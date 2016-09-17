@@ -9,6 +9,7 @@
 #define WAIT_50MS 50
 #define ONE_MINUTE 60
 #define ONE_HOUR 3600
+#define REQUEST_INTERVAL 20
 #define HEARTBEAT_INTERVAL 600
 /*
 The following are the Nod Ids assigned, populated here as comments for easy reference.

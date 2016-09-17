@@ -15,7 +15,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "3Phase Watt Meter"
-#define APPLICATION_VERSION "14Sep2016"
+#define APPLICATION_VERSION "17Sep2016"
 
 #define DEFAULT_BLINKS_PER_KWH 6400 // value from energy meter
 AlarmId heartbeatTimer;
@@ -114,7 +114,7 @@ void loop()
 	{
 		sendPulseCountRequest = false;
 		request(CURR_PULSE_COUNT_ID, V_VAR1);
-		pulseCountTimer = Alarm.timerOnce(ONE_MINUTE, checkPulseCountRequestStatus);
+		pulseCountTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkPulseCountRequestStatus);
 		pulseCountRequestCount++;
 		if (pulseCountRequestCount == 10)
 		{
@@ -126,7 +126,7 @@ void loop()
 	{
 		sendBlinksPerWattHourRequest = false;
 		request(BLINKS_PER_KWH_ID, V_VAR2);
-		pulsesPerWattHourTimer = Alarm.timerOnce(ONE_MINUTE, checkBlinksPerWattHourRequest);
+		pulsesPerWattHourTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkBlinksPerWattHourRequest);
 		blinksPerWattHourCount++;
 		if (blinksPerWattHourCount == 10)
 		{
@@ -138,16 +138,6 @@ void loop()
 }
 void receive(const MyMessage &message)
 {
-	/*
-	if (message.sender == PH1_NODE_ID)
-	{
-		float monthlyConsumptionKWHPH1 = message.getLong();
-		float deltaKWH = (accumulatedKWH - monthlyConsumptionInitKWH) - monthlyConsumptionKWHPH1;
-		send(deltaConsumptionMessage.set(deltaKWH, 5));
-		send(thingspeakMessage.set(deltaKWH, 5));
-		return;
-	}
-	*/
 	switch (message.type)
 	{
 	case V_VAR1:
@@ -226,6 +216,7 @@ void receive(const MyMessage &message)
 			accumulationStatusCount = 0;
 			accumulationsStatus = ALL_DONE;
 			Alarm.free(accumulationTimer);
+			accumulationTimer = Alarm.timerRepeat(5 * ONE_MINUTE, sendAccumulation);
 			break;
 		case DELTA_WATT_CONSUMPTION_ID:
 			float monthlyConsumptionKWHPH1 = message.getFloat();
@@ -275,7 +266,7 @@ void updateConsumptionData()
 				send(resetTypeMessage.set(RESET_NONE));
 				firstTime = false;
 				request(RESET_TYPE_ID, V_VAR3);
-				accumulationTimer = Alarm.timerRepeat(ONE_MINUTE, getAccumulation);
+				accumulationTimer = Alarm.timerRepeat(REQUEST_INTERVAL, getAccumulation);
 			}
 		}
 		if (accumulationsStatus == ALL_DONE)
@@ -324,21 +315,11 @@ void resetMonth()
 
 void resetAll()
 {
-	send(accumulatedKWMessage.set((float)ZERO, 5));
-	send(pulseCountMessage.set(ZERO_PULSE));
-	request(CURR_PULSE_COUNT_ID, V_VAR1);
-
-	send(hourlyConsumptionMessage.set((float)ZERO, 5));
-	send(dailyConsumptionMessage.set((float)ZERO, 5));
-	send(monthlyConsumptionMessage.set((float)ZERO, 5));
-	thingspeakMessage.setSensor(HOURLY_WATT_CONSUMPTION_ID);
-	send(thingspeakMessage.set((float)ZERO, 5));
-	thingspeakMessage.setSensor(DAILY_WATT_CONSUMPTION_ID);
-	send(thingspeakMessage.set((float)ZERO, 5));
-	thingspeakMessage.setSensor(MONTHLY_WATT_CONSUMPTION_ID);
-	send(thingspeakMessage.set((float)ZERO, 5));
-	thingspeakMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
-	send(thingspeakMessage.set((float)ZERO, 5));
+	currPulseCount = 0;
+	accumulatedKWH = 0;
+	hourlyConsumptionInitKWH = 0;
+	dailyConsumptionInitKWH = 0;
+	monthlyConsumptionInitKWH = 0;
 }
 
 void checkPulseCountRequestStatus()
@@ -356,4 +337,13 @@ void checkBlinksPerWattHourRequest()
 void getAccumulation()
 {
 	request(RESET_TYPE_ID, V_VAR3);
+}
+
+void sendAccumulation()
+{
+	if (currWatt < MAX_WATT)
+	{
+		thingspeakMessage.setSensor(CURR_WATT_ID);
+		send(thingspeakMessage.set(currWatt, 2));
+	}
 }
