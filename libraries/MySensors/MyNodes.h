@@ -74,7 +74,9 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 
 #if defined LCD_NODE
 #define LCD_DISPLAY_NODE_ID 9
-#define LCD_DISPLAY_ID 1
+#define PH3_NODE_ID 10
+#define PH1_NODE_ID 11
+
 #endif
 
 #if defined WATT_METER_NODE
