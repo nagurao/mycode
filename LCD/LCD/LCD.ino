@@ -7,7 +7,7 @@
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID LCD_DISPLAY_NODE_ID
+#define MY_NODE_ID LCD_NODE_ID
 #define MY_DEBUG
 
 #include <MyNodes.h>
@@ -15,7 +15,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "LCD Node"
-#define APPLICATION_VERSION "20Sep2016"
+#define APPLICATION_VERSION "22Sep2016"
 
 #define LCD_I2C_ADDR 0x27
 #define LCD_ROWS 4
@@ -73,21 +73,31 @@ void loop()
 }
 void receive(const MyMessage &message)
 {
+	float currWatt;
+	char dispValue[8];
 	switch (message.type)
 	{
 	case V_WATT:
 		switch (message.sender)
 		{
 		case PH3_NODE_ID:
-			float currWatt;
 			currWatt = message.getFloat();
-			char dispValue[8];
+			ftoa(currWatt, dispValue, 4, 2);
+			printLCDVal(13, ROW_3, dispValue, true);
 			break;
 		case PH1_NODE_ID:
+			currWatt = message.getFloat();
+			ftoa(currWatt, dispValue, 4, 2);
+			printLCDVal(13, ROW_4, dispValue, true);
 			break;
 		}
 		break;
 	case V_KWH:
+		float currWatt;
+		currWatt = message.getFloat();
+		char dispValue[8];
+		ftoa(currWatt, dispValue, 4, 2);
+		printLCDVal(2, ROW_4, dispValue, true);
 		break;
 	}
 }
@@ -104,28 +114,59 @@ void printLCDVal(byte column, byte row, char* text, boolean clearFlag)
 	lcd.setCursor(column, row);
 	lcd.print(text);
 	lcd.backlight();
+	Alarm.timerOnce(LCD_BACKLIGHT_TIME, turnOffLCDLight);
 }
 
-void printLCDVal(byte column, byte row, byte num)
+/*void printLCDVal(byte column, byte row, byte num)
 {
 	lcd.setCursor(column, row);
 	if (num < 10)
 		lcd.print("0");
 	lcd.print(num);
 	lcd.backlight();
+}*/
+
+void turnOffLCDLight()
+{
+	lcd.noBacklight();
 }
 
-void ftoa(float floatNum, char *resultString, byte resolution)
+void ftoa(float floatNum, char *resultString, byte digitsInIntegerPart, byte resolution)
 {
+	boolean isNegVal = false;
+	if (floatNum < 0)
+	{
+		isNegVal = true;
+		floatNum = floatNum * -1;
+		digitsInIntegerPart = digitsInIntegerPart - 1;
+	}
+
 	int intergerPart = (int)floatNum;
 	float fractionPart = floatNum - (float)intergerPart;
-	int i = intToString(intergerPart, resultString, 0);
+	int i = intToString(intergerPart, resultString, digitsInIntegerPart,isNegVal);
 	if (resolution != 0)
 	{
 		resultString[i] = '.';
 		fractionPart = fractionPart * pow(10, resolution);
 		intToString((int)fractionPart, resultString + i + 1, resolution);
 	}
+}
+
+int intToString(int intValue, char str[], byte digitsInIntegerPart,boolean isNegVal)
+{
+	byte i = 0;
+	while (intValue)
+	{
+		str[i++] = (intValue % 10) + '0';
+		intValue = intValue / 10;
+	}
+	while (i < digitsInIntegerPart)
+		str[i++] = '0';
+	if (isNegVal)
+		str[i++] = '-';
+	reverse(str, i);
+	str[i] = '\0';
+	return i;
 }
 
 int intToString(int intValue, char str[], byte resolution)
@@ -139,7 +180,6 @@ int intToString(int intValue, char str[], byte resolution)
 	while (i < resolution)
 		str[i++] = '0';
 	reverse(str, i);
-	str[i] = '\0';
 	return i;
 }
 

@@ -72,8 +72,12 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 
 #endif
 
+#if defined NODE_INTERACTS_WITH_LCD
+#define LCD_NODE_ID 9
+#endif
+
 #if defined LCD_NODE
-#define LCD_DISPLAY_NODE_ID 9
+#define LCD_NODE_ID 9
 #define PH3_NODE_ID 10
 #define PH1_NODE_ID 11
 

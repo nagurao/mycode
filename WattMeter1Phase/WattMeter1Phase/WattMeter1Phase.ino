@@ -4,6 +4,7 @@
 #include <SPI.h>
 
 #define WATT_METER_NODE
+#define NODE_INTERACTS_WITH_LCD
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -57,6 +58,8 @@ MyMessage accumulatedKWMessage(ACCUMULATED_WATT_CONSUMPTION_ID, V_KWH);
 MyMessage deltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
 MyMessage pulseCountMessage(CURR_PULSE_COUNT_ID, V_VAR1);
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
+MyMessage lcdCurrWattMessage(CURR_WATT_ID, V_WATT);
+
 
 void before()
 {
@@ -87,6 +90,7 @@ void setup()
 	deltaConsumptionMessage.setDestination(PH3_NODE_ID);
 	deltaConsumptionMessage.setType(V_KWH);
 	deltaConsumptionMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
+	lcdCurrWattMessage.setDestination(LCD_NODE_ID);
 }
 
 void presentation()
@@ -219,6 +223,13 @@ void receive(const MyMessage &message)
 			Alarm.free(accumulationTimer);
 			accumulationTimer = Alarm.timerRepeat(5 * ONE_MINUTE, sendAccumulation);
 			break;
+		case DELTA_WATT_CONSUMPTION_ID:
+			float monthlyConsumptionKWHPH3 = message.getFloat();
+			float deltaKWH = monthlyConsumptionKWHPH3 - (accumulatedKWH - monthlyConsumptionInitKWH);
+			MyMessage realtimeDeltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
+			realtimeDeltaConsumptionMessage.setDestination(PH1_NODE_ID);
+			realtimeDeltaConsumptionMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
+			send(realtimeDeltaConsumptionMessage.set(deltaKWH, 2));
 		}
 		break;
 	}
@@ -341,5 +352,7 @@ void sendAccumulation()
 	{
 		thingspeakMessage.setSensor(CURR_WATT_ID);
 		send(thingspeakMessage.set(currWatt, 2));
+		lcdCurrWattMessage.setSensor(CURR_WATT_ID);
+		send(lcdCurrWattMessage.set(currWatt, 2));
 	}
 }
