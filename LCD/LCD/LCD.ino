@@ -83,21 +83,22 @@ void receive(const MyMessage &message)
 		case PH3_NODE_ID:
 			currWatt = message.getFloat();
 			ftoa(currWatt, dispValue, 4, 2);
-			printLCDVal(13, ROW_3, dispValue, true);
+			for (byte index = 0, column = 13; index < 7; index++, column++)
+				printLCDVal(column, ROW_3, dispValue[index], true);
 			break;
 		case PH1_NODE_ID:
 			currWatt = message.getFloat();
 			ftoa(currWatt, dispValue, 4, 2);
-			printLCDVal(13, ROW_4, dispValue, true);
+			for (byte index = 0, column = 13; index < 7; index++, column++)
+				printLCDVal(column, ROW_4, dispValue[index], true);
 			break;
 		}
 		break;
 	case V_KWH:
-		float currWatt;
 		currWatt = message.getFloat();
-		char dispValue[8];
 		ftoa(currWatt, dispValue, 4, 2);
-		printLCDVal(2, ROW_4, dispValue, true);
+		for(byte index = 0,column = 2; index < 7; index++,column++)
+			printLCDVal(column, ROW_4, dispValue[index], true);
 		break;
 	}
 }
@@ -114,7 +115,17 @@ void printLCDVal(byte column, byte row, char* text, boolean clearFlag)
 	lcd.setCursor(column, row);
 	lcd.print(text);
 	lcd.backlight();
-	Alarm.timerOnce(LCD_BACKLIGHT_TIME, turnOffLCDLight);
+	//Alarm.timerOnce(LCD_BACKLIGHT_TIME, turnOffLCDLight);
+}
+
+void printLCDVal(byte column, byte row, char text, boolean clearFlag)
+{
+	if (clearFlag)
+		lcd.print(" ");
+	lcd.setCursor(column, row);
+	lcd.print(text);
+	lcd.backlight();
+	//Alarm.timerOnce(LCD_BACKLIGHT_TIME, turnOffLCDLight);
 }
 
 /*void printLCDVal(byte column, byte row, byte num)

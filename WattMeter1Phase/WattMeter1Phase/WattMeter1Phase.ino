@@ -227,7 +227,7 @@ void receive(const MyMessage &message)
 			float monthlyConsumptionKWHPH3 = message.getFloat();
 			float deltaKWH = monthlyConsumptionKWHPH3 - (accumulatedKWH - monthlyConsumptionInitKWH);
 			MyMessage realtimeDeltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
-			realtimeDeltaConsumptionMessage.setDestination(PH1_NODE_ID);
+			realtimeDeltaConsumptionMessage.setDestination(LCD_NODE_ID);
 			realtimeDeltaConsumptionMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
 			send(realtimeDeltaConsumptionMessage.set(deltaKWH, 2));
 		}
