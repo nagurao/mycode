@@ -4,6 +4,7 @@
 #include <Time.h>
 #include <SPI.h>
 #define LCD_NODE
+#define NODE_WITH_ON_OFF_FEATURE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -15,23 +16,31 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "LCD Node"
-#define APPLICATION_VERSION "22Sep2016"
+#define APPLICATION_VERSION "23Sep2016"
 
 #define LCD_I2C_ADDR 0x27
 #define LCD_ROWS 4
 #define LCD_COLUMNS 20
-#define LCD_BACKLIGHT_TIME 10
+#define LCD_BACKLIGHT_ID 1
 #define ROW_1 0
 #define ROW_2 1
 #define ROW_3 2
 #define ROW_4 3
 
 AlarmId heartbeatTimer;
+AlarmId backlightTimer;
 
 LCD_I2C lcd(LCD_I2C_ADDR, LCD_COLUMNS, LCD_ROWS);
 
 uint8_t phi[8] = {0x4,0x4,0xe,0x15,0x15,0xe,0x4,0x4};
 uint8_t delta[8] = {0x0,0x4,0xe,0x1b,0x11,0x11,0x1f,0x0};
+
+boolean lcdBackLightFlag;
+byte lcdBackLightFlagRequestCount;
+boolean sendBackLightFlagRequest;
+boolean lcdBackLightFlagReceived;
+
+MyMessage lcdBackLightFlagMessage(LCD_BACKLIGHT_ID, V_STATUS);
 
 void before()
 {
@@ -46,7 +55,9 @@ void before()
 	lcd.write(1);
 	printLCDVal(1, ROW_4, ":", true);
 	printLCDVal(9, ROW_1, "|SOL:",true);
+	printLCDVal(19, ROW_1, "V", true);
 	printLCDVal(9, ROW_2, "|BAT:", true);
+	printLCDVal(19, ROW_2, "V", true);
 	printLCDVal(9, ROW_3, "|3",true);
 	lcd.setCursor(11, ROW_3);
 	lcd.write(0);
@@ -60,21 +71,35 @@ void before()
 void setup()
 {
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
+	lcdBackLightFlag = true;
+	lcdBackLightFlagRequestCount = 0;
+	lcdBackLightFlagReceived = false;
+	sendBackLightFlagRequest = true;
 }
 
 void presentation()
 {
 	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
+	present(LCD_BACKLIGHT_ID, S_BINARY, "LCD Backlit Light");
 }
 
 void loop()
 {
+	if (sendBackLightFlagRequest)
+	{
+		sendBackLightFlagRequest = false;
+		request(LCD_BACKLIGHT_ID, V_STATUS);
+		backlightTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkBackLightFlagRequestStatus);
+		lcdBackLightFlagRequestCount++;
+		if (lcdBackLightFlagRequestCount == 10)
+			send(lcdBackLightFlagMessage.set(ON));
+	}
 	Alarm.delay(1);
 }
 void receive(const MyMessage &message)
 {
 	float currWatt;
-	char dispValue[8];
+	char dispValue[7];
 	switch (message.type)
 	{
 	case V_WATT:
@@ -85,12 +110,14 @@ void receive(const MyMessage &message)
 			ftoa(currWatt, dispValue, 4, 2);
 			for (byte index = 0, column = 13; index < 7; index++, column++)
 				printLCDVal(column, ROW_3, dispValue[index], true);
+			Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
 			break;
 		case PH1_NODE_ID:
 			currWatt = message.getFloat();
 			ftoa(currWatt, dispValue, 4, 2);
 			for (byte index = 0, column = 13; index < 7; index++, column++)
 				printLCDVal(column, ROW_4, dispValue[index], true);
+			Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
 			break;
 		}
 		break;
@@ -99,8 +126,34 @@ void receive(const MyMessage &message)
 		ftoa(currWatt, dispValue, 4, 2);
 		for(byte index = 0,column = 2; index < 7; index++,column++)
 			printLCDVal(column, ROW_4, dispValue[index], true);
+		Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
+		break;
+	case V_STATUS:
+		lcdBackLightFlag = message.getInt();
+		if (!lcdBackLightFlagReceived)
+		{
+			lcdBackLightFlagReceived = true;
+			Alarm.free(backlightTimer);
+			sendBackLightFlagRequest = false;
+		}
+		if (lcdBackLightFlag)
+		{
+			lcd.backlight();
+			if(Alarm.isAllocated(backlightTimer))
+				Alarm.free(backlightTimer);
+		}
+		else
+		{
+			lcd.noBacklight();
+		}
 		break;
 	}
+}
+
+void checkBackLightFlagRequestStatus()
+{
+	if (!lcdBackLightFlagReceived)
+		sendBackLightFlagRequest = true;
 }
 
 void printLCDVal(byte column, byte row, char* text, boolean clearFlag)
@@ -115,17 +168,16 @@ void printLCDVal(byte column, byte row, char* text, boolean clearFlag)
 	lcd.setCursor(column, row);
 	lcd.print(text);
 	lcd.backlight();
-	//Alarm.timerOnce(LCD_BACKLIGHT_TIME, turnOffLCDLight);
 }
 
 void printLCDVal(byte column, byte row, char text, boolean clearFlag)
 {
+	lcd.setCursor(column, row);
 	if (clearFlag)
 		lcd.print(" ");
 	lcd.setCursor(column, row);
 	lcd.print(text);
 	lcd.backlight();
-	//Alarm.timerOnce(LCD_BACKLIGHT_TIME, turnOffLCDLight);
 }
 
 /*void printLCDVal(byte column, byte row, byte num)
@@ -135,11 +187,13 @@ void printLCDVal(byte column, byte row, char text, boolean clearFlag)
 		lcd.print("0");
 	lcd.print(num);
 	lcd.backlight();
+	Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
 }*/
 
 void turnOffLCDLight()
 {
-	lcd.noBacklight();
+	if(!lcdBackLightFlag)
+		lcd.noBacklight();
 }
 
 void ftoa(float floatNum, char *resultString, byte digitsInIntegerPart, byte resolution)
@@ -176,7 +230,7 @@ int intToString(int intValue, char str[], byte digitsInIntegerPart,boolean isNeg
 	if (isNegVal)
 		str[i++] = '-';
 	reverse(str, i);
-	str[i] = '\0';
+	//str[i] = '\0';
 	return i;
 }
 

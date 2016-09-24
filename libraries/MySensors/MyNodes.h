@@ -42,6 +42,11 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define RELAY_OFF 0
 #endif
 
+#if defined NODE_WITH_ON_OFF_FEATURE
+#define ON 1
+#define OFF 0
+#endif
+
 #if defined NODE_HAS_ULTRASONIC_SENSOR
 #define ECHO_PIN 5
 #define TRIGGER_PIN 6
