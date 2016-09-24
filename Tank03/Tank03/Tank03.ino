@@ -14,7 +14,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Tank 03"
-#define APPLICATION_VERSION "02Sep2016"
+#define APPLICATION_VERSION "25Sep2016"
 
 AlarmId heartbeatTimer;
 
