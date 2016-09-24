@@ -16,7 +16,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Borewell Motor"
-#define APPLICATION_VERSION "24Aug2016"
+#define APPLICATION_VERSION "25Sep2016"
 
 AlarmId heartbeatTimer;
 
