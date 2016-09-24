@@ -16,7 +16,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "LCD Node"
-#define APPLICATION_VERSION "23Sep2016"
+#define APPLICATION_VERSION "25Sep2016"
 
 #define LCD_I2C_ADDR 0x27
 #define LCD_ROWS 4
@@ -100,32 +100,57 @@ void receive(const MyMessage &message)
 {
 	float currWatt;
 	char dispValue[7];
+	byte column;
+	byte row;
 	switch (message.type)
 	{
 	case V_WATT:
+		currWatt = message.getFloat();
+		ftoa(currWatt, dispValue, 4, 2);
 		switch (message.sender)
 		{
 		case PH3_NODE_ID:
-			currWatt = message.getFloat();
-			ftoa(currWatt, dispValue, 4, 2);
-			for (byte index = 0, column = 13; index < 7; index++, column++)
-				printLCDVal(column, ROW_3, dispValue[index], true);
-			Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
+			column = 13;
+			row = ROW_3;
 			break;
 		case PH1_NODE_ID:
-			currWatt = message.getFloat();
-			ftoa(currWatt, dispValue, 4, 2);
-			for (byte index = 0, column = 13; index < 7; index++, column++)
-				printLCDVal(column, ROW_4, dispValue[index], true);
-			Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
+			column = 13;
+			row = ROW_4;
 			break;
 		}
+		lcd.backlight();
+		for (byte index = 0; index < 7; index++, column++)
+			printLCDVal(column, row, dispValue[index], true);
+		Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
 		break;
 	case V_KWH:
 		currWatt = message.getFloat();
 		ftoa(currWatt, dispValue, 4, 2);
-		for(byte index = 0,column = 2; index < 7; index++,column++)
-			printLCDVal(column, ROW_4, dispValue[index], true);
+		column = 2;
+		row = ROW_4;
+		lcd.backlight();
+		for (byte index = 0; index < 7; index++, column++)
+			printLCDVal(column, row, dispValue[index], true);
+		Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
+		break;
+	case V_VOLTAGE:
+		float currVoltage;
+		char dispVoltValue[4];
+		currVoltage = message.getFloat();
+		ftoa(currVoltage, dispValue, 2, 2);
+		switch (message.sensor)
+		{
+		case SOLAR_VOLTAGE_ID:
+			column = 14;
+			row = ROW_1;
+			break;
+		case BATTERY_VOLATGE_ID:
+			column = 14;
+			row = ROW_2;
+		}
+		lcd.backlight();
+		for (byte index = 0; index < 4; index++, column++)
+			printLCDVal(column, row, dispValue[index], true);
 		Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
 		break;
 	case V_STATUS:
@@ -139,7 +164,7 @@ void receive(const MyMessage &message)
 		if (lcdBackLightFlag)
 		{
 			lcd.backlight();
-			if(Alarm.isAllocated(backlightTimer))
+			if (Alarm.isAllocated(backlightTimer))
 				Alarm.free(backlightTimer);
 		}
 		else
@@ -167,7 +192,6 @@ void printLCDVal(byte column, byte row, char* text, boolean clearFlag)
 	}
 	lcd.setCursor(column, row);
 	lcd.print(text);
-	lcd.backlight();
 }
 
 void printLCDVal(byte column, byte row, char text, boolean clearFlag)
@@ -177,7 +201,6 @@ void printLCDVal(byte column, byte row, char text, boolean clearFlag)
 		lcd.print(" ");
 	lcd.setCursor(column, row);
 	lcd.print(text);
-	lcd.backlight();
 }
 
 /*void printLCDVal(byte column, byte row, byte num)

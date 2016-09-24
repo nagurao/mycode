@@ -85,6 +85,9 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define LCD_NODE_ID 9
 #define PH3_NODE_ID 10
 #define PH1_NODE_ID 11
+#define SOLAR_VOLTAGE_NODE_ID 12
+#define SOLAR_VOLTAGE_ID 1
+#define BATTERY_VOLATGE_ID 2
 
 #endif
 
@@ -215,6 +218,8 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 
 #if defined SOLAR_VOLTAGE_NODE
 #define SOLAR_VOLTAGE_NODE_ID 12
+#define SOLAR_VOLTAGE_ID 1
+#define BATTERY_VOLATGE_ID 2
 #endif
 
 #if defined BATT_VOLTAGE_NODE
