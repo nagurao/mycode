@@ -16,7 +16,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "3Phase Watt Meter"
-#define APPLICATION_VERSION "22Sep2016"
+#define APPLICATION_VERSION "25Sep2016"
 
 #define DEFAULT_BLINKS_PER_KWH 6400 // value from energy meter
 AlarmId heartbeatTimer;
