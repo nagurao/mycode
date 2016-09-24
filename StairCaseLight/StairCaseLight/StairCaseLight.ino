@@ -63,7 +63,7 @@ void loop()
 	{
 		sendLightStatusRequest = false;
 		request(BALCONY_LIGHT_RELAY_ID, V_STATUS, BALCONYLIGHT_WITH_PIR_NODE_ID);
-		lightStatusTimer = Alarm.timerOnce(ONE_MINUTE, checkLightStatusRequest);
+		lightStatusTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkLightStatusRequest);
 		lightStatusRequstCount++;
 		if (lightStatusRequstCount == 10)
 		{
