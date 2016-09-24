@@ -17,7 +17,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "PIR Gate Light"
-#define APPLICATION_VERSION "24Aug2016"
+#define APPLICATION_VERSION "25Sep2016"
 #define SENSOR_POLL_TIME 120
 #define DEFAULT_CURR_MODE 0
 #define DEFAULT_LIGHT_ON_DURATION 60
@@ -93,7 +93,7 @@ void loop()
 	{
 		sendCurrModeRequest = false;
 		request(CURR_MODE_ID, V_VAR1);
-		currModeTimer = Alarm.timerOnce(ONE_MINUTE, checkCurrModeRequestStatus);
+		currModeTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkCurrModeRequestStatus);
 		currModeRequestCount++;
 		if (currModeRequestCount == 10)
 		{
@@ -106,7 +106,7 @@ void loop()
 	{
 		sendlightOnDurationRequest = false;
 		request(LIGHT_DURATION_ID, V_VAR2);
-		lightOnDurationTimer = Alarm.timerOnce(ONE_MINUTE, checkLightOnDurationRequest);
+		lightOnDurationTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkLightOnDurationRequest);
 		lightOnDurationRequestCount++;
 		if (lightOnDurationRequestCount == 10)
 		{
