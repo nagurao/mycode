@@ -230,6 +230,8 @@ void receive(const MyMessage &message)
 			realtimeDeltaConsumptionMessage.setDestination(LCD_NODE_ID);
 			realtimeDeltaConsumptionMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
 			send(realtimeDeltaConsumptionMessage.set(deltaKWH, 2));
+			thingspeakMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
+			send(thingspeakMessage.set(deltaKWH, 5));
 		}
 		break;
 	}
