@@ -164,8 +164,6 @@ void receive(const MyMessage &message)
 		if (lcdBackLightFlag)
 		{
 			lcd.backlight();
-			if (Alarm.isAllocated(backlightTimer))
-				Alarm.free(backlightTimer);
 		}
 		else
 		{
