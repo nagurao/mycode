@@ -350,8 +350,9 @@ void sendAccumulation()
 		send(thingspeakMessage.set(currWatt, 2));
 		lcdCurrWattMessage.setSensor(CURR_WATT_ID);
 		send(lcdCurrWattMessage.set(currWatt, 2));
+		sendDelta();
 	}
-	sendDelta();
+	
 }
 
 void sendDelta()

@@ -216,14 +216,18 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define PH1_NODE_ID 11
 #endif
 
-#if defined SOLAR_VOLTAGE_NODE
+#if defined SOLAR_BATT_VOLTAGE_NODE
 #define SOLAR_VOLTAGE_NODE_ID 12
-#define SOLAR_VOLTAGE_ID 1
-#define BATTERY_VOLATGE_ID 2
-#endif
-
-#if defined BATT_VOLTAGE_NODE
 #define BATT_VOLTAGE_NODE_ID 13
+
+#define R1_VALUE_ID 1
+#define R2_VALUE_ID 2
+#define MAX_VOLTS_ID 3
+
+#define SOLAR_VOLTAGE_ID 4
+#define BATTERY_VOLTAGE_ID 5
+
+#define VOLTAGE_SENSE_PIN A7
 #endif
 
 #if defined REPEATER_NODE
