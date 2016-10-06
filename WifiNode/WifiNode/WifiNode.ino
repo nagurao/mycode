@@ -9,6 +9,7 @@
 
 #define WIFI_NODE
 #define WATT_METER_NODE
+#define SOLAR_BATT_VOLTAGE_NODE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -200,10 +201,17 @@ void receive(const MyMessage &message)
 			}
 			break;
 		case SOLAR_VOLTAGE_NODE_ID:
-			channelData[SOLAR_VOLTAGE_IDX] = message.getFloat();
 			break;
 		case BATT_VOLTAGE_NODE_ID:
-			channelData[BATTERY_VOLTAGE_IDX] = message.getFloat();
+			switch (message.sensor)
+			{
+			case SOLAR_VOLTAGE_ID:
+				channelData[SOLAR_VOLTAGE_IDX] = message.getFloat();
+				break;
+			case BATTERY_VOLTAGE_ID:
+				channelData[BATTERY_VOLTAGE_IDX] = message.getFloat();
+				break;
+			}
 			break;
 		}
 		break;

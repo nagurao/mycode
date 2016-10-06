@@ -144,7 +144,7 @@ void receive(const MyMessage &message)
 			column = 14;
 			row = ROW_1;
 			break;
-		case BATTERY_VOLATGE_ID:
+		case BATTERY_VOLTAGE_ID:
 			column = 14;
 			row = ROW_2;
 		}
