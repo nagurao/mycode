@@ -33,7 +33,7 @@ float voltsPerBit;
 
 MyMessage solarVoltageMessage(SOLAR_VOLTAGE_ID, V_VOLTAGE);
 MyMessage batteryVoltageMessage(BATTERY_VOLTAGE_ID, V_VOLTAGE);
-MyMessage thingspeakMessage;
+MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 MyMessage lcdVoltageMessage;
 
 void before()
