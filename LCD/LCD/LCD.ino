@@ -150,7 +150,7 @@ void receive(const MyMessage &message)
 		}
 		lcd.backlight();
 		for (byte index = 0; index < 4; index++, column++)
-			printLCDVal(column, row, dispValue[index], true);
+			printLCDVal(column, row, dispVoltValue[index], true);
 		Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
 		break;
 	case V_STATUS:

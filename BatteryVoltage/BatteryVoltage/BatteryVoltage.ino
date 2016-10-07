@@ -8,7 +8,7 @@
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID BATT_VOLTAGE_NODE_ID
+#define MY_NODE_ID 210
 #define MY_DEBUG
 
 #include <MyNodes.h>
@@ -18,8 +18,8 @@
 #define APPLICATION_NAME "Battery Voltage"
 #define APPLICATION_VERSION "06Oct2016"
 
-#define DEFAULT_R1_VALUE 47000
-#define DEFAULT_R2_VALUE 3300
+#define DEFAULT_R1_VALUE 47.00F
+#define DEFAULT_R2_VALUE 3.3F
 #define DEFAULT_MAX_VOLTS 30
 #define DEFAULT_VOLTS 0.00
 AlarmId heartbeatTimer;
@@ -49,7 +49,7 @@ boolean sendSolarVoltageRequest;
 boolean solarVoltageReceived;
 
 boolean calcVoltsPerBit;
-float voltsPerBit;
+float scaleFactor;
 
 float solarVoltage;
 float batteryVoltage;
@@ -79,7 +79,7 @@ void setup()
 	resistorR2Received = false;
 	maxVoltsReceived = false;
 	calcVoltsPerBit = true;
-	voltsPerBit = 0.00;
+	scaleFactor = 0.00;
 	solarVoltage = 0.00;
 	batteryVoltage = 0.00;
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
@@ -120,8 +120,8 @@ void loop()
 		resistorR1RequestCount++;
 		if (resistorR1RequestCount == 10)
 		{
-			MyMessage currModeMessage(R1_VALUE_ID, V_VAR1);
-			send(currModeMessage.set(DEFAULT_R1_VALUE));
+			MyMessage resistorValueMessage(R1_VALUE_ID, V_VAR1);
+			send(resistorValueMessage.set(DEFAULT_R1_VALUE,2));
 		}
 	}
 	if (sendResistorR2Request)
@@ -132,15 +132,15 @@ void loop()
 		resistorR2RequestCount++;
 		if (resistorR2RequestCount == 10)
 		{
-			MyMessage currModeMessage(R2_VALUE_ID, V_VAR2);
-			send(currModeMessage.set(DEFAULT_R2_VALUE));
+			MyMessage resistorValueMessage(R2_VALUE_ID, V_VAR2);
+			send(resistorValueMessage.set(DEFAULT_R2_VALUE,2));
 		}
 	}
 	if (sendMaxVoltsRequest)
 	{
 		sendMaxVoltsRequest = false;
 		request(MAX_VOLTS_ID, V_VAR3);
-		maxVoltsTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkMaxVoltsRequestStatus);
+		maxVoltsTimer = Alarm.timerOnce((float)REQUEST_INTERVAL, checkMaxVoltsRequestStatus);
 		maxVoltsRequestCount++;
 		if (maxVoltsRequestCount == 10)
 		{
@@ -153,8 +153,12 @@ void loop()
 	{
 		if (resistorR1Received && resistorR2Received && maxVoltsReceived)
 		{
-			voltsPerBit = ((R1Value) / (R1Value + R2Value) * maxVolts) / 1023;
+			scaleFactor = ((R1Value + R2Value) / R2Value)  * (5.0000 / 1024);
+
+			//scaleFactor = float(((R1Value + R2Value) * 5.00 )/ (R2Value * 1024));
 			calcVoltsPerBit = false;
+			Serial.print("Scale Factor ");
+			Serial.println(scaleFactor);
 		}
 	}
 
@@ -277,7 +281,10 @@ void readBatteryVoltage()
 		Alarm.delay(WAIT_50MS);
 	}
 	sensedValue = inputValue / 10;
-	batteryVoltage = sensedValue * voltsPerBit;
+	
+	batteryVoltage = sensedValue * scaleFactor;
+	Serial.print("Battery Voltage : ");
+	Serial.println(batteryVoltage);
 }
 
 void checkResistorR1RequestStatus()

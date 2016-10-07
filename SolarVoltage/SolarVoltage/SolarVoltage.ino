@@ -42,7 +42,7 @@ boolean sendMaxVoltsRequest;
 boolean maxVoltsReceived;
 
 boolean calcVoltsPerBit;
-float voltsPerBit;
+float scaleFactor;
 
 MyMessage solarVoltageMessage(SOLAR_VOLTAGE_ID, V_VOLTAGE);
 
@@ -124,8 +124,9 @@ void loop()
 	{
 		if (resistorR1Received && resistorR2Received && maxVoltsReceived)
 		{
-			voltsPerBit = ((R1Value) / (R1Value + R2Value) * maxVolts) / 1023;
+			scaleFactor = ((R1Value + R2Value) / R2Value)  * (5.00 / 1024);
 			calcVoltsPerBit = false;
+			
 		}
 	}
 	Alarm.delay(1);
@@ -193,7 +194,7 @@ void readSolarVoltage()
 		Alarm.delay(WAIT_50MS);
 	}
 	sensedValue = inputValue / 10;
-	float sensedVoltage = sensedValue * voltsPerBit;
+	float sensedVoltage = sensedValue * scaleFactor;
 	send(solarVoltageMessage.set(sensedVoltage, 5));
 }
 
