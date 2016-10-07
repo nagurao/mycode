@@ -18,10 +18,6 @@
 #define APPLICATION_NAME "Battery Voltage"
 #define APPLICATION_VERSION "08Oct2016"
 
-#define DEFAULT_R1_VALUE 47.00F
-#define DEFAULT_R2_VALUE 3.3F
-#define DEFAULT_VOLTS 0.00F
-
 AlarmId heartbeatTimer;
 AlarmId getSolarVoltageTimer;
 AlarmId getBatteryVoltageTimer;
@@ -57,6 +53,7 @@ void setup()
 
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	lcdVoltageMessage.setDestination(LCD_NODE_ID);
+	lcdVoltageMessage.setType(V_VOLTAGE);
 
 	getBatteryVoltageTimer = Alarm.timerRepeat(ONE_MINUTE, getBatteryVoltage);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
@@ -103,7 +100,7 @@ void receive(const MyMessage &message)
 	case V_VAR1:
 		if (solarNodeUp)
 		{
-			if (message.getInt())
+			if (message.getInt() == UP)
 				solarNodeUp = true;
 		}
 		else

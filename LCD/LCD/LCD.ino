@@ -100,6 +100,8 @@ void receive(const MyMessage &message)
 {
 	float currWatt;
 	char dispValue[7];
+	float currVoltage;
+	char dispVoltValue[5];
 	byte column;
 	byte row;
 	switch (message.type)
@@ -134,10 +136,8 @@ void receive(const MyMessage &message)
 		Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
 		break;
 	case V_VOLTAGE:
-		float currVoltage;
-		char dispVoltValue[5];
 		currVoltage = message.getFloat();
-		ftoa(currVoltage, dispValue, 2, 2);
+		ftoa(currVoltage, dispVoltValue, 2, 2);
 		switch (message.sensor)
 		{
 		case SOLAR_VOLTAGE_ID:
