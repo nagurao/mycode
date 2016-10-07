@@ -16,7 +16,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "LCD Node"
-#define APPLICATION_VERSION "25Sep2016"
+#define APPLICATION_VERSION "07Oct2016"
 
 #define LCD_I2C_ADDR 0x27
 #define LCD_ROWS 4
@@ -135,7 +135,7 @@ void receive(const MyMessage &message)
 		break;
 	case V_VOLTAGE:
 		float currVoltage;
-		char dispVoltValue[4];
+		char dispVoltValue[5];
 		currVoltage = message.getFloat();
 		ftoa(currVoltage, dispValue, 2, 2);
 		switch (message.sensor)
@@ -149,7 +149,7 @@ void receive(const MyMessage &message)
 			row = ROW_2;
 		}
 		lcd.backlight();
-		for (byte index = 0; index < 4; index++, column++)
+		for (byte index = 0; index < 5; index++, column++)
 			printLCDVal(column, row, dispVoltValue[index], true);
 		Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
 		break;
