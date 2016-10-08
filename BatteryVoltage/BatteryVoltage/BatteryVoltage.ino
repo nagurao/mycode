@@ -18,6 +18,10 @@
 #define APPLICATION_NAME "Battery Voltage"
 #define APPLICATION_VERSION "08Oct2016"
 
+#define DEFAULT_R1_VALUE 47.80F
+#define DEFAULT_R2_VALUE 3.31F
+#define DEFAULT_VOLTS 0.00F
+
 AlarmId heartbeatTimer;
 AlarmId getSolarVoltageTimer;
 AlarmId getBatteryVoltageTimer;

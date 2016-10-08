@@ -17,6 +17,10 @@
 #define APPLICATION_NAME "Solar Voltage"
 #define APPLICATION_VERSION "08Oct2016"
 
+#define DEFAULT_R1_VALUE 47.00F
+#define DEFAULT_R2_VALUE 3.55F
+#define DEFAULT_VOLTS 0.00F
+
 AlarmId heartbeatTimer;
 AlarmId nodeUpTimer;
 

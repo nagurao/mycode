@@ -227,9 +227,7 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define VOLTAGE_SENSE_PIN A0
 
 #define UP 1
-#define DEFAULT_R1_VALUE 47.00F
-#define DEFAULT_R2_VALUE 3.3F
-#define DEFAULT_VOLTS 0.00F
+
 #endif
 
 #if defined REPEATER_NODE
