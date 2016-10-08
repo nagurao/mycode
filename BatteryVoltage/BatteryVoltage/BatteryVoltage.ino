@@ -86,6 +86,7 @@ void loop()
 			sendSolarVoltage(DEFAULT_VOLTS);
 			Alarm.free(requestSolarVoltageTimer);
 			solarVoltageReceived = true;
+			solarVoltageRequestCount = 0;
 		}
 		if (solarNodeRequestCount == 10)
 		{
@@ -99,6 +100,7 @@ void loop()
 
 void receive(const MyMessage &message)
 {
+	
 	switch (message.type)
 	{
 	case V_VAR1:
@@ -161,7 +163,7 @@ void checkSolarVolategRequestStatus()
 		sendSolarVoltageRequest = true;
 }
 
-void sendSolarVoltage(float solarVoltage)
+void sendSolarVoltage (float solarVoltage)
 {
 	send(solarVoltageMessage.set(solarVoltage, 5));
 	Alarm.delay(WAIT_10MS);
