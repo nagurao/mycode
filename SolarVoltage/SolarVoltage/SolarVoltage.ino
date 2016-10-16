@@ -15,16 +15,15 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Solar Voltage"
-#define APPLICATION_VERSION "08Oct2016"
+#define APPLICATION_VERSION "16Oct2016"
 
-#define DEFAULT_R1_VALUE 47.00F
-#define DEFAULT_R2_VALUE 3.55F
+#define DEFAULT_R1_VALUE 47.10F
+#define DEFAULT_R2_VALUE 3.23F
 #define DEFAULT_VOLTS 0.00F
 
 AlarmId heartbeatTimer;
 AlarmId nodeUpTimer;
 
-boolean firstTime;
 float voltsPerBit;
 
 MyMessage solarVoltageMessage(SOLAR_VOLTAGE_ID, V_VOLTAGE);
@@ -39,8 +38,7 @@ void setup()
 	voltsPerBit = (((float)5.00 * (DEFAULT_R1_VALUE + DEFAULT_R2_VALUE)) / (DEFAULT_R2_VALUE * 1023));
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	solarVoltageMessage.setDestination(BATT_VOLTAGE_NODE_ID);
-	nodeUpTimer = Alarm.timerRepeat(ONE_MINUTE, sendNodeUpMessage);
-	firstTime = true;
+	nodeUpTimer = Alarm.timerRepeat(ONE_MINUTE * 5, sendNodeUpMessage);
 }
 
 void presentation()
@@ -59,11 +57,6 @@ void receive(const MyMessage &message)
 	{
 	case V_VOLTAGE:
 		readSolarVoltage();
-		if (firstTime)
-		{
-			Alarm.free(nodeUpTimer);
-			firstTime = false;
-		}
 		break;
 	}
 }
