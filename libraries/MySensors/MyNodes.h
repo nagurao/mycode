@@ -155,19 +155,27 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 
 #endif
 
+#if defined WATER_TANK_NODE
+#define DEFAULT_LOW_LEVEL 2
+#define MAX_SENSORS 6
+
+#define SENSOR_1_PIN 2
+#define SENSOR_2_PIN 3
+#define SENSOR_3_PIN 4
+#define SENSOR_4_PIN 5
+#define SENSOR_5_PIN 6
+#define SENSOR_6_PIN 7
+
+byte sensorPinArray[MAX_SENSORS] = { 2,3,4,5,6,7 };
+byte sensorArray[MAX_SENSORS] = { 0,0,0,0,0,0 };
+
+#endif
+
 // Overhead Tank 01
 #if defined OVERHEAD_TANK_01_NODE
 #define OVERHEAD_TANK_01_NODE_ID 6
 #define SUMP_RELAY_NODE_ID 5
 #define SUMP_RELAY_ID 1
-
-
-#define SENSOR_1 0
-#define SENSOR_2 1
-#define SENSOR_3 2
-#define SENSOR_4 3
-#define SENSOR_5 4
-#define LOW_LEVEL_SENSOR_ID 1
 
 #endif
 
@@ -176,17 +184,6 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define OVERHEAD_TANK_02_NODE_ID 7
 #define SUMP_RELAY_NODE_ID 4
 #define SUMP_RELAY_ID 1
-
-#define MAX_DISTANCE 250
-#define MIN_DISTANCE 25
-
-#define SENSOR_1 0
-#define SENSOR_2 1
-#define SENSOR_3 2
-#define SENSOR_4 3
-#define SENSOR_5 4
-
-#define LOW_LEVEL_SENSOR_ID 1
 
 #endif
 

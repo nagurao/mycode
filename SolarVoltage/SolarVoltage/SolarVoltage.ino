@@ -23,6 +23,7 @@
 
 AlarmId heartbeatTimer;
 AlarmId nodeUpTimer;
+AlarmId requestTimer;
 
 float voltsPerBit;
 
