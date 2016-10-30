@@ -155,8 +155,16 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 
 #endif
 
+# if defined WATER_TANK_NODE_IDS
+#define OVERHEAD_TANK_01_NODE_ID 6
+#define OVERHEAD_TANK_02_NODE_ID 7
+#define UNDERGROUND_NODE_ID 8
+#endif
+
 #if defined WATER_TANK_NODE
-#define DEFAULT_LOW_LEVEL 2
+#define CURR_WATER_LEVEL_ID 1
+#define WATER_LOW_LEVEL_IND_ID 2
+#define DEFAULT_LOW_LEVEL 40
 #define MAX_SENSORS 6
 
 #define SENSOR_1_PIN 2
@@ -166,16 +174,28 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define SENSOR_5_PIN 6
 #define SENSOR_6_PIN 7
 
-byte sensorPinArray[MAX_SENSORS] = { 2,3,4,5,6,7 };
-byte sensorArray[MAX_SENSORS] = { 0,0,0,0,0,0 };
+#define LEVEL_100 100
+#define LEVEL_80 80
+#define LEVEL_60 60
+#define LEVEL_40 40
+#define LEVEL_20 20
+#define LEVEL_0 0
 
+byte sensorPinArray[MAX_SENSORS] = { SENSOR_1_PIN,
+									 SENSOR_2_PIN,
+									 SENSOR_3_PIN,
+									 SENSOR_4_PIN,
+									 SENSOR_5_PIN,
+									 SENSOR_6_PIN 
+								   };
+
+byte sensorArray[MAX_SENSORS] = { 0,0,0,0,0,0 };
+byte binToDecArray[MAX_SENSORS] = { 1,2,4,8,16,32 };
 #endif
 
 // Overhead Tank 01
 #if defined OVERHEAD_TANK_01_NODE
 #define OVERHEAD_TANK_01_NODE_ID 6
-#define SUMP_RELAY_NODE_ID 5
-#define SUMP_RELAY_ID 1
 
 #endif
 

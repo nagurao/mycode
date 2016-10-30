@@ -152,13 +152,13 @@ void receive(const MyMessage &message)
 			channelData[BOREWELL_MOTOR_IDX] = message.getInt();
 			break;
 		case OVERHEAD_TANK_01_NODE_ID:
-			channelData[OVERHEAD_TANK01_IDX] = message.getFloat();
+			channelData[OVERHEAD_TANK01_IDX] = message.getInt();
 			break;
 		case OVERHEAD_TANK_02_NODE_ID:
-			channelData[OVERHEAD_TANK02_IDX] = message.getFloat();
+			channelData[OVERHEAD_TANK02_IDX] = message.getInt();
 			break;
 		case UNDERGROUND_NODE_ID:
-			channelData[SUMP_TANK_IDX] = message.getFloat();
+			channelData[SUMP_TANK_IDX] = message.getInt();
 			break;
 		case PH3_NODE_ID:
 			switch (message.sensor)

@@ -5,6 +5,7 @@
 #include <SPI.h>
 #define LCD_NODE
 #define NODE_WITH_ON_OFF_FEATURE
+#define WATER_TANK_NODE_IDS
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -16,7 +17,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "LCD Node"
-#define APPLICATION_VERSION "07Oct2016"
+#define APPLICATION_VERSION "30Oct2016"
 
 #define LCD_I2C_ADDR 0x27
 #define LCD_ROWS 4
@@ -102,6 +103,8 @@ void receive(const MyMessage &message)
 	char dispValue[7];
 	float currVoltage;
 	char dispVoltValue[5];
+	float currWaterLevel;
+	char dispWaterLevel[3];
 	byte column;
 	byte row;
 	switch (message.type)
@@ -169,6 +172,29 @@ void receive(const MyMessage &message)
 		{
 			lcd.noBacklight();
 		}
+		break;
+	case V_VOLUME:
+		currWaterLevel = (float)message.getInt();
+		ftoa(currWaterLevel, dispWaterLevel, 3, 0);
+		switch(message.sender)
+		{
+			case OVERHEAD_TANK_01_NODE_ID:
+				column = 6;
+				row = ROW_1;
+				break;
+			case OVERHEAD_TANK_02_NODE_ID:
+				column = 6;
+				row = ROW_2;
+				break;
+			case UNDERGROUND_NODE_ID:
+				column = 6;
+				row = ROW_3;
+				break;
+		}
+		lcd.backlight();
+		for (byte index = 0; index < 3; index++, column++)
+			printLCDVal(column, row, dispWaterLevel[index], true);
+		Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
 		break;
 	}
 }
