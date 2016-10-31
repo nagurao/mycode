@@ -166,7 +166,8 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define WATER_LOW_LEVEL_IND_ID 2
 #define DEFAULT_LOW_LEVEL 40
 #define MAX_SENSORS 6
-
+#define RISING_LEVEL_POLL_DURATION 30
+#define FALLING_LEVEL_POLL_DURATION 300
 #define SENSOR_1_PIN 2
 #define SENSOR_2_PIN 3
 #define SENSOR_3_PIN 4
@@ -174,6 +175,7 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define SENSOR_5_PIN 6
 #define SENSOR_6_PIN 7
 
+#define LEVEL_110 110
 #define LEVEL_100 100
 #define LEVEL_80 80
 #define LEVEL_60 60

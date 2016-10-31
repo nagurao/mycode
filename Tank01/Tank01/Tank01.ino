@@ -66,6 +66,8 @@ void setup()
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
+	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, sendWaterLevel);
+	waterLevelFallingTimer = Alarm.timerRepeat(FALLING_LEVEL_POLL_DURATION, sendWaterLevel);
 }
 
 void presentation()
@@ -74,7 +76,6 @@ void presentation()
 	present(CURR_WATER_LEVEL_ID, S_WATER, "Tank 01 Water Level");
 	wait(WAIT_50MS);
 	present(WATER_LOW_LEVEL_IND_ID, S_CUSTOM, "Low Water Level %");
-	sendWaterLevel();
 }
 
 void loop()
@@ -131,6 +132,12 @@ void sendWaterLevel()
 	case 0:
 		borewellOffMessage.setDestination(BOREWELL_RELAY_NODE_ID);
 		send(borewellOffMessage.set(RELAY_ON));
+		Alarm.delay(WAIT_5MS);
+		send(waterLevelMessage.set(LEVEL_110));
+		Alarm.delay(WAIT_5MS);
+		send(lcdWaterLevelMessage.set(LEVEL_110));
+		Alarm.delay(WAIT_5MS);
+		send(thingspeakMessage.set(LEVEL_110));
 		break;
 	case 1:
 		send(waterLevelMessage.set(LEVEL_100));
@@ -193,17 +200,21 @@ void sendWaterLevel()
 
 	if (prevDecimalValue >= decimalValue)
 	{
-		if (Alarm.isAllocated(waterLevelRisingTimer))
+		Alarm.disable(waterLevelRisingTimer);
+		Alarm.enable(waterLevelFallingTimer);
+		/*if (Alarm.isAllocated(waterLevelRisingTimer))
 			Alarm.free(waterLevelRisingTimer);
 		if (!Alarm.isAllocated(waterLevelFallingTimer))
-			waterLevelFallingTimer = Alarm.timerRepeat(2 * ONE_MINUTE, sendWaterLevel);
+			waterLevelFallingTimer = Alarm.timerRepeat(2 * ONE_MINUTE, sendWaterLevel);*/
 	}
 	else
 	{
-		if (Alarm.isAllocated(waterLevelFallingTimer))
+		Alarm.disable(waterLevelFallingTimer);
+		Alarm.enable(waterLevelRisingTimer);
+		/*if (Alarm.isAllocated(waterLevelFallingTimer))
 			Alarm.free(waterLevelFallingTimer);
 		if (!Alarm.isAllocated(waterLevelRisingTimer))
-			waterLevelRisingTimer = Alarm.timerRepeat(ONE_MINUTE, sendWaterLevel);
+			waterLevelRisingTimer = Alarm.timerRepeat(ONE_MINUTE, sendWaterLevel);*/
 	}
 
 	prevDecimalValue = decimalValue;
