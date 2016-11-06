@@ -167,6 +167,7 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define DEFAULT_LOW_LEVEL 40
 #define MAX_SENSORS 6
 #define RISING_LEVEL_POLL_DURATION 30
+#define DEFAULT_LEVEL_POLL_DURATION 90
 #define FALLING_LEVEL_POLL_DURATION 300
 #define SENSOR_1_PIN 2
 #define SENSOR_2_PIN 3

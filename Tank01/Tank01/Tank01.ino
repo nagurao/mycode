@@ -19,12 +19,13 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Tank 01"
-#define APPLICATION_VERSION "30Oct2016"
+#define APPLICATION_VERSION "06Nov2016"
 
 AlarmId heartbeatTimer;
 AlarmId waterLowLevelRequestTimer;
 AlarmId waterLevelRisingTimer;
 AlarmId waterLevelFallingTimer;
+AlarmId waterDefaultLevelTimer;
 
 byte prevDecimalValue;
 byte waterLowLevelIndex;
@@ -66,8 +67,7 @@ void setup()
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
-	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, sendWaterLevel);
-	waterLevelFallingTimer = Alarm.timerRepeat(FALLING_LEVEL_POLL_DURATION, sendWaterLevel);
+	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, sendWaterLevel);
 }
 
 void presentation()
@@ -119,14 +119,16 @@ void receive(const MyMessage &message)
 
 void sendWaterLevel()
 {
-	byte decimalValue = 0;
-	for (byte sensorIndex = 0; sensorIndex < MAX_SENSORS; sensorIndex++)
+	byte decimalValue;
+	for (byte sensorIndex = 0, decimalValue = 0; sensorIndex < MAX_SENSORS; sensorIndex++)
 	{
 		sensorArray[sensorIndex] = digitalRead(sensorPinArray[sensorIndex]);
 		byte power = binToDecArray[sensorIndex] * sensorArray[sensorIndex];
 		decimalValue = decimalValue + power;
+		Alarm.delay(WAIT_5MS);
 	}
 
+	Serial.print("The water level is :"); Serial.println(decimalValue);
 	switch (decimalValue)
 	{
 	case 0:
@@ -138,6 +140,9 @@ void sendWaterLevel()
 		send(lcdWaterLevelMessage.set(LEVEL_110));
 		Alarm.delay(WAIT_5MS);
 		send(thingspeakMessage.set(LEVEL_110));
+		Alarm.disable(waterDefaultLevelTimer);
+		Alarm.disable(waterLevelRisingTimer);
+		Alarm.enable(waterLevelFallingTimer);
 		break;
 	case 1:
 		send(waterLevelMessage.set(LEVEL_100));
@@ -190,31 +195,15 @@ void sendWaterLevel()
 			MyMessage borewellOnMessage(BORE_ON_RELAY_ID, V_STATUS);
 			borewellOnMessage.setDestination(BOREWELL_RELAY_NODE_ID);
 			send(borewellOnMessage.set(RELAY_ON));
+			Alarm.disable(waterDefaultLevelTimer);
+			Alarm.disable(waterLevelFallingTimer);
+			Alarm.enable(waterLevelRisingTimer);
 		}
 		else
 		{
 			request(BOREWELL_MOTOR_ID, V_STATUS, BOREWELL_RELAY_NODE_ID);
 			borewellMotorStatusReceived = false;
 		}
-	}
-
-	if (prevDecimalValue >= decimalValue)
-	{
-		Alarm.disable(waterLevelRisingTimer);
-		Alarm.enable(waterLevelFallingTimer);
-		/*if (Alarm.isAllocated(waterLevelRisingTimer))
-			Alarm.free(waterLevelRisingTimer);
-		if (!Alarm.isAllocated(waterLevelFallingTimer))
-			waterLevelFallingTimer = Alarm.timerRepeat(2 * ONE_MINUTE, sendWaterLevel);*/
-	}
-	else
-	{
-		Alarm.disable(waterLevelFallingTimer);
-		Alarm.enable(waterLevelRisingTimer);
-		/*if (Alarm.isAllocated(waterLevelFallingTimer))
-			Alarm.free(waterLevelFallingTimer);
-		if (!Alarm.isAllocated(waterLevelRisingTimer))
-			waterLevelRisingTimer = Alarm.timerRepeat(ONE_MINUTE, sendWaterLevel);*/
 	}
 
 	prevDecimalValue = decimalValue;
