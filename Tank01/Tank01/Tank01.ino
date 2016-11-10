@@ -27,7 +27,8 @@ AlarmId waterLevelRisingTimer;
 AlarmId waterLevelFallingTimer;
 AlarmId waterDefaultLevelTimer;
 
-byte prevDecimalValue;
+int prevWaterLevelValue;
+int currWaterLevelValue;
 byte waterLowLevelIndex;
 byte waterLowLevelInPercent;
 byte waterLowLevelRequestCount;
@@ -52,7 +53,8 @@ void before()
 
 void setup()
 {
-	prevDecimalValue = 0;
+	prevWaterLevelValue = 200;
+	currWaterLevelValue = 0;
 	waterLowLevelIndex = 0;
 	waterLowLevelInPercent = 0;
 	waterLowLevelRequestCount = 0;
@@ -67,7 +69,9 @@ void setup()
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
-	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, sendWaterLevel);
+	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
+	waterLevelFallingTimer = Alarm.timerRepeat(FALLING_LEVEL_POLL_DURATION, getWaterLevel);
+	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
 }
 
 void presentation()
@@ -117,74 +121,45 @@ void receive(const MyMessage &message)
 	}
 }
 
-void sendWaterLevel()
+void getWaterLevel()
 {
-	byte decimalValue;
-	for (byte sensorIndex = 0, decimalValue = 0; sensorIndex < MAX_SENSORS; sensorIndex++)
+	currWaterLevelValue = 0;
+	for (byte sensorIndex = 0; sensorIndex < MAX_SENSORS; sensorIndex++)
 	{
+		sensorArray[sensorIndex] = 0;
 		sensorArray[sensorIndex] = digitalRead(sensorPinArray[sensorIndex]);
 		byte power = binToDecArray[sensorIndex] * sensorArray[sensorIndex];
-		decimalValue = decimalValue + power;
+		currWaterLevelValue = currWaterLevelValue + power;
 		Alarm.delay(WAIT_5MS);
 	}
 
-	Serial.print("The water level is :"); Serial.println(decimalValue);
-	switch (decimalValue)
+	switch (currWaterLevelValue)
 	{
 	case 0:
 		borewellOffMessage.setDestination(BOREWELL_RELAY_NODE_ID);
 		send(borewellOffMessage.set(RELAY_ON));
-		Alarm.delay(WAIT_5MS);
-		send(waterLevelMessage.set(LEVEL_110));
-		Alarm.delay(WAIT_5MS);
-		send(lcdWaterLevelMessage.set(LEVEL_110));
-		Alarm.delay(WAIT_5MS);
-		send(thingspeakMessage.set(LEVEL_110));
+		sendWaterLevel(LEVEL_110);
 		Alarm.disable(waterDefaultLevelTimer);
 		Alarm.disable(waterLevelRisingTimer);
 		Alarm.enable(waterLevelFallingTimer);
 		break;
 	case 1:
-		send(waterLevelMessage.set(LEVEL_100));
-		Alarm.delay(WAIT_5MS);
-		send(lcdWaterLevelMessage.set(LEVEL_100));
-		Alarm.delay(WAIT_5MS);
-		send(thingspeakMessage.set(LEVEL_100));
+		sendWaterLevel(LEVEL_100);
 		break;
 	case 3:
-		send(waterLevelMessage.set(LEVEL_80));
-		Alarm.delay(WAIT_5MS);
-		send(lcdWaterLevelMessage.set(LEVEL_80));
-		Alarm.delay(WAIT_5MS);
-		send(thingspeakMessage.set(LEVEL_80));
+		sendWaterLevel(LEVEL_80);
 		break;
 	case 7:
-		send(waterLevelMessage.set(LEVEL_60));
-		Alarm.delay(WAIT_5MS);
-		send(lcdWaterLevelMessage.set(LEVEL_60));
-		Alarm.delay(WAIT_5MS);
-		send(thingspeakMessage.set(LEVEL_60));
+		sendWaterLevel(LEVEL_60);
 		break;
 	case 15:
-		send(waterLevelMessage.set(LEVEL_40));
-		Alarm.delay(WAIT_5MS);
-		send(lcdWaterLevelMessage.set(LEVEL_40));
-		Alarm.delay(WAIT_5MS);
-		send(thingspeakMessage.set(LEVEL_40));
+		sendWaterLevel(LEVEL_40);
 		break;
 	case 31:
-		send(waterLevelMessage.set(LEVEL_20));
-		Alarm.delay(WAIT_5MS);
-		send(lcdWaterLevelMessage.set(LEVEL_20));
-		Alarm.delay(WAIT_5MS);
-		send(thingspeakMessage.set(LEVEL_20));
+		sendWaterLevel(LEVEL_20);
 		break;
 	case 63:
-		send(waterLevelMessage.set(LEVEL_0));
-		Alarm.delay(WAIT_5MS);
-		send(lcdWaterLevelMessage.set(LEVEL_0));
-		Alarm.delay(WAIT_5MS);
-		send(thingspeakMessage.set(LEVEL_0));
+		sendWaterLevel(LEVEL_0);
 		break;
 	}
 
@@ -206,10 +181,21 @@ void sendWaterLevel()
 		}
 	}
 
-	prevDecimalValue = decimalValue;
+	prevWaterLevelValue = currWaterLevelValue;
 		
 }
 
+void sendWaterLevel(int waterLevel)
+{
+	if (waterLevel != prevWaterLevelValue)
+	{
+		send(waterLevelMessage.set(waterLevel));
+		Alarm.delay(WAIT_5MS);
+		send(lcdWaterLevelMessage.set(waterLevel));
+		Alarm.delay(WAIT_5MS);
+		send(thingspeakMessage.set(waterLevel));
+	}
+}
 void checkWaterLowLevelRequestStatus()
 {
 	if (!waterLowLevelReceived)
