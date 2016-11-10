@@ -16,7 +16,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Borewell Motor"
-#define APPLICATION_VERSION "30Oct2016"
+#define APPLICATION_VERSION "11Nov2016"
 
 AlarmId heartbeatTimer;
 
@@ -43,7 +43,7 @@ void setup()
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 	tank01BorewellMotorMessage.setDestination(OVERHEAD_TANK_01_NODE_ID);
-	tank01BorewellMotorMessage.setType(V_STATUS);
+	tank01BorewellMotorMessage.setType(V_VAR2);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
@@ -66,8 +66,9 @@ void loop()
 
 void receive(const MyMessage &message)
 {
-	if (message.type == V_STATUS)
+	switch (message.type)
 	{
+	case V_STATUS:
 		switch (message.sensor)
 		{
 		case BORE_ON_RELAY_ID:
@@ -81,15 +82,14 @@ void receive(const MyMessage &message)
 			Alarm.timerOnce(RELAY_TRIGGER_INTERVAL, toggleOffRelay);
 			break;
 		}
-		if (message.sender == OVERHEAD_TANK_01_NODE_ID)
-		{
-			if(borewellOn)
-				send(tank01BorewellMotorMessage.set(RELAY_ON));
-			else
-				send(tank01BorewellMotorMessage.set(RELAY_OFF));
-		}
+		break;
+	case V_VAR2:
+		if (borewellOn)
+			send(tank01BorewellMotorMessage.set(RELAY_ON));
+		else
+			send(tank01BorewellMotorMessage.set(RELAY_OFF));
+		break;
 	}
-	
 }
 
 void toggleOnRelay()
