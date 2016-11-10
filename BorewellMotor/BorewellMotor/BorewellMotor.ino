@@ -96,8 +96,11 @@ void toggleOnRelay()
 {
 	digitalWrite(BORE_ON_RELAY_PIN, RELAY_OFF);
 	send(borewellMotorOnRelayMessage.set(RELAY_OFF));
+	Alarm.delay(WAIT_5MS);
 	send(borewellMotorMessage.set(RELAY_ON));
+	Alarm.delay(WAIT_5MS);
 	send(thingspeakMessage.set(RELAY_ON));
+	Alarm.delay(WAIT_5MS);
 	send(tank01BorewellMotorMessage.set(RELAY_ON));
 	borewellOn = true;
 }
@@ -106,8 +109,11 @@ void toggleOffRelay()
 {
 	digitalWrite(BORE_OFF_RELAY_PIN, RELAY_OFF);
 	send(borewellMotorOffRelayMessage.set(RELAY_OFF));
+	Alarm.delay(WAIT_5MS);
 	send(borewellMotorMessage.set(RELAY_OFF));
+	Alarm.delay(WAIT_5MS);
 	send(thingspeakMessage.set(RELAY_OFF));
+	Alarm.delay(WAIT_5MS);
 	send(tank01BorewellMotorMessage.set(RELAY_OFF));
 	borewellOn = false;
 }
