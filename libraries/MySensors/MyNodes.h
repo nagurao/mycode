@@ -166,9 +166,9 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define WATER_LOW_LEVEL_IND_ID 2
 #define DEFAULT_LOW_LEVEL 40
 #define MAX_SENSORS 6
-#define RISING_LEVEL_POLL_DURATION 60
-#define DEFAULT_LEVEL_POLL_DURATION 120
-#define FALLING_LEVEL_POLL_DURATION 300
+#define RISING_LEVEL_POLL_DURATION 30
+#define DEFAULT_LEVEL_POLL_DURATION 300
+#define FALLING_LEVEL_POLL_DURATION 600
 #define SENSOR_1_PIN 2
 #define SENSOR_2_PIN 3
 #define SENSOR_3_PIN 4
@@ -199,6 +199,7 @@ byte binToDecArray[MAX_SENSORS] = { 1,2,4,8,16,32 };
 // Overhead Tank 01
 #if defined OVERHEAD_TANK_01_NODE
 #define OVERHEAD_TANK_01_NODE_ID 6
+#define DRY_RUN_POLL_DURATION 900
 
 #endif
 
