@@ -257,5 +257,4 @@ void checkCurrWaterLevel()
 	{
 		dryRunInitWaterLevel = currWaterLevelValue;
 	}
-
 }

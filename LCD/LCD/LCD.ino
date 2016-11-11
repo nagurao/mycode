@@ -17,7 +17,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "LCD Node"
-#define APPLICATION_VERSION "30Oct2016"
+#define APPLICATION_VERSION "12Nov2016"
 
 #define LCD_I2C_ADDR 0x27
 #define LCD_ROWS 4
