@@ -19,7 +19,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Tank 01"
-#define APPLICATION_VERSION "11Nov2016"
+#define APPLICATION_VERSION "12Nov2016"
 
 AlarmId heartbeatTimer;
 AlarmId waterLowLevelRequestTimer;
