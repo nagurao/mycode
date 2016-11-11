@@ -16,7 +16,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Sump Motor"
-#define APPLICATION_VERSION "25Sep2016"
+#define APPLICATION_VERSION "12Nov2016"
 
 AlarmId heartbeatTimer;
 
