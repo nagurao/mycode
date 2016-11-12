@@ -36,10 +36,13 @@ byte waterLowLevelRequestCount;
 boolean waterLowLevelReceived;
 boolean sendWaterLowLevelRequest;
 
+boolean sumpMotorOn;
+boolean sumpMotorStatusReceived;
+
 MyMessage waterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
 MyMessage waterLowLevelMessage(WATER_LOW_LEVEL_IND_ID, V_VAR1);
 MyMessage lcdWaterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
-
+MyMessage sumpMotorMessage(SUMP_RELAY_ID, V_STATUS);
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 
 void before()
@@ -50,11 +53,17 @@ void before()
 
 void setup()
 {
+	sendWaterLowLevelRequest = true;
+	sumpMotorOn = false;
+	sumpMotorStatusReceived = false;
 	lcdWaterLevelMessage.setDestination(LCD_NODE_ID);
 	lcdWaterLevelMessage.setSensor(CURR_WATER_LEVEL_ID);
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
+	sumpMotorMessage.setDestination(SUMP_RELAY_NODE_ID);
+	sumpMotorMessage.setSensor(SUMP_RELAY_ID);
+	sumpMotorMessage.setType(V_STATUS);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
 	waterLevelFallingTimer = Alarm.timerRepeat(FALLING_LEVEL_POLL_DURATION, getWaterLevel);
@@ -101,6 +110,21 @@ void receive(const MyMessage &message)
 			request(WATER_LOW_LEVEL_IND_ID, V_VAR1);
 		}
 		break;
+	case V_VAR4:
+		sumpMotorOn = (message.getInt()) ? RELAY_ON : RELAY_OFF;
+		sumpMotorStatusReceived = true;
+		break;
+	case V_VAR5:
+		if (message.getInt())
+		{
+			Alarm.disable(waterLevelFallingTimer);
+			Alarm.enable(waterLevelRisingTimer);
+		}
+		else
+		{
+			Alarm.disable(waterLevelRisingTimer);
+			Alarm.enable(waterLevelFallingTimer);
+		}
 	}
 }
 
@@ -148,12 +172,53 @@ void getWaterLevel()
 		break;
 	}
 
+	if (sensorArray[waterOverFlowLevelIndex] == LOW)
+	{
+		if (sumpMotorOn)
+		{
+			if (sumpMotorOn && sumpMotorStatusReceived)
+			{
+				send(sumpMotorMessage.set(RELAY_OFF));
+				Alarm.disable(waterDefaultLevelTimer);
+				Alarm.disable(waterLevelRisingTimer);
+				Alarm.enable(waterLevelFallingTimer);
+				sumpMotorStatusReceived = false;
+			}
+			else
+			{
+				request(SUMP_RELAY_ID, V_VAR4, SUMP_RELAY_NODE_ID);
+				sumpMotorStatusReceived = false;
+			}
+		}
+	}
+
+	if (sensorArray[waterLowLevelIndex] == HIGH)
+	{
+		if (!sumpMotorOn)
+		{
+			if (!sumpMotorOn && sumpMotorStatusReceived)
+			{
+				send(sumpMotorMessage.set(RELAY_ON));
+				Alarm.disable(waterDefaultLevelTimer);
+				Alarm.disable(waterLevelFallingTimer);
+				Alarm.enable(waterLevelRisingTimer);
+				sumpMotorStatusReceived = false;
+			}
+			else
+			{
+				request(SUMP_RELAY_ID, V_VAR4, SUMP_RELAY_NODE_ID);
+				sumpMotorStatusReceived = false;
+			}
+		}
+	}
+
 	prevWaterLevelValue = currWaterLevelValue;
 
 }
 
 void sendWaterLevel(int waterLevel)
 {
+	MyMessage waterHighLevelMessage(WATER_FULL_LEVEL_ID, V_VAR2);
 	if (waterLevel != prevWaterLevelValue)
 	{
 		send(waterLevelMessage.set(waterLevel));
@@ -161,6 +226,17 @@ void sendWaterLevel(int waterLevel)
 		send(lcdWaterLevelMessage.set(waterLevel));
 		Alarm.delay(WAIT_5MS);
 		send(thingspeakMessage.set(waterLevel));
+		if (currWaterLevelValueDec == 0)
+		{			
+			waterHighLevelMessage.setDestination(SUMP_RELAY_NODE_ID);
+			send(waterHighLevelMessage.set(HIGH_LEVEL)); 
+		}
+		else
+		{
+			waterHighLevelMessage.setDestination(SUMP_RELAY_NODE_ID);
+			send(waterHighLevelMessage.set(NOT_HIGH_LEVEL)); 
+		}
+		Alarm.delay(WAIT_5MS);
 	}
 }
 

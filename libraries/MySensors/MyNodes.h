@@ -82,6 +82,18 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define LCD_NODE_ID 9
 #endif
 
+#if defined KEYPAD_1R_2C
+#define ROWS 1
+#define COLS 2
+#define ON '1'
+#define OFF '2'
+
+char keys[1][2] = { ON,OFF };
+byte rowsPins[1] = { 6 };
+byte colsPins[2] = { 4,5 };
+
+#endif
+
 #if defined LCD_NODE
 #define LCD_NODE_ID 9
 #define PH3_NODE_ID 10
@@ -164,6 +176,8 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #if defined WATER_TANK_NODE
 #define CURR_WATER_LEVEL_ID 1
 #define WATER_LOW_LEVEL_IND_ID 2
+#define WATER_FULL_LEVEL_ID 3
+#define WATER_EMPTY_LEVEl_ID 4
 #define DEFAULT_LOW_LEVEL 40
 #define MAX_SENSORS 6
 #define RISING_LEVEL_POLL_DURATION 30
@@ -183,6 +197,11 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define LEVEL_40 40
 #define LEVEL_20 20
 #define LEVEL_0 0
+
+#define HIGH_LEVEL 1
+#define NOT_HIGH_LEVEL 0
+#define LOW_LEVEL 1
+#define NOT_LOW_LEVEL 0
 
 byte sensorPinArray[MAX_SENSORS] = { SENSOR_1_PIN,
 									 SENSOR_2_PIN,
@@ -208,7 +227,6 @@ byte binToDecArray[MAX_SENSORS] = { 1,2,4,8,16,32 };
 #define OVERHEAD_TANK_02_NODE_ID 7
 #define SUMP_RELAY_NODE_ID 4
 #define SUMP_RELAY_ID 1
-
 #endif
 
 //Underground Tank
