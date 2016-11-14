@@ -165,6 +165,7 @@ byte colsPins[2] = { 4,5 };
 #define BORE_ON_RELAY_PIN 7
 #define BORE_OFF_RELAY_PIN 8
 #define RELAY_TRIGGER_INTERVAL 3
+#define MOTOR_STATUS_PIN 3
 #endif
 
 #if defined WATER_MOTOR_NODE
