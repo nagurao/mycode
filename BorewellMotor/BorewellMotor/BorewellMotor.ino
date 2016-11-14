@@ -9,6 +9,7 @@
 #define NODE_HAS_RELAY
 #define WATER_TANK_NODE_IDS
 #define KEYPAD_1R_2C
+#define OVERHEAD_TANK_01_NODE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -23,9 +24,14 @@
 #define APPLICATION_VERSION "14Nov2016"
 
 AlarmId heartbeatTimer;
+AlarmId dryRunTimer;
+
 boolean borewellOn;
 boolean tank01LowLevel;
 boolean tank01HighLevel;
+
+int currentWaterLevel;
+int dryRunInitWaterLevel;
 
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 MyMessage borewellMotorMessage(BOREWELL_MOTOR_ID, V_STATUS);
@@ -47,6 +53,9 @@ void setup()
 	keypad.addEventListener(keypadEvent);
 	keypad.setDebounceTime(WAIT_50MS);
 	borewellOn = false;
+	currentWaterLevel = 0;
+	dryRunInitWaterLevel = 0;
+
 	digitalWrite(BORE_ON_RELAY_PIN, LOW);
 	digitalWrite(BORE_OFF_RELAY_PIN, LOW);
 	digitalWrite(MOTOR_STATUS_PIN, LOW);
@@ -59,6 +68,8 @@ void setup()
 	pollTimerMessage.setType(V_VAR2);
 
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
+	dryRunTimer = Alarm.timerRepeat(DRY_RUN_POLL_DURATION, checkCurrWaterLevel);
+	Alarm.disable(dryRunTimer);
 }
 
 void presentation()
@@ -121,6 +132,8 @@ void receive(const MyMessage &message)
 
 		if (tank01HighLevel && borewellOn)
 			turnOffBorewell();
+	case V_VOLUME:
+		currentWaterLevel = message.getInt();
 	}
 }
 
@@ -145,6 +158,8 @@ void toggleOnRelay()
 	borewellOn = true;
 	send(pollTimerMessage.set(ON));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	dryRunInitWaterLevel = currentWaterLevel;
+	Alarm.enable(dryRunTimer);
 	
 }
 
@@ -169,6 +184,15 @@ void toggleOffRelay()
 	borewellOn = false;
 	send(pollTimerMessage.set(OFF));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	Alarm.disable(dryRunTimer);
+}
+
+void checkCurrWaterLevel()
+{
+	if (currentWaterLevel <= dryRunInitWaterLevel)
+		turnOffBorewell();
+	else
+		dryRunInitWaterLevel = currentWaterLevel;
 }
 
 void keypadEvent(KeypadEvent key)
