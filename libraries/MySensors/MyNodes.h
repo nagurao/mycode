@@ -155,6 +155,8 @@ byte colsPins[2] = { 4,5 };
 #define SUMP_RELAY_NODE_ID 4
 #define SUMP_RELAY_ID 1
 #define SUMP_RELAY_PIN 7
+#define CURR_WATER_LEVEL_ID 1
+#define WATER_RELAY_NODE_ID 14
 #endif
 
 #if defined BOREWELL_NODE
@@ -165,7 +167,6 @@ byte colsPins[2] = { 4,5 };
 #define BORE_ON_RELAY_PIN 7
 #define BORE_OFF_RELAY_PIN 8
 #define RELAY_TRIGGER_INTERVAL 3
-#define MOTOR_STATUS_PIN 3
 #endif
 
 #if defined WATER_MOTOR_NODE
@@ -173,7 +174,7 @@ byte colsPins[2] = { 4,5 };
 #define WATER_RELAY_ID 1
 #define WATER_RELAY_DELAY_ID 2
 #define  WATER_RELAY_PIN 7
-#define MOTOR_STATUS_PIN 8
+#define MOTOR_STATUS_PIN 3
 
 #define SUMP_RELAY_NODE_ID 4
 #define SUMP_RELAY_ID 1
@@ -183,6 +184,7 @@ byte colsPins[2] = { 4,5 };
 #define OVERHEAD_TANK_01_NODE_ID 6
 #define OVERHEAD_TANK_02_NODE_ID 7
 #define UNDERGROUND_NODE_ID 8
+#define MOTOR_STATUS_PIN 3
 #endif
 
 #if defined WATER_TANK_NODE

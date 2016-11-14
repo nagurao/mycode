@@ -22,6 +22,7 @@
 #define APPLICATION_VERSION "12Nov2016"
 
 AlarmId heartbeatTimer;
+boolean tank02LowLevel;
 boolean tank02HighLevel;
 boolean tank03LowLevel;
 boolean tank03HighLevel;
@@ -29,7 +30,8 @@ boolean sumpMotorOn;
 
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 MyMessage sumpMotorRelayMessage(SUMP_RELAY_ID, V_STATUS);
-MyMessage tank02SumpMotorMessage;
+MyMessage pollTimerMessage;
+MyMessage tank02And03WaterHighLevelMessage(CURR_WATER_LEVEL_ID, V_VAR3);
 
 Keypad keypad = Keypad(makeKeymap(keys), rowsPins, colsPins, ROWS, COLS);
 
@@ -37,29 +39,42 @@ Keypad keypad = Keypad(makeKeymap(keys), rowsPins, colsPins, ROWS, COLS);
 void before()
 {
 	pinMode(SUMP_RELAY_PIN, OUTPUT);
+	pinMode(MOTOR_STATUS_PIN, OUTPUT);
 }
 
 void setup()
 {
 	keypad.addEventListener(keypadEvent);
 	keypad.setDebounceTime(WAIT_50MS);
-	digitalWrite(SUMP_RELAY_PIN, LOW);
-	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
-	thingspeakMessage.setType(V_CUSTOM);
-	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
-	tank02SumpMotorMessage.setDestination(OVERHEAD_TANK_02_NODE_ID);
+	sumpMotorOn = false;
+	tank02LowLevel = false;
 	tank02HighLevel = false;
 	tank03LowLevel = false;
 	tank03HighLevel = false;
-	sumpMotorOn = false;
+
+	digitalWrite(SUMP_RELAY_PIN, LOW);
+	digitalWrite(MOTOR_STATUS_PIN, LOW);
+
+	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
+	thingspeakMessage.setType(V_CUSTOM);
+	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
+
+	tank02And03WaterHighLevelMessage.setDestination(WATER_RELAY_NODE_ID);
+	tank02And03WaterHighLevelMessage.setType(V_VAR3);
+	tank02And03WaterHighLevelMessage.setSensor(CURR_WATER_LEVEL_ID);
+	pollTimerMessage.setType(V_VAR2);
+
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
 void presentation()
 {
 	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(SUMP_RELAY_ID, S_BINARY, "Sump Motor Relay");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	send(sumpMotorRelayMessage.set(RELAY_OFF));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	send(thingspeakMessage.set(RELAY_OFF));
 }
 
@@ -76,49 +91,103 @@ void receive(const MyMessage &message)
 	case V_STATUS:
 		if (message.getInt())
 		{
-			if(!tank02HighLevel && !tank03LowLevel)
-				sendUpdate(message.getInt());
+			if (!tank02HighLevel && !tank03LowLevel && !sumpMotorOn)
+				turnOnSumpMotor();
 		}
 		else
-			sendUpdate(message.getInt());
+			turnOffSumpMotor();
+
 		break;
 	case V_VAR2:
-		tank02HighLevel = message.getInt();
-		if(tank02HighLevel && sumpMotorOn)
-			sendUpdate(RELAY_OFF);
+		switch (message.sender)
+		{
+		case OVERHEAD_TANK_02_NODE_ID:
+			if (message.getInt())
+				tank02LowLevel = ON;
+			else
+				tank02LowLevel = OFF;
+			break;
+		case UNDERGROUND_NODE_ID:
+			if (message.getInt())
+				tank03LowLevel = ON;
+			else
+				tank03LowLevel = OFF;
+			break;
+		}
+
+
+		if(tank02LowLevel && !tank03LowLevel && !sumpMotorOn)
+			turnOnSumpMotor();
+
+		if(tank03LowLevel && sumpMotorOn)
+			turnOffSumpMotor();
 		break;
 	case V_VAR3:
-		tank03LowLevel = message.getInt();
-		if (tank03LowLevel && sumpMotorOn)
-			sendUpdate(RELAY_OFF);
+		switch (message.sender)
+		{
+		case OVERHEAD_TANK_02_NODE_ID:
+			if (message.getInt())
+				tank02HighLevel = ON;
+			else
+				tank02HighLevel = OFF;
+			break;
+		case UNDERGROUND_NODE_ID:
+			if (message.getInt())
+				tank03HighLevel = ON;
+			else
+				tank03HighLevel = OFF;
+			break;
+		}
+
+		if(!tank02HighLevel && tank03HighLevel && !sumpMotorOn)
+			turnOnSumpMotor();
+
+		if(tank02HighLevel && sumpMotorOn)
+			turnOffSumpMotor();
+
+		if (tank02HighLevel && tank03HighLevel)
+			send(tank02And03WaterHighLevelMessage.set(ON));
+		else
+			send(tank02And03WaterHighLevelMessage.set(OFF));
 		break;
-	case V_VAR4:
-		tank02SumpMotorMessage.setSensor(SUMP_RELAY_ID);
-		tank02SumpMotorMessage.setType(V_VAR4);
-		send(tank02SumpMotorMessage.set(digitalRead(SUMP_RELAY_PIN)));
-		break;
-	case V_VAR5:
-		tank03HighLevel = message.getInt();
-		if(tank03HighLevel && !tank02HighLevel && !sumpMotorOn)
-			sendUpdate(RELAY_ON);
 	}
 }
 
-void sendUpdate(int currentState)
+void turnOnSumpMotor()
 {
-	digitalWrite(SUMP_RELAY_PIN, currentState ? RELAY_ON : RELAY_OFF);
-	sumpMotorOn = currentState ? RELAY_ON : RELAY_OFF;
+	digitalWrite(SUMP_RELAY_PIN, RELAY_ON);
+	send(sumpMotorRelayMessage.set(RELAY_ON));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	send(thingspeakMessage.set(RELAY_ON));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	digitalWrite(MOTOR_STATUS_PIN, RELAY_ON);
+	sumpMotorOn = true;
+	pollTimerMessage.setDestination(OVERHEAD_TANK_02_NODE_ID);
+	send(pollTimerMessage.set(ON));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	pollTimerMessage.setDestination(UNDERGROUND_NODE_ID);
+	send(pollTimerMessage.set(ON));
+}
 
-	send(sumpMotorRelayMessage.set(currentState));
-	Alarm.delay(WAIT_10MS);
-	send(thingspeakMessage.set(currentState));
+void turnOffSumpMotor()
+{
+	digitalWrite(SUMP_RELAY_PIN, RELAY_OFF);
+	send(sumpMotorRelayMessage.set(RELAY_OFF));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	send(thingspeakMessage.set(RELAY_OFF));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	digitalWrite(MOTOR_STATUS_PIN, RELAY_OFF);
+	sumpMotorOn = false;
+	pollTimerMessage.setDestination(OVERHEAD_TANK_02_NODE_ID);
+	send(pollTimerMessage.set(OFF));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	pollTimerMessage.setDestination(UNDERGROUND_NODE_ID);
+	send(pollTimerMessage.set(OFF));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
 
 void keypadEvent(KeypadEvent key)
 {
-	MyMessage tank02TimerMessage(SUMP_RELAY_ID, V_VAR5);
-	tank02TimerMessage.setDestination(OVERHEAD_TANK_02_NODE_ID);
-	tank02TimerMessage.setType(V_VAR5);
 	switch (keypad.getState())
 	{
 	case PRESSED:
@@ -126,19 +195,11 @@ void keypadEvent(KeypadEvent key)
 		{
 		case '1':
 			if (!tank02HighLevel && !tank03LowLevel && !sumpMotorOn)
-			{
-				sendUpdate(RELAY_ON);
-				Alarm.delay(WAIT_10MS);
-				send(tank02TimerMessage.set(RELAY_ON));
-			}
+				turnOnSumpMotor();
 			break;
 		case '2':
 			if (sumpMotorOn)
-			{
-				sendUpdate(RELAY_OFF);
-				Alarm.delay(WAIT_10MS);
-				send(tank02TimerMessage.set(RELAY_OFF));
-			}
+				turnOffSumpMotor();
 			break;
 		}
 		break;
@@ -147,19 +208,11 @@ void keypadEvent(KeypadEvent key)
 		{
 		case '1':
 			if (!tank02HighLevel && !tank03LowLevel && !sumpMotorOn)
-			{
-				sendUpdate(RELAY_ON);
-				Alarm.delay(WAIT_10MS);
-				send(tank02TimerMessage.set(RELAY_ON));
-			}
+				turnOnSumpMotor();
 			break;
 		case '2':
 			if (sumpMotorOn)
-			{
-				sendUpdate(RELAY_OFF);
-				Alarm.delay(WAIT_10MS);
-				send(tank02TimerMessage.set(RELAY_OFF));
-			}
+				turnOffSumpMotor();
 			break;
 		}
 		break;

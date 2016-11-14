@@ -22,8 +22,7 @@
 #define APPLICATION_VERSION "12Nov2016"
 
 AlarmId heartbeatTimer;
-boolean tank02HighLevel;
-boolean tank03HighLevel;
+boolean tank02AndTank03HighLevel;
 boolean delayStartSet;
 boolean motorOn;
 byte motorDelayCheckCount;

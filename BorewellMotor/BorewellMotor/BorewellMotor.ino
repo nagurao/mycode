@@ -53,6 +53,8 @@ void setup()
 	keypad.addEventListener(keypadEvent);
 	keypad.setDebounceTime(WAIT_50MS);
 	borewellOn = false;
+	tank01LowLevel = false;
+	tank01HighLevel = false;
 	currentWaterLevel = 0;
 	dryRunInitWaterLevel = 0;
 
@@ -107,10 +109,12 @@ void receive(const MyMessage &message)
 		switch (message.sensor)
 		{
 		case BORE_ON_RELAY_ID:
-			turnOnBorewell();
+			if (!tank01HighLevel && !borewellOn)
+				turnOnBorewell();
 			break;
 		case BORE_OFF_RELAY_ID:
-			turnOffBorewell();
+			if(borewellOn)
+				turnOffBorewell();
 			break;
 		}
 		break;
