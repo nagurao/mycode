@@ -4,6 +4,7 @@
 #ifndef MyNodes_h
 #define MyNodes_h
 
+#define WAIT_AFTER_SEND_MESSAGE 20
 #define WAIT_5MS 5
 #define WAIT_10MS 10
 #define WAIT_50MS 50
@@ -164,9 +165,19 @@ byte colsPins[2] = { 4,5 };
 #define BORE_ON_RELAY_PIN 7
 #define BORE_OFF_RELAY_PIN 8
 #define RELAY_TRIGGER_INTERVAL 3
-
 #endif
 
+#if defined WATER_MOTOR_NODE
+#define WATER_RELAY_NODE_ID 14
+#define WATER_RELAY_ID 1
+#define WATER_RELAY_DELAY_ID 2
+#define  WATER_RELAY_PIN 7
+#define MOTOR_STATUS_PIN 8
+
+#define SUMP_RELAY_NODE_ID 4
+#define SUMP_RELAY_ID 1
+
+#endif
 # if defined WATER_TANK_NODE_IDS
 #define OVERHEAD_TANK_01_NODE_ID 6
 #define OVERHEAD_TANK_02_NODE_ID 7
@@ -177,7 +188,7 @@ byte colsPins[2] = { 4,5 };
 #define CURR_WATER_LEVEL_ID 1
 #define WATER_LOW_LEVEL_IND_ID 2
 #define WATER_FULL_LEVEL_ID 3
-#define WATER_EMPTY_LEVEl_ID 4
+#define WATER_EMPTY_LEVEL_ID 4
 #define DEFAULT_LOW_LEVEL 40
 #define MAX_SENSORS 6
 #define RISING_LEVEL_POLL_DURATION 30

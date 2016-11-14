@@ -8,6 +8,7 @@
 #define OVERHEAD_TANK_01_NODE
 #define NODE_INTERACTS_WITH_RELAY
 #define NODE_INTERACTS_WITH_LCD
+#define NODE_WITH_ON_OFF_FEATURE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -19,34 +20,33 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Tank 01"
-#define APPLICATION_VERSION "12Nov2016"
+#define APPLICATION_VERSION "14Nov2016"
 
 AlarmId heartbeatTimer;
 AlarmId waterLowLevelRequestTimer;
 AlarmId waterLevelRisingTimer;
-AlarmId waterLevelFallingTimer;
 AlarmId waterDefaultLevelTimer;
-AlarmId dryRunTimer;
 
 int prevWaterLevelValue;
 int currWaterLevelValue;
 int currWaterLevelValueDec;
-int dryRunInitWaterLevel;
+
 byte waterOverFlowLevelIndex;
 byte waterLowLevelIndex;
 byte waterLowLevelInPercent;
 byte waterLowLevelRequestCount;
 boolean waterLowLevelReceived;
 boolean sendWaterLowLevelRequest;
-boolean borewellOn;
-boolean borewellMotorStatusReceived;
+boolean currentActiveTimer;
 
 MyMessage waterLevelMessage(CURR_WATER_LEVEL_ID,V_VOLUME);
 MyMessage waterLowLevelMessage(WATER_LOW_LEVEL_IND_ID, V_VAR1);
 MyMessage lcdWaterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
 
-MyMessage borewellOnMessage(BORE_ON_RELAY_ID, V_STATUS);
-MyMessage borewellOffMessage(BORE_OFF_RELAY_ID, V_STATUS);
+MyMessage lowLevelTankMessage(CURR_WATER_LEVEL_ID, V_VAR2);
+MyMessage highLevelTankMessage(CURR_WATER_LEVEL_ID, V_VAR3);
+MyMessage waterLevelTankMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
+
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 
 void before()
@@ -58,7 +58,6 @@ void before()
 void setup()
 {
 	prevWaterLevelValue = 200;
-	dryRunInitWaterLevel = 0;
 	currWaterLevelValue = 0;
 	currWaterLevelValueDec = 0;
 	waterOverFlowLevelIndex = 0;
@@ -67,31 +66,33 @@ void setup()
 	waterLowLevelRequestCount = 0;
 	waterLowLevelReceived = false;
 	sendWaterLowLevelRequest = true;
-	borewellOn = false;
-	borewellMotorStatusReceived = false;
 	lcdWaterLevelMessage.setDestination(LCD_NODE_ID);
 	lcdWaterLevelMessage.setSensor(CURR_WATER_LEVEL_ID);
+
+	lowLevelTankMessage.setDestination(BOREWELL_RELAY_NODE_ID);
+	highLevelTankMessage.setDestination(BOREWELL_RELAY_NODE_ID);
+	waterLevelTankMessage.setDestination(BOREWELL_RELAY_NODE_ID);
+
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
-	waterLevelFallingTimer = Alarm.timerRepeat(FALLING_LEVEL_POLL_DURATION, getWaterLevel);
 	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
-	dryRunTimer = Alarm.timerRepeat(DRY_RUN_POLL_DURATION, checkCurrWaterLevel);
-	Alarm.disable(dryRunTimer);
+	currentActiveTimer = OFF;
+	Alarm.disable(waterLevelRisingTimer);
 }
 
 void presentation()
 {
 	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
 	present(CURR_WATER_LEVEL_ID, S_WATER, "Tank 01 Water Level");
-	wait(WAIT_50MS);
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(WATER_LOW_LEVEL_IND_ID, S_CUSTOM, "Low Water Level %");
 }
 
-void loop()
+void loop() 
 {
 	if (sendWaterLowLevelRequest)
 	{
@@ -124,16 +125,13 @@ void receive(const MyMessage &message)
 		}
 		break;
 	case V_VAR2:
-		borewellOn = (message.getInt()) ? RELAY_ON : RELAY_OFF;
-		borewellMotorStatusReceived = true;
-		if (borewellOn)
+		if (currentActiveTimer != message.getInt())
 		{
-			dryRunInitWaterLevel = currWaterLevelValue;
-			Alarm.enable(dryRunTimer);
-		}
-		else
-		{
-			Alarm.disable(dryRunTimer);
+			if (message.getInt())
+				Alarm.disable(waterDefaultLevelTimer);
+			else
+				Alarm.disable(waterLevelRisingTimer);
+			currentActiveTimer = message.getInt();
 		}
 		break;
 	}
@@ -184,45 +182,14 @@ void getWaterLevel()
 	}
 
 	if (sensorArray[waterOverFlowLevelIndex] == LOW)
-	{
-		if (borewellOn)
-		{
-			if (borewellOn && borewellMotorStatusReceived)
-			{
-				borewellOffMessage.setDestination(BOREWELL_RELAY_NODE_ID);
-				send(borewellOffMessage.set(RELAY_ON));
-				Alarm.disable(waterDefaultLevelTimer);
-				Alarm.disable(waterLevelRisingTimer);
-				Alarm.enable(waterLevelFallingTimer);
-				borewellMotorStatusReceived = false;
-			}
-			else
-			{
-				request(BOREWELL_MOTOR_ID, V_VAR2, BOREWELL_RELAY_NODE_ID);
-				borewellMotorStatusReceived = false;
-			}
-		}
-	}
+		send(highLevelTankMessage.set(ON));
+	else
+		send(highLevelTankMessage.set(OFF));
+	
 	if (sensorArray[waterLowLevelIndex] == HIGH)
-	{
-		if (!borewellOn)
-		{
-			if (!borewellOn && borewellMotorStatusReceived)
-			{
-				borewellOnMessage.setDestination(BOREWELL_RELAY_NODE_ID);
-				send(borewellOnMessage.set(RELAY_ON));
-				Alarm.disable(waterDefaultLevelTimer);
-				Alarm.disable(waterLevelFallingTimer);
-				Alarm.enable(waterLevelRisingTimer);
-				borewellMotorStatusReceived = false;
-			}
-			else
-			{
-				request(BOREWELL_MOTOR_ID, V_VAR2, BOREWELL_RELAY_NODE_ID);
-				borewellMotorStatusReceived = false;
-			}
-		}
-	}
+		send(lowLevelTankMessage.set(ON));
+	else
+		send(lowLevelTankMessage.set(OFF));
 
 	prevWaterLevelValue = currWaterLevelValue;
 		
@@ -233,10 +200,13 @@ void sendWaterLevel(int waterLevel)
 	if (waterLevel != prevWaterLevelValue)
 	{
 		send(waterLevelMessage.set(waterLevel));
-		Alarm.delay(WAIT_5MS);
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 		send(lcdWaterLevelMessage.set(waterLevel));
-		Alarm.delay(WAIT_5MS);
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 		send(thingspeakMessage.set(waterLevel));
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+		send(waterLevelTankMessage.set(waterLevel));
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	}
 }
 
@@ -244,17 +214,4 @@ void checkWaterLowLevelRequestStatus()
 {
 	if (!waterLowLevelReceived)
 		sendWaterLowLevelRequest = true;
-}
-
-void checkCurrWaterLevel()
-{
-	if (currWaterLevelValue <= dryRunInitWaterLevel)
-	{
-		borewellOffMessage.setDestination(BOREWELL_RELAY_NODE_ID);
-		send(borewellOffMessage.set(RELAY_ON));
-	}
-	else
-	{
-		dryRunInitWaterLevel = currWaterLevelValue;
-	}
 }

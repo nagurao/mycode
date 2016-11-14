@@ -102,6 +102,18 @@ void receive(const MyMessage &message)
 			request(WATER_LOW_LEVEL_IND_ID, V_VAR1);
 		}
 		break;
+	case V_VAR4:
+		if (message.getInt())
+		{
+			Alarm.disable(waterLevelFallingTimer);
+			Alarm.enable(waterLevelRisingTimer);
+		}
+		else
+		{
+			Alarm.disable(waterLevelRisingTimer);
+			Alarm.enable(waterLevelFallingTimer);
+		}
+		break;
 	}
 }
 
@@ -147,6 +159,11 @@ void getWaterLevel()
 		sendWaterLevel(LEVEL_0);
 		currWaterLevelValue = LEVEL_0;
 		break;
+	}
+
+	if (sensorArray[waterOverFlowLevelIndex] == LOW)
+	{
+
 	}
 
 	prevWaterLevelValue = currWaterLevelValue;
