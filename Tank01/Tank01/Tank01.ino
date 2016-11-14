@@ -4,8 +4,8 @@
 #include <SPI.h>
 
 #define WATER_TANK_NODE
-#define BOREWELL_NODE
 #define OVERHEAD_TANK_01_NODE
+#define BOREWELL_NODE
 #define NODE_INTERACTS_WITH_RELAY
 #define NODE_INTERACTS_WITH_LCD
 #define NODE_WITH_ON_OFF_FEATURE
@@ -40,9 +40,9 @@ boolean sendWaterLowLevelRequest;
 boolean currentActiveTimer;
 
 MyMessage waterLevelMessage(CURR_WATER_LEVEL_ID,V_VOLUME);
-MyMessage waterLowLevelMessage(WATER_LOW_LEVEL_IND_ID, V_VAR1);
 MyMessage lcdWaterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
 
+MyMessage waterLowLevelMessage(WATER_LOW_LEVEL_IND_ID, V_VAR1);
 MyMessage lowLevelTankMessage(CURR_WATER_LEVEL_ID, V_VAR2);
 MyMessage highLevelTankMessage(CURR_WATER_LEVEL_ID, V_VAR3);
 MyMessage waterLevelTankMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
@@ -89,7 +89,7 @@ void presentation()
 	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
 	present(CURR_WATER_LEVEL_ID, S_WATER, "Tank 01 Water Level");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-	present(WATER_LOW_LEVEL_IND_ID, S_CUSTOM, "Low Water Level %");
+	present(WATER_LOW_LEVEL_IND_ID, S_CUSTOM, "T1 Low Water Level %");
 }
 
 void loop() 

@@ -5,8 +5,10 @@
 
 #define WATER_TANK_NODE
 #define UNDERGROUND_TANK_NODE
+#define SUMP_MOTOR_NODE
 #define NODE_INTERACTS_WITH_RELAY
 #define NODE_INTERACTS_WITH_LCD
+#define NODE_WITH_ON_OFF_FEATURE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -18,12 +20,11 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Tank 03"
-#define APPLICATION_VERSION "12Nov2016"
+#define APPLICATION_VERSION "14Nov2016"
 
 AlarmId heartbeatTimer;
 AlarmId waterLowLevelRequestTimer;
 AlarmId waterLevelRisingTimer;
-AlarmId waterLevelFallingTimer;
 AlarmId waterDefaultLevelTimer;
 
 int prevWaterLevelValue;
@@ -36,10 +37,14 @@ byte waterLowLevelInPercent;
 byte waterLowLevelRequestCount;
 boolean waterLowLevelReceived;
 boolean sendWaterLowLevelRequest;
+boolean currentActiveTimer;
 
 MyMessage waterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
-MyMessage waterLowLevelMessage(WATER_LOW_LEVEL_IND_ID, V_VAR1);
 MyMessage lcdWaterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
+
+MyMessage waterLowLevelMessage(WATER_LOW_LEVEL_IND_ID, V_VAR1);
+MyMessage lowLevelTankMessage(CURR_WATER_LEVEL_ID, V_VAR2);
+MyMessage highLevelTankMessage(CURR_WATER_LEVEL_ID, V_VAR3);
 
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 
@@ -51,23 +56,38 @@ void before()
 
 void setup()
 {
+	prevWaterLevelValue = 200;
+	currWaterLevelValue = 0;
+	currWaterLevelValueDec = 0;
+	waterOverFlowLevelIndex = 0;
+	waterLowLevelIndex = 0;
+	waterLowLevelInPercent = 0;
+	waterLowLevelRequestCount = 0;
+	waterLowLevelReceived = false;
+	sendWaterLowLevelRequest = true;
 	lcdWaterLevelMessage.setDestination(LCD_NODE_ID);
 	lcdWaterLevelMessage.setSensor(CURR_WATER_LEVEL_ID);
+
+	lowLevelTankMessage.setDestination(SUMP_RELAY_NODE_ID);
+	highLevelTankMessage.setDestination(SUMP_RELAY_NODE_ID);
+
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
+
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
-	waterLevelFallingTimer = Alarm.timerRepeat(FALLING_LEVEL_POLL_DURATION, getWaterLevel);
 	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
+
+	currentActiveTimer = OFF;
 }
 
 void presentation()
 {
 	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
 	present(CURR_WATER_LEVEL_ID, S_WATER, "Tank 03 Water Level");
-	wait(WAIT_50MS);
-	present(WATER_LOW_LEVEL_IND_ID, S_CUSTOM, "Low Water Level %");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(WATER_LOW_LEVEL_IND_ID, S_CUSTOM, "T3 Low Water Level %");
 }
 
 void loop()
@@ -102,16 +122,14 @@ void receive(const MyMessage &message)
 			request(WATER_LOW_LEVEL_IND_ID, V_VAR1);
 		}
 		break;
-	case V_VAR4:
-		if (message.getInt())
+	case V_VAR2:
+		if (currentActiveTimer != message.getInt())
 		{
-			Alarm.disable(waterLevelFallingTimer);
-			Alarm.enable(waterLevelRisingTimer);
-		}
-		else
-		{
-			Alarm.disable(waterLevelRisingTimer);
-			Alarm.enable(waterLevelFallingTimer);
+			if (message.getInt())
+				Alarm.disable(waterDefaultLevelTimer);
+			else
+				Alarm.disable(waterLevelRisingTimer);
+			currentActiveTimer = message.getInt();
 		}
 		break;
 	}
@@ -162,9 +180,14 @@ void getWaterLevel()
 	}
 
 	if (sensorArray[waterOverFlowLevelIndex] == LOW)
-	{
+		send(highLevelTankMessage.set(ON));
+	else
+		send(highLevelTankMessage.set(OFF));
 
-	}
+	if (sensorArray[waterLowLevelIndex] == HIGH)
+		send(lowLevelTankMessage.set(ON));
+	else
+		send(lowLevelTankMessage.set(OFF));
 
 	prevWaterLevelValue = currWaterLevelValue;
 
@@ -175,10 +198,11 @@ void sendWaterLevel(int waterLevel)
 	if (waterLevel != prevWaterLevelValue)
 	{
 		send(waterLevelMessage.set(waterLevel));
-		Alarm.delay(WAIT_5MS);
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 		send(lcdWaterLevelMessage.set(waterLevel));
-		Alarm.delay(WAIT_5MS);
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 		send(thingspeakMessage.set(waterLevel));
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	}
 }
 
