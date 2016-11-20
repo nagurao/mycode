@@ -97,7 +97,7 @@ void turnOnMotor()
 	digitalWrite(MOTOR_STATUS_PIN, RELAY_ON);
 	motorOn = true;
 	pollTimerMessage.setDestination(UNDERGROUND_NODE_ID);
-	send(pollTimerMessage.set(ON));
+	send(pollTimerMessage.set(RELAY_ON));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	send(sumpMotorMessage.set(RELAY_ON));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
@@ -111,7 +111,7 @@ void turnOffMotor()
 	digitalWrite(MOTOR_STATUS_PIN, RELAY_OFF);
 	motorOn = false;
 	pollTimerMessage.setDestination(UNDERGROUND_NODE_ID);
-	send(pollTimerMessage.set(OFF));
+	send(pollTimerMessage.set(RELAY_OFF));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
 

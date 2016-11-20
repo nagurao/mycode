@@ -5,7 +5,6 @@
 #include <SPI.h>
 
 #define BOREWELL_NODE
-#define NODE_WITH_ON_OFF_FEATURE
 #define NODE_HAS_RELAY
 #define WATER_TANK_NODE_IDS
 #define KEYPAD_1R_2C
@@ -120,9 +119,9 @@ void receive(const MyMessage &message)
 		break;
 	case V_VAR2:
 		if (message.getInt())
-			tank01LowLevel = ON;
+			tank01LowLevel = RELAY_ON;
 		else
-			tank01LowLevel = OFF;
+			tank01LowLevel = RELAY_OFF;
 
 		if (tank01LowLevel && !borewellOn)
 			turnOnBorewell();
@@ -130,9 +129,9 @@ void receive(const MyMessage &message)
 		break;
 	case V_VAR3:
 		if (message.getInt())
-			tank01HighLevel = ON;
+			tank01HighLevel = RELAY_ON;
 		else
-			tank01HighLevel = OFF;
+			tank01HighLevel = RELAY_OFF;
 
 		if (tank01HighLevel && borewellOn)
 			turnOffBorewell();
@@ -160,7 +159,7 @@ void toggleOnRelay()
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	digitalWrite(MOTOR_STATUS_PIN, RELAY_ON);
 	borewellOn = true;
-	send(pollTimerMessage.set(ON));
+	send(pollTimerMessage.set(RELAY_ON));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	dryRunInitWaterLevel = currentWaterLevel;
 	Alarm.enable(dryRunTimer);
@@ -186,7 +185,7 @@ void toggleOffRelay()
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	digitalWrite(MOTOR_STATUS_PIN, RELAY_OFF);
 	borewellOn = false;
-	send(pollTimerMessage.set(OFF));
+	send(pollTimerMessage.set(RELAY_OFF));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	Alarm.disable(dryRunTimer);
 }

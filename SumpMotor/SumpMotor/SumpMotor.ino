@@ -106,15 +106,15 @@ void receive(const MyMessage &message)
 		{
 		case OVERHEAD_TANK_02_NODE_ID:
 			if (message.getInt())
-				tank02LowLevel = ON;
+				tank02LowLevel = RELAY_ON;
 			else
-				tank02LowLevel = OFF;
+				tank02LowLevel = RELAY_OFF;
 			break;
 		case UNDERGROUND_NODE_ID:
 			if (message.getInt())
-				tank03LowLevel = ON;
+				tank03LowLevel = RELAY_ON;
 			else
-				tank03LowLevel = OFF;
+				tank03LowLevel = RELAY_OFF;
 			break;
 		}
 
@@ -130,15 +130,15 @@ void receive(const MyMessage &message)
 		{
 		case OVERHEAD_TANK_02_NODE_ID:
 			if (message.getInt())
-				tank02HighLevel = ON;
+				tank02HighLevel = RELAY_ON;
 			else
-				tank02HighLevel = OFF;
+				tank02HighLevel = RELAY_OFF;
 			break;
 		case UNDERGROUND_NODE_ID:
 			if (message.getInt())
-				tank03HighLevel = ON;
+				tank03HighLevel = RELAY_ON;
 			else
-				tank03HighLevel = OFF;
+				tank03HighLevel = RELAY_OFF;
 			break;
 		}
 
@@ -149,9 +149,9 @@ void receive(const MyMessage &message)
 			turnOffSumpMotor();
 
 		if (tank02HighLevel && tank03HighLevel)
-			send(tank02And03WaterHighLevelMessage.set(ON));
+			send(tank02And03WaterHighLevelMessage.set(RELAY_ON));
 		else
-			send(tank02And03WaterHighLevelMessage.set(OFF));
+			send(tank02And03WaterHighLevelMessage.set(RELAY_OFF));
 		break;
 	}
 }
@@ -166,10 +166,10 @@ void turnOnSumpMotor()
 	digitalWrite(MOTOR_STATUS_PIN, RELAY_ON);
 	sumpMotorOn = true;
 	pollTimerMessage.setDestination(OVERHEAD_TANK_02_NODE_ID);
-	send(pollTimerMessage.set(ON));
+	send(pollTimerMessage.set(RELAY_ON));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	pollTimerMessage.setDestination(UNDERGROUND_NODE_ID);
-	send(pollTimerMessage.set(ON));
+	send(pollTimerMessage.set(RELAY_ON));
 }
 
 void turnOffSumpMotor()
@@ -182,10 +182,10 @@ void turnOffSumpMotor()
 	digitalWrite(MOTOR_STATUS_PIN, RELAY_OFF);
 	sumpMotorOn = false;
 	pollTimerMessage.setDestination(OVERHEAD_TANK_02_NODE_ID);
-	send(pollTimerMessage.set(OFF));
+	send(pollTimerMessage.set(RELAY_OFF));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	pollTimerMessage.setDestination(UNDERGROUND_NODE_ID);
-	send(pollTimerMessage.set(OFF));
+	send(pollTimerMessage.set(RELAY_OFF));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
 

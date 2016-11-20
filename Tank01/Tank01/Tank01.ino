@@ -37,7 +37,6 @@ byte waterLowLevelInPercent;
 byte waterLowLevelRequestCount;
 boolean waterLowLevelReceived;
 boolean sendWaterLowLevelRequest;
-boolean currentActiveTimer;
 
 MyMessage waterLevelMessage(CURR_WATER_LEVEL_ID,V_VOLUME);
 MyMessage lcdWaterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
@@ -80,7 +79,6 @@ void setup()
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
 	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
-	currentActiveTimer = OFF;
 	Alarm.disable(waterLevelRisingTimer);
 }
 
@@ -125,13 +123,15 @@ void receive(const MyMessage &message)
 		}
 		break;
 	case V_VAR2:
-		if (currentActiveTimer != message.getInt())
+		if (message.getInt())
 		{
-			if (message.getInt())
-				Alarm.disable(waterDefaultLevelTimer);
-			else
-				Alarm.disable(waterLevelRisingTimer);
-			currentActiveTimer = message.getInt();
+			Alarm.disable(waterDefaultLevelTimer);
+			Alarm.enable(waterLevelRisingTimer);
+		}
+		else
+		{
+			Alarm.enable(waterDefaultLevelTimer);
+			Alarm.disable(waterLevelRisingTimer);
 		}
 		break;
 	}
@@ -182,14 +182,14 @@ void getWaterLevel()
 	}
 
 	if (sensorArray[waterOverFlowLevelIndex] == LOW)
-		send(highLevelTankMessage.set(ON));
+		send(highLevelTankMessage.set(RELAY_ON));
 	else
-		send(highLevelTankMessage.set(OFF));
+		send(highLevelTankMessage.set(RELAY_OFF));
 	
 	if (sensorArray[waterLowLevelIndex] == HIGH)
-		send(lowLevelTankMessage.set(ON));
+		send(lowLevelTankMessage.set(RELAY_ON));
 	else
-		send(lowLevelTankMessage.set(OFF));
+		send(lowLevelTankMessage.set(RELAY_OFF));
 
 	prevWaterLevelValue = currWaterLevelValue;
 		

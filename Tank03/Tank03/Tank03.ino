@@ -8,7 +8,6 @@
 #define SUMP_MOTOR_NODE
 #define NODE_INTERACTS_WITH_RELAY
 #define NODE_INTERACTS_WITH_LCD
-#define NODE_WITH_ON_OFF_FEATURE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -203,14 +202,14 @@ void getWaterLevel()
 	}
 
 	if (sensorArray[waterOverFlowLevelIndex] == LOW)
-		send(highLevelTankMessage.set(ON));
+		send(highLevelTankMessage.set(RELAY_ON));
 	else
-		send(highLevelTankMessage.set(OFF));
+		send(highLevelTankMessage.set(RELAY_OFF));
 
 	if (sensorArray[waterLowLevelIndex] == HIGH)
-		send(lowLevelTankMessage.set(ON));
+		send(lowLevelTankMessage.set(RELAY_ON));
 	else
-		send(lowLevelTankMessage.set(OFF));
+		send(lowLevelTankMessage.set(RELAY_OFF));
 
 	prevWaterLevelValue = currWaterLevelValue;
 

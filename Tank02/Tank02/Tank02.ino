@@ -180,14 +180,14 @@ void getWaterLevel()
 	}
 
 	if (sensorArray[waterOverFlowLevelIndex] == LOW)
-		send(highLevelTankMessage.set(ON));
+		send(highLevelTankMessage.set(RELAY_ON));
 	else
-		send(highLevelTankMessage.set(OFF));
+		send(highLevelTankMessage.set(RELAY_OFF));
 
 	if (sensorArray[waterLowLevelIndex] == HIGH)
-		send(lowLevelTankMessage.set(ON));
+		send(lowLevelTankMessage.set(RELAY_ON));
 	else
-		send(lowLevelTankMessage.set(OFF));
+		send(lowLevelTankMessage.set(RELAY_OFF));
 
 	prevWaterLevelValue = currWaterLevelValue;
 
