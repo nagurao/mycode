@@ -20,7 +20,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Tank 02"
-#define APPLICATION_VERSION "14Nov2016"
+#define APPLICATION_VERSION "20Nov2016"
 
 AlarmId heartbeatTimer;
 AlarmId waterLowLevelRequestTimer;
@@ -37,7 +37,6 @@ byte waterLowLevelInPercent;
 byte waterLowLevelRequestCount;
 boolean waterLowLevelReceived;
 boolean sendWaterLowLevelRequest;
-boolean currentActiveTimer;
 
 MyMessage waterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
 MyMessage lcdWaterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
@@ -79,7 +78,6 @@ void setup()
 	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
 	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
 
-	currentActiveTimer = OFF;
 }
 
 void presentation()
@@ -123,13 +121,15 @@ void receive(const MyMessage &message)
 		}
 		break;
 	case V_VAR2:
-		if (currentActiveTimer != message.getInt())
+		if (message.getInt())
 		{
-			if (message.getInt())
-				Alarm.disable(waterDefaultLevelTimer);
-			else
-				Alarm.disable(waterLevelRisingTimer);
-			currentActiveTimer = message.getInt();
+			Alarm.disable(waterDefaultLevelTimer);
+			Alarm.enable(waterLevelRisingTimer);
+		}
+		else
+		{
+			Alarm.enable(waterDefaultLevelTimer);
+			Alarm.disable(waterLevelRisingTimer);
 		}
 		break;
 	}

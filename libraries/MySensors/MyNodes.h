@@ -172,7 +172,6 @@ byte colsPins[2] = { 4,5 };
 #if defined WATER_MOTOR_NODE
 #define WATER_RELAY_NODE_ID 14
 #define WATER_RELAY_ID 1
-#define WATER_RELAY_DELAY_ID 2
 #define  WATER_RELAY_PIN 7
 #define MOTOR_STATUS_PIN 3
 

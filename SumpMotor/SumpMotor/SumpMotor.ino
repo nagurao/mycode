@@ -19,7 +19,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Sump Motor"
-#define APPLICATION_VERSION "12Nov2016"
+#define APPLICATION_VERSION "20Nov2016"
 
 AlarmId heartbeatTimer;
 boolean tank02LowLevel;
@@ -89,14 +89,17 @@ void receive(const MyMessage &message)
 	switch (message.type)
 	{
 	case V_STATUS:
-		if (message.getInt())
+		switch (message.getInt())
 		{
+		case RELAY_ON:
 			if (!tank02HighLevel && !tank03LowLevel && !sumpMotorOn)
 				turnOnSumpMotor();
+			break;
+		case RELAY_OFF:
+			if (sumpMotorOn)
+				turnOffSumpMotor();
+			break;
 		}
-		else
-			turnOffSumpMotor();
-
 		break;
 	case V_VAR2:
 		switch (message.sender)

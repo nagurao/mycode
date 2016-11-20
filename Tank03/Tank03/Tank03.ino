@@ -20,7 +20,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Tank 03"
-#define APPLICATION_VERSION "14Nov2016"
+#define APPLICATION_VERSION "20Nov2016"
 
 AlarmId heartbeatTimer;
 AlarmId waterLowLevelRequestTimer;
@@ -37,7 +37,9 @@ byte waterLowLevelInPercent;
 byte waterLowLevelRequestCount;
 boolean waterLowLevelReceived;
 boolean sendWaterLowLevelRequest;
-boolean currentActiveTimer;
+
+boolean sumpMotorOn;
+boolean waterMotorOn;
 
 MyMessage waterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
 MyMessage lcdWaterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
@@ -65,6 +67,9 @@ void setup()
 	waterLowLevelRequestCount = 0;
 	waterLowLevelReceived = false;
 	sendWaterLowLevelRequest = true;
+	sumpMotorOn = false;
+	waterMotorOn = false;
+
 	lcdWaterLevelMessage.setDestination(LCD_NODE_ID);
 	lcdWaterLevelMessage.setSensor(CURR_WATER_LEVEL_ID);
 
@@ -79,7 +84,6 @@ void setup()
 	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
 	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
 
-	currentActiveTimer = OFF;
 }
 
 void presentation()
@@ -123,13 +127,32 @@ void receive(const MyMessage &message)
 		}
 		break;
 	case V_VAR2:
-		if (currentActiveTimer != message.getInt())
+		if (!sumpMotorOn && !waterMotorOn && message.getInt())
 		{
+			Alarm.disable(waterDefaultLevelTimer);
+			Alarm.enable(waterLevelRisingTimer);
+		}
+
+		switch (message.sender)
+		{
+		case SUMP_RELAY_NODE_ID:
 			if (message.getInt())
-				Alarm.disable(waterDefaultLevelTimer);
+				sumpMotorOn = true;
 			else
-				Alarm.disable(waterLevelRisingTimer);
-			currentActiveTimer = message.getInt();
+				sumpMotorOn = false;
+			break;
+		case UNDERGROUND_NODE_ID:
+			if (message.getInt())
+				waterMotorOn = true;
+			else
+				waterMotorOn = false;
+			break;
+		}
+
+		if (!sumpMotorOn && !waterMotorOn && !message.getInt())
+		{
+			Alarm.enable(waterDefaultLevelTimer);
+			Alarm.disable(waterLevelRisingTimer);
 		}
 		break;
 	}
