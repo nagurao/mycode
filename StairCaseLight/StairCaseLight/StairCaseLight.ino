@@ -51,10 +51,11 @@ void presentation()
 {
 	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
 	present(LIGHT_RELAY_ID, S_BINARY, "Staircase Light");
-	Alarm.delay(WAIT_10MS);
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	send(lightRelayMessage.set(RELAY_OFF));
-	Alarm.delay(WAIT_10MS);
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	send(thingspeakMessage.set(RELAY_OFF));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
 
 void loop()
@@ -82,19 +83,18 @@ void receive(const MyMessage &message)
 		if (message.getInt())
 		{
 			digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
-			Alarm.delay(WAIT_10MS);
 			send(lightRelayMessage.set(RELAY_ON));
-			Alarm.delay(WAIT_10MS);
+			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 			send(thingspeakMessage.set(RELAY_ON));
+			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 		}
 		else
 		{
 			digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
-			Alarm.delay(WAIT_10MS);
 			send(lightRelayMessage.set(RELAY_OFF));
-			Alarm.delay(WAIT_10MS);
+			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 			send(thingspeakMessage.set(RELAY_OFF));
-
+			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 		}
 		if (!lightStatusReceived)
 		{
