@@ -278,6 +278,7 @@ byte binToDecArray[MAX_SENSORS] = { 1,2,4,8,16,32 };
 #define SOLAR_VOLTAGE_ID 2
 
 #define VOLTAGE_SENSE_PIN A0
+#define INPUT_VOLTAGE_PIN A1
 
 #define UP 1
 

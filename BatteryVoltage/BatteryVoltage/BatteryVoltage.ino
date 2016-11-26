@@ -16,10 +16,10 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Battery Voltage"
-#define APPLICATION_VERSION "16Oct2016"
+#define APPLICATION_VERSION "26Nov2016"
 
-#define DEFAULT_R1_VALUE 47.40F
-#define DEFAULT_R2_VALUE 3.23F
+#define DEFAULT_R1_VALUE 47.20F
+#define DEFAULT_R2_VALUE 3.24F
 #define DEFAULT_VOLTS 0.00F
 
 AlarmId heartbeatTimer;
@@ -50,8 +50,6 @@ void before()
 
 void setup()
 {
-	voltsPerBit = (((float)5.00 * (DEFAULT_R1_VALUE + DEFAULT_R2_VALUE)) / (DEFAULT_R2_VALUE * 1023));
-	
 	solarVoltage = 0;
 	batteryVoltage = 0;
 	solarNodeRequestCount = 0;
@@ -140,20 +138,28 @@ void getBatteryVoltage()
 {
 	int sensedValue = 0;
 	int inputValue = 0;
+	int inputVolts = 0;
+	float sensedVolts = 0;
 	for (byte readCount = 1; readCount <= 10; readCount++)
 	{
 		inputValue = inputValue + analogRead(VOLTAGE_SENSE_PIN);
 		Alarm.delay(WAIT_50MS);
+		inputVolts = inputVolts + analogRead(INPUT_VOLTAGE_PIN);
+		Alarm.delay(WAIT_50MS);
 	}
+
 	sensedValue = inputValue / 10;
+	sensedVolts = inputVolts / 10;
 
+	sensedVolts = sensedVolts * 5.0 / 1024;
+	voltsPerBit = ((sensedVolts * (DEFAULT_R1_VALUE + DEFAULT_R2_VALUE)) / (DEFAULT_R2_VALUE * 1024));
 	batteryVoltage = sensedValue * voltsPerBit;
-
 	send(batteryVoltageMessage.set(batteryVoltage, 5));
-	Alarm.delay(WAIT_10MS);
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	
 	lcdVoltageMessage.setSensor(BATTERY_VOLTAGE_ID);
 	send(lcdVoltageMessage.set(batteryVoltage, 5));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
 
 void getSolarVoltage()
@@ -180,7 +186,8 @@ void sendThingspeakMessage()
 {
 	thingspeakMessage.setSensor(SOLAR_VOLTAGE_ID);
 	send(thingspeakMessage.set(solarVoltage, 5));
-	Alarm.delay(WAIT_10MS);
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	thingspeakMessage.setSensor(BATTERY_VOLTAGE_ID);
 	send(thingspeakMessage.set(batteryVoltage, 5));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }

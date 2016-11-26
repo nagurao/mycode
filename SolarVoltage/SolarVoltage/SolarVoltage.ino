@@ -15,10 +15,10 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Solar Voltage"
-#define APPLICATION_VERSION "16Oct2016"
+#define APPLICATION_VERSION "26Nov2016"
 
-#define DEFAULT_R1_VALUE 47.10F
-#define DEFAULT_R2_VALUE 3.23F
+#define DEFAULT_R1_VALUE 47.20F
+#define DEFAULT_R2_VALUE 3.24F
 #define DEFAULT_VOLTS 0.00F
 
 AlarmId heartbeatTimer;
@@ -36,10 +36,9 @@ void before()
 
 void setup()
 {
-	voltsPerBit = (((float)5.00 * (DEFAULT_R1_VALUE + DEFAULT_R2_VALUE)) / (DEFAULT_R2_VALUE * 1023));
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	solarVoltageMessage.setDestination(BATT_VOLTAGE_NODE_ID);
-	nodeUpTimer = Alarm.timerRepeat(ONE_MINUTE * 5, sendNodeUpMessage);
+	nodeUpTimer = Alarm.timerRepeat(FIVE_MINUTES, sendNodeUpMessage);
 }
 
 void presentation()
@@ -66,15 +65,24 @@ void readSolarVoltage()
 {
 	int sensedValue = 0;
 	int inputValue = 0;
+	int inputVolts = 0;
+	float sensedVolts = 0;
 	for (byte readCount = 1; readCount <= 10; readCount++)
 	{
 		inputValue = inputValue + analogRead(VOLTAGE_SENSE_PIN);
 		Alarm.delay(WAIT_50MS);
+		inputVolts = inputVolts + analogRead(INPUT_VOLTAGE_PIN);
+		Alarm.delay(WAIT_50MS);
 	}
 	sensedValue = inputValue / 10;
+	sensedVolts = inputVolts / 10 ;
+
+	sensedVolts = sensedVolts * 5.0 / 1024;
+	voltsPerBit = ((sensedVolts * (DEFAULT_R1_VALUE + DEFAULT_R2_VALUE)) / (DEFAULT_R2_VALUE * 1024));
 
 	float solarVoltage = sensedValue * voltsPerBit;
 	send(solarVoltageMessage.set(solarVoltage, 5));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
 
 void sendNodeUpMessage()
@@ -82,4 +90,5 @@ void sendNodeUpMessage()
 	MyMessage nodeUpMessage(SOLAR_VOLTAGE_ID,V_VAR1);
 	nodeUpMessage.setDestination(BATT_VOLTAGE_NODE_ID);
 	send(nodeUpMessage.set(UP));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
