@@ -15,7 +15,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Staircase Light"
-#define APPLICATION_VERSION "12Nov2016"
+#define APPLICATION_VERSION "27Nov2016"
 
 #define LIGHT_RELAY_PIN 7
 #define LIGHT_RELAY_ID 1
