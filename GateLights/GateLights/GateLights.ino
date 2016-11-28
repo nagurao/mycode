@@ -17,7 +17,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "PIR Gate Light"
-#define APPLICATION_VERSION "27Nov2016"
+#define APPLICATION_VERSION "28Nov2016"
 #define SENSOR_POLL_TIME 120
 #define DEFAULT_CURR_MODE 0
 #define DEFAULT_LIGHT_ON_DURATION 60
@@ -118,7 +118,7 @@ void loop()
 		}
 	}
 
-	if (currModeReceived && lightOnDurationReceived)
+	if (currModeReceived && lightOnDurationReceived && currMode == SENSOR_MODE)
 	{
 		if (tripped && !trippMessageToRelay)
 		{
@@ -131,8 +131,8 @@ void loop()
 			send(thingspeakMessage.set(RELAY_ON));
 			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 			Alarm.timerOnce(lightOnDuration, turnOffLightRelay);
-			disableMotionSensor();
 			tripped = false;
+			disableMotionSensor();
 		}
 	}
 
@@ -213,7 +213,12 @@ void receive(const MyMessage &message)
 		int newLightOnDuration = message.getInt();
 
 		if (lightOnDurationReceived && newLightOnDuration > 0 && newLightOnDuration <= 600)
+		{
 			lightOnDuration = newLightOnDuration;
+			MyMessage lightOnDurationMessage(LIGHT_DURATION_ID, V_VAR2);
+			send(lightOnDurationMessage.set(lightOnDuration));
+			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+		}
 
 		if (!lightOnDurationReceived)
 		{
@@ -250,12 +255,11 @@ void sendMotionSensorData()
 {
 	tripped = digitalRead(MOTION_SENSOR_PIN);
 	send(sensorMessage.set(tripped ? MOTION_DETECTED : NO_MOTION_DETECTED));
-	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	trippMessageToRelay = false;
 }
 
 void turnOffLightRelay()
-{
+{	
 	digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 	send(lightRelayMessage.set(RELAY_OFF));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
