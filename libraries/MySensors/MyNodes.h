@@ -77,6 +77,22 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define MOTION_DETECTED 1
 #define NO_MOTION_DETECTED 0
 
+#define BALCONYLIGHT_WITH_PIR_NODE_ID 1
+#define GATELIGHT_WITH_PIR_NODE_ID 3
+
+#endif
+
+#if defined LIGHT_NODE
+#define LIGHT_RELAY_PIN 7
+
+#define LIGHT_RELAY_ID 1
+#define CURR_MODE_ID 2
+#define LIGHT_DURATION_ID 3
+
+#define STANDBY_MODE 0
+#define DUSKLIGHT_MODE 1
+#define ADHOC_MODE 2
+
 #endif
 
 #if defined NODE_INTERACTS_WITH_LCD
@@ -147,8 +163,8 @@ byte colsPins[2] = { 4,5 };
 #define STAIRCASE_LIGHT_NODE_ID 2
 #define STAIRCASE_LIGHT_RELAY_ID 1
 
-#define BALCONYLIGHT_WITH_PIR_NODE_ID 1
-#define GATELIGHT_WITH_PIR_NODE_ID 3
+#define BALCONYLIGHT_NODE_ID 1
+#define GATELIGHT_NODE_ID 3
 #endif
 
 #if defined SUMP_MOTOR_NODE
