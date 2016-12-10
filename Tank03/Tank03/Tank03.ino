@@ -19,7 +19,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Tank 03"
-#define APPLICATION_VERSION "20Nov2016"
+#define APPLICATION_VERSION "11Dec2016"
 
 AlarmId heartbeatTimer;
 AlarmId waterLowLevelRequestTimer;
@@ -206,10 +206,14 @@ void getWaterLevel()
 	else
 		send(highLevelTankMessage.set(RELAY_OFF));
 
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+
 	if (sensorArray[waterLowLevelIndex] == HIGH)
 		send(lowLevelTankMessage.set(RELAY_ON));
 	else
 		send(lowLevelTankMessage.set(RELAY_OFF));
+
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 
 	prevWaterLevelValue = currWaterLevelValue;
 
