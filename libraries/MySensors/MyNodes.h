@@ -261,8 +261,6 @@ byte binToDecArray[MAX_SENSORS] = { 1,2,4,8,16,32 };
 //Underground Tank
 #if defined UNDERGROUND_TANK_NODE
 #define UNDERGROUND_NODE_ID 8
-#define SUMP_RELAY_NODE_ID 5
-#define SUMP_RELAY_ID 1
 
 #define SENSOR_1 0
 #define SENSOR_2 1
