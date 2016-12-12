@@ -51,6 +51,18 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 #endif
 
+// Overhead Tank 02
+#if defined TANK_02_NODE
+#define TANK_02_NODE_ID 7
+
+#define WATER_TANK_NODE
+#define SUMP_MOTOR_NODE
+#define NODE_INTERACTS_WITH_RELAY
+#define NODE_INTERACTS_WITH_LCD
+#define NODE_WITH_ON_OFF_FEATURE
+
+#endif
+
 #if defined NODE_HAS_RELAY
 #define RELAY_ON 1
 #define RELAY_OFF 0
@@ -188,11 +200,12 @@ byte colsPins[2] = { 4,5 };
 #endif
 
 #if defined SUMP_MOTOR_NODE
-#define SUMP_RELAY_NODE_ID 4
+#define SUMP_RELAY_NODE_ID 9
+#define WATER_RELAY_NODE_ID 11
+
 #define SUMP_RELAY_ID 1
 #define SUMP_RELAY_PIN 7
-#define CURR_WATER_LEVEL_ID 1
-#define WATER_RELAY_NODE_ID 14
+
 #endif
 
 #if defined BOREWELL_NODE
@@ -264,15 +277,6 @@ byte sensorPinArray[MAX_SENSORS] = { SENSOR_1_PIN,
 
 byte sensorArray[MAX_SENSORS] = { 0,0,0,0,0,0 };
 byte binToDecArray[MAX_SENSORS] = { 1,2,4,8,16,32 };
-#endif
-
-
-
-// Overhead Tank 02
-#if defined TANK_02_NODE
-#define OVERHEAD_TANK_02_NODE_ID 7
-#define SUMP_RELAY_NODE_ID 4
-#define SUMP_RELAY_ID 1
 #endif
 
 //Underground Tank

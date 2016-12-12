@@ -3,16 +3,11 @@
 #include <Time.h>
 #include <SPI.h>
 
-#define WATER_TANK_NODE
-#define OVERHEAD_TANK_02_NODE
-#define SUMP_MOTOR_NODE
-#define NODE_INTERACTS_WITH_RELAY
-#define NODE_INTERACTS_WITH_LCD
-#define NODE_WITH_ON_OFF_FEATURE
+#define TANK_02_NODE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID OVERHEAD_TANK_02_NODE_ID
+#define MY_NODE_ID TANK_02_NODE_ID
 #define MY_DEBUG
 
 #include <MyNodes.h>
@@ -20,7 +15,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Tank 02"
-#define APPLICATION_VERSION "11Dec2016"
+#define APPLICATION_VERSION "12Dec2016"
 
 AlarmId heartbeatTimer;
 AlarmId waterLowLevelRequestTimer;
@@ -74,10 +69,9 @@ void setup()
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 
-	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
 	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
-
+	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
 void presentation()
@@ -180,16 +174,16 @@ void getWaterLevel()
 	}
 
 	if (sensorArray[waterOverFlowLevelIndex] == LOW)
-		send(highLevelTankMessage.set(RELAY_ON));
+		send(highLevelTankMessage.set(TURN_ON));
 	else
-		send(highLevelTankMessage.set(RELAY_OFF));
+		send(highLevelTankMessage.set(TURN_OFF));
 	
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 
 	if (sensorArray[waterLowLevelIndex] == HIGH)
-		send(lowLevelTankMessage.set(RELAY_ON));
+		send(lowLevelTankMessage.set(TURN_ON));
 	else
-		send(lowLevelTankMessage.set(RELAY_OFF));
+		send(lowLevelTankMessage.set(TURN_OFF));
 
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 
