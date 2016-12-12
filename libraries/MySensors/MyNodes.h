@@ -53,57 +53,6 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define TURN_OFF 0
 #endif
 
-#if defined NODE_HAS_ULTRASONIC_SENSOR
-#define ECHO_PIN 5
-#define TRIGGER_PIN 6
-#define MAX_DISTANCE 300
-
-#define OVERHEAD_TANK_02_NODE_ID 8
-#define WATER_LEVEL_SENSOR_ID 1
-
-#endif
-
-#if defined MOTION_SENSOR_WITH_LIGHT
-#define MOTION_SENSOR_PIN 3
-#define INTERRUPT_MOTION 1 // MOTION_SENSOR_PIN - 2
-#define LIGHT_RELAY_PIN 7
-
-#define MOTION_SENSOR_ID 1
-#define LIGHT_RELAY_ID 2
-#define CURR_MODE_ID 3
-#define LIGHT_DURATION_ID 4
-
-#define STANDBY_MODE 0
-#define DUSKLIGHT_MODE 1
-#define SENSOR_MODE 2
-#define ADHOC_MODE 3
-
-#define MOTION_DETECTED 1
-#define NO_MOTION_DETECTED 0
-
-#define BALCONYLIGHT_WITH_PIR_NODE_ID 1
-#define GATELIGHT_WITH_PIR_NODE_ID 3
-
-#endif
-
-#if defined LIGHT_NODE
-
-#define BALCONYLIGHT_NODE_ID 3
-#define STAIRCASE_LIGHT_NODE_ID 4
-#define GATELIGHT_NODE_ID 5
-
-#define LIGHT_RELAY_ID 1
-#define CURR_MODE_ID 2
-#define LIGHT_DURATION_ID 3
-
-#define STANDBY_MODE 0
-#define DUSKLIGHT_MODE 1
-#define ADHOC_MODE 2
-
-#define LIGHT_RELAY_PIN 7
-
-#endif
-
 #if defined NODE_INTERACTS_WITH_LCD
 #define LCD_NODE_ID 9
 #endif
@@ -117,17 +66,6 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 char keys[1][2] = { ON,OFF };
 byte rowsPins[1] = { 6 };
 byte colsPins[2] = { 4,5 };
-
-#endif
-
-#if defined LCD_NODE
-#define LCD_NODE_ID 9
-#define PH3_NODE_ID 10
-#define PH1_NODE_ID 11
-#define BATT_VOLTAGE_NODE_ID 13
-
-#define BATTERY_VOLTAGE_ID 1
-#define SOLAR_VOLTAGE_ID 2
 
 #endif
 
@@ -167,13 +105,73 @@ byte colsPins[2] = { 4,5 };
 
 #endif
 
-#if defined STAIRCASE_NODE
+#if defined NODE_HAS_ULTRASONIC_SENSOR
+#define ECHO_PIN 5
+#define TRIGGER_PIN 6
+#define MAX_DISTANCE 300
 
-#define STAIRCASE_LIGHT_NODE_ID 2
-#define STAIRCASE_LIGHT_RELAY_ID 1
+#define OVERHEAD_TANK_02_NODE_ID 8
+#define WATER_LEVEL_SENSOR_ID 1
 
-#define BALCONYLIGHT_NODE_ID 1
-#define GATELIGHT_NODE_ID 3
+#endif
+
+#if defined MOTION_SENSOR_WITH_LIGHT
+#define MOTION_SENSOR_PIN 3
+#define INTERRUPT_MOTION 1 // MOTION_SENSOR_PIN - 2
+#define LIGHT_RELAY_PIN 7
+
+#define MOTION_SENSOR_ID 1
+#define LIGHT_RELAY_ID 2
+#define CURR_MODE_ID 3
+#define LIGHT_DURATION_ID 4
+
+#define STANDBY_MODE 0
+#define DUSKLIGHT_MODE 1
+#define SENSOR_MODE 2
+#define ADHOC_MODE 3
+
+#define MOTION_DETECTED 1
+#define NO_MOTION_DETECTED 0
+
+#define BALCONYLIGHT_WITH_PIR_NODE_ID 1
+#define GATELIGHT_WITH_PIR_NODE_ID 3
+
+#endif
+
+#if defined LCD_NODE
+
+#define LCD_NODE_ID 1
+#define PH3_NODE_ID 14
+#define PH1_NODE_ID 15
+#define BATT_VOLTAGE_NODE_ID 12
+
+#define BATTERY_VOLTAGE_ID 1
+#define SOLAR_VOLTAGE_ID 2
+
+#define WATER_TANK_NODE_IDS
+
+#endif
+
+#if defined REMOTE_CONTROLLER_NODE
+#define REMOTE_CONTROLLER_NODE_ID 2
+#endif
+
+#if defined LIGHT_NODE
+
+#define BALCONYLIGHT_NODE_ID 3
+#define STAIRCASE_LIGHT_NODE_ID 4
+#define GATELIGHT_NODE_ID 5
+
+#define LIGHT_RELAY_ID 1
+#define CURR_MODE_ID 2
+#define LIGHT_DURATION_ID 3
+
+#define STANDBY_MODE 0
+#define DUSKLIGHT_MODE 1
+#define ADHOC_MODE 2
+
+#define LIGHT_RELAY_PIN 7
+
 #endif
 
 #if defined SUMP_MOTOR_NODE
@@ -204,10 +202,12 @@ byte colsPins[2] = { 4,5 };
 #define SUMP_RELAY_ID 1
 
 #endif
+
 # if defined WATER_TANK_NODE_IDS
-#define OVERHEAD_TANK_01_NODE_ID 6
-#define OVERHEAD_TANK_02_NODE_ID 7
-#define UNDERGROUND_NODE_ID 8
+#define TANK_01_NODE_ID 6
+#define TANK_02_NODE_ID 8
+#define TANK_03_NODE_ID 10
+
 #define MOTOR_STATUS_PIN 3
 #endif
 
@@ -254,22 +254,22 @@ byte binToDecArray[MAX_SENSORS] = { 1,2,4,8,16,32 };
 #endif
 
 // Overhead Tank 01
-#if defined OVERHEAD_TANK_01_NODE
+#if defined TANK_01_NODE
 #define OVERHEAD_TANK_01_NODE_ID 6
 #define DRY_RUN_POLL_DURATION 900
 
 #endif
 
 // Overhead Tank 02
-#if defined OVERHEAD_TANK_02_NODE
+#if defined TANK_02_NODE
 #define OVERHEAD_TANK_02_NODE_ID 7
 #define SUMP_RELAY_NODE_ID 4
 #define SUMP_RELAY_ID 1
 #endif
 
 //Underground Tank
-#if defined UNDERGROUND_TANK_NODE
-#define UNDERGROUND_NODE_ID 8
+#if defined TANK_03_NODE
+#define TANK03_NODE_ID 8
 
 #define SENSOR_1 0
 #define SENSOR_2 1

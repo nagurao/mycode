@@ -3,9 +3,9 @@
 #include <TimeLib.h>
 #include <Time.h>
 #include <SPI.h>
+
 #define LCD_NODE
 #define NODE_WITH_ON_OFF_FEATURE
-#define WATER_TANK_NODE_IDS
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -17,7 +17,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "LCD Node"
-#define APPLICATION_VERSION "12Nov2016"
+#define APPLICATION_VERSION "12Dec2016"
 
 #define LCD_I2C_ADDR 0x27
 #define LCD_ROWS 4
@@ -71,11 +71,11 @@ void before()
 
 void setup()
 {
-	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	lcdBackLightFlag = true;
 	lcdBackLightFlagRequestCount = 0;
 	lcdBackLightFlagReceived = false;
 	sendBackLightFlagRequest = true;
+	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
 void presentation()
@@ -93,7 +93,7 @@ void loop()
 		backlightTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkBackLightFlagRequestStatus);
 		lcdBackLightFlagRequestCount++;
 		if (lcdBackLightFlagRequestCount == 10)
-			send(lcdBackLightFlagMessage.set(ON));
+			send(lcdBackLightFlagMessage.set(TURN_ON));
 	}
 	Alarm.delay(1);
 }
@@ -178,15 +178,15 @@ void receive(const MyMessage &message)
 		ftoa(currWaterLevel, dispWaterLevel, 3, 0);
 		switch(message.sender)
 		{
-			case OVERHEAD_TANK_01_NODE_ID:
+			case TANK_01_NODE_ID:
 				column = 6;
 				row = ROW_1;
 				break;
-			case OVERHEAD_TANK_02_NODE_ID:
+			case TANK_02_NODE_ID:
 				column = 6;
 				row = ROW_2;
 				break;
-			case UNDERGROUND_NODE_ID:
+			case TANK_03_NODE_ID:
 				column = 6;
 				row = ROW_3;
 				break;
