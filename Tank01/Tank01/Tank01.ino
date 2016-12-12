@@ -3,16 +3,11 @@
 #include <Time.h>
 #include <SPI.h>
 
-#define WATER_TANK_NODE
-#define OVERHEAD_TANK_01_NODE
-#define BOREWELL_NODE
-#define NODE_INTERACTS_WITH_RELAY
-#define NODE_INTERACTS_WITH_LCD
-#define NODE_WITH_ON_OFF_FEATURE
+#define TANK_01_NODE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID OVERHEAD_TANK_01_NODE_ID
+#define MY_NODE_ID TANK_01_NODE_ID
 #define MY_DEBUG
 
 #include <MyNodes.h>
@@ -20,7 +15,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Tank 01"
-#define APPLICATION_VERSION "11Dec2016"
+#define APPLICATION_VERSION "12Dec2016"
 
 AlarmId heartbeatTimer;
 AlarmId waterLowLevelRequestTimer;

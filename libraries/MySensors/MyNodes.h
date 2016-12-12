@@ -38,6 +38,19 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define THINGSPEAK_NODE_ID 254
 #define WIFI_NODEMCU_ID 1
 
+// Overhead Tank 01
+#if defined TANK_01_NODE
+#define TANK_01_NODE_ID 6
+#define DRY_RUN_POLL_DURATION 900
+
+#define BOREWELL_NODE
+#define WATER_TANK_NODE
+#define NODE_INTERACTS_WITH_RELAY
+#define NODE_INTERACTS_WITH_LCD
+#define NODE_WITH_ON_OFF_FEATURE
+
+#endif
+
 #if defined NODE_HAS_RELAY
 #define RELAY_ON 1
 #define RELAY_OFF 0
@@ -54,7 +67,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #endif
 
 #if defined NODE_INTERACTS_WITH_LCD
-#define LCD_NODE_ID 9
+#define LCD_NODE_ID 1
 #endif
 
 #if defined KEYPAD_1R_2C
@@ -183,7 +196,7 @@ byte colsPins[2] = { 4,5 };
 #endif
 
 #if defined BOREWELL_NODE
-#define BOREWELL_RELAY_NODE_ID 5
+#define BOREWELL_RELAY_NODE_ID 7
 #define BOREWELL_MOTOR_ID 1
 #define BORE_ON_RELAY_ID 2
 #define BORE_OFF_RELAY_ID 3
@@ -220,7 +233,7 @@ byte colsPins[2] = { 4,5 };
 #define MAX_SENSORS 6
 #define RISING_LEVEL_POLL_DURATION 30
 #define DEFAULT_LEVEL_POLL_DURATION 300
-#define FALLING_LEVEL_POLL_DURATION 600
+
 #define SENSOR_1_PIN 2
 #define SENSOR_2_PIN 3
 #define SENSOR_3_PIN 4
@@ -253,12 +266,7 @@ byte sensorArray[MAX_SENSORS] = { 0,0,0,0,0,0 };
 byte binToDecArray[MAX_SENSORS] = { 1,2,4,8,16,32 };
 #endif
 
-// Overhead Tank 01
-#if defined TANK_01_NODE
-#define OVERHEAD_TANK_01_NODE_ID 6
-#define DRY_RUN_POLL_DURATION 900
 
-#endif
 
 // Overhead Tank 02
 #if defined TANK_02_NODE

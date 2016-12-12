@@ -5,7 +5,6 @@
 
 #define LIGHT_NODE
 #define NODE_HAS_RELAY
-#define STAIRCASE_NODE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -16,9 +15,9 @@
 #include <MySensors.h>
 #include <MyConfig.h>
 
-#define APPLICATION_NAME "Gate Light"
-#define APPLICATION_VERSION "28Nov2016"
-#define SENSOR_POLL_TIME 120
+#define APPLICATION_NAME "Gate Lights"
+#define APPLICATION_VERSION "12Dec2016"
+
 #define DEFAULT_CURR_MODE 0
 #define DEFAULT_LIGHT_ON_DURATION 60
 
@@ -37,7 +36,7 @@ AlarmId lightOnDurationTimer;
 AlarmId heartbeatTimer;
 
 MyMessage lightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
-MyMessage staircaseLightRelayMessage(STAIRCASE_LIGHT_RELAY_ID, V_STATUS);
+MyMessage staircaseLightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 
 void before()
@@ -54,7 +53,7 @@ void setup()
 	sendlightOnDurationRequest = true;
 	staircaseLightRelayMessage.setDestination(STAIRCASE_LIGHT_NODE_ID);
 	staircaseLightRelayMessage.setType(V_STATUS);
-	staircaseLightRelayMessage.setSensor(STAIRCASE_LIGHT_RELAY_ID);
+	staircaseLightRelayMessage.setSensor(LIGHT_RELAY_ID);
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
@@ -143,6 +142,8 @@ void receive(const MyMessage &message)
 					digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 					send(lightRelayMessage.set(RELAY_OFF));
 					Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+					send(staircaseLightRelayMessage.set(RELAY_OFF));
+					Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 					send(thingspeakMessage.set(RELAY_OFF));
 					Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 				}
@@ -152,6 +153,8 @@ void receive(const MyMessage &message)
 					send(lightRelayMessage.set(RELAY_ON));
 					Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 					send(staircaseLightRelayMessage.set(RELAY_ON));
+					Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+					send(thingspeakMessage.set(RELAY_ON));
 					Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 				}
 				currMode = message.getInt();
