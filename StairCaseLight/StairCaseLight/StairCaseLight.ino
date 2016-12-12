@@ -3,7 +3,7 @@
 #include <SPI.h>
 
 #define NODE_HAS_RELAY
-#define STAIRCASE_NODE
+#define LIGHT_NODE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -15,15 +15,13 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Staircase Light"
-#define APPLICATION_VERSION "27Nov2016"
-
-#define LIGHT_RELAY_PIN 7
-#define LIGHT_RELAY_ID 1
-#define BALCONY_LIGHT_RELAY_ID 2
+#define APPLICATION_VERSION "12Dec2016"
 
 boolean lightStatusReceived;
 boolean sendLightStatusRequest;
+
 byte lightStatusRequstCount;
+
 AlarmId lightStatusTimer;
 AlarmId heartbeatTimer;
 
@@ -41,10 +39,11 @@ void setup()
 	lightStatusReceived = false;
 	sendLightStatusRequest = true;
 	lightStatusRequstCount = 0;
-	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
+	
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
+	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
 void presentation()
@@ -63,7 +62,7 @@ void loop()
 	if (sendLightStatusRequest)
 	{
 		sendLightStatusRequest = false;
-		request(BALCONY_LIGHT_RELAY_ID, V_STATUS, BALCONYLIGHT_WITH_PIR_NODE_ID);
+		request(LIGHT_RELAY_ID, V_STATUS, BALCONYLIGHT_NODE_ID);
 		lightStatusTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkLightStatusRequest);
 		lightStatusRequstCount++;
 		if (lightStatusRequstCount == 10)

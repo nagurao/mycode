@@ -87,7 +87,10 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #endif
 
 #if defined LIGHT_NODE
-#define LIGHT_RELAY_PIN 7
+
+#define BALCONYLIGHT_NODE_ID 3
+#define STAIRCASE_LIGHT_NODE_ID 4
+#define GATELIGHT_NODE_ID 5
 
 #define LIGHT_RELAY_ID 1
 #define CURR_MODE_ID 2
@@ -97,9 +100,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define DUSKLIGHT_MODE 1
 #define ADHOC_MODE 2
 
-#define BALCONYLIGHT_NODE_ID 1
-#define STAIRCASE_LIGHT_NODE_ID 2
-#define GATELIGHT_NODE_ID 3
+#define LIGHT_RELAY_PIN 7
 
 #endif
 
