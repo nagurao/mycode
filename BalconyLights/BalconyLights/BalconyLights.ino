@@ -5,7 +5,6 @@
 
 #define NODE_HAS_RELAY
 #define LIGHT_NODE
-#define STAIRCASE_NODE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -17,7 +16,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Balcony Light"
-#define APPLICATION_VERSION "28Nov2016"
+#define APPLICATION_VERSION "12Dec2016"
 #define DEFAULT_CURR_MODE 0
 #define DEFAULT_LIGHT_ON_DURATION 60
 
@@ -27,16 +26,17 @@ byte lightOnDurationRequestCount;
 
 boolean currModeReceived;
 boolean lightOnDurationReceived;
-int lightOnDuration;
 boolean sendCurrModeRequest;
 boolean sendlightOnDurationRequest;
+
+int lightOnDuration;
 
 AlarmId currModeTimer;
 AlarmId lightOnDurationTimer;
 AlarmId heartbeatTimer;
 
 MyMessage lightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
-MyMessage staircaseLightRelayMessage(STAIRCASE_LIGHT_RELAY_ID, V_STATUS);
+MyMessage staircaseLightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID,V_CUSTOM);
 
 void before()
@@ -53,7 +53,7 @@ void setup()
 	sendlightOnDurationRequest = true;
 	staircaseLightRelayMessage.setDestination(STAIRCASE_LIGHT_NODE_ID);
 	staircaseLightRelayMessage.setType(V_STATUS);
-	staircaseLightRelayMessage.setSensor(STAIRCASE_LIGHT_RELAY_ID);
+	staircaseLightRelayMessage.setSensor(LIGHT_RELAY_ID);
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);

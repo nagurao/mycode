@@ -14,25 +14,29 @@
 #define REQUEST_INTERVAL 20
 #define HEARTBEAT_INTERVAL 600
 /*
-The following are the Nod Ids assigned, populated here as comments for easy reference.
+The following are the Node Ids assigned, populated here as comments for easy reference.
 0 - Gateway
-1 - Balcony Lights
-2 - Staircase Lights
-3 - Gate Lights
-4 - Sump Motor
-5 - Borewell Motor
-6 - Overhead Tank 01
-7 - Overhead Tank 02
-8 - Underground Tank
-9 - LCD Node
-10 - 3-Phase Meter
-11 - 1-Phase Meter
-12 - Solar Voltage
-13 - Battery Voltage
-14 - Balcony Repeater Node
-15 - DB Repeater Node
+1 - LCD Node
+2 - Controller
+3 - Balcony Lights
+4 - Staircase Lights
+5 - Gate Lights
+6 - Tank 01
+7 - Borewell Motor
+8 - Tank 02
+9 - Sump Motor
+10 - Tank 03
+11 - Water Motor
+12 - Battery Voltage
+13 - Solar Voltage
+14 - 3Phase Wattmeter
+15 - 1Phase Wattmeter
 254 - Wifi Node
 */
+
+// NodeMCU Wifi Node details
+#define THINGSPEAK_NODE_ID 254
+#define WIFI_NODEMCU_ID 1
 
 #if defined NODE_HAS_RELAY
 #define RELAY_ON 1
@@ -45,8 +49,8 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #endif
 
 #if defined NODE_WITH_ON_OFF_FEATURE
-#define ON 1
-#define OFF 0
+#define TURN_ON 1
+#define TURN_OFF 0
 #endif
 
 #if defined NODE_HAS_ULTRASONIC_SENSOR
@@ -92,6 +96,10 @@ The following are the Nod Ids assigned, populated here as comments for easy refe
 #define STANDBY_MODE 0
 #define DUSKLIGHT_MODE 1
 #define ADHOC_MODE 2
+
+#define BALCONYLIGHT_NODE_ID 1
+#define STAIRCASE_LIGHT_NODE_ID 2
+#define GATELIGHT_NODE_ID 3
 
 #endif
 
@@ -330,10 +338,6 @@ void LOG(char *logmessage)
 }
 
 #endif
-
-// NodeMCU Wifi Node details
-#define THINGSPEAK_NODE_ID 254
-#define WIFI_NODEMCU_ID 1
 
 /*
 #define WATER_SENSOR_ID 1
