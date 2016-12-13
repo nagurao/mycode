@@ -15,7 +15,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Staircase Light"
-#define APPLICATION_VERSION "12Dec2016"
+#define APPLICATION_VERSION "13Dec2016"
 
 boolean lightStatusReceived;
 boolean sendLightStatusRequest;
@@ -77,8 +77,9 @@ void loop()
 
 void receive(const MyMessage &message)
 {
-	if (message.type == V_STATUS)
+	switch (message.type)
 	{
+	case V_STATUS:
 		if (message.getInt())
 		{
 			digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
@@ -101,6 +102,7 @@ void receive(const MyMessage &message)
 			Alarm.free(lightStatusTimer);
 			sendLightStatusRequest = false;
 		}
+		break;
 	}
 }
 
