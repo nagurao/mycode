@@ -118,8 +118,8 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 #define LCD_NODE_ID 11
 #define BATT_VOLTAGE_NODE_ID 12
-#define PH3_NODE_ID 15
-#define PH1_NODE_ID 16
+#define PH3_NODE_ID 16
+#define PH1_NODE_ID 17
 #define BATTERY_VOLTAGE_ID 1
 #define SOLAR_VOLTAGE_ID 2
 
@@ -192,8 +192,8 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define SUMP_MOTOR_NODE_ID 8
 #define BATT_VOLTAGE_NODE_ID 12
 #define SOLAR_VOLTAGE_NODE_ID 13
-#define PH3_NODE_ID 15
-#define PH1_NODE_ID 16
+#define PH3_NODE_ID 16
+#define PH1_NODE_ID 17
 
 char ssid[] = "NAGU";          //  your network SSID (name) 
 char pass[] = "4ever.Nagu";   // your network password
