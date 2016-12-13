@@ -15,12 +15,13 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Tank 01"
-#define APPLICATION_VERSION "12Dec2016"
+#define APPLICATION_VERSION "13Dec2016"
 
 AlarmId heartbeatTimer;
 AlarmId waterLowLevelRequestTimer;
 AlarmId waterLevelRisingTimer;
 AlarmId waterDefaultLevelTimer;
+AlarmId hourlyTimer;
 
 int prevWaterLevelValue;
 int currWaterLevelValue;
@@ -32,6 +33,7 @@ byte waterLowLevelInPercent;
 byte waterLowLevelRequestCount;
 boolean waterLowLevelReceived;
 boolean sendWaterLowLevelRequest;
+boolean isHourlyUpdate;
 
 MyMessage waterLevelMessage(CURR_WATER_LEVEL_ID,V_VOLUME);
 MyMessage lcdWaterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
@@ -58,23 +60,25 @@ void setup()
 	waterLowLevelIndex = 0;
 	waterLowLevelInPercent = 0;
 	waterLowLevelRequestCount = 0;
+	isHourlyUpdate = false;
 	waterLowLevelReceived = false;
 	sendWaterLowLevelRequest = true;
 	lcdWaterLevelMessage.setDestination(LCD_NODE_ID);
 	lcdWaterLevelMessage.setSensor(CURR_WATER_LEVEL_ID);
 
-	lowLevelTankMessage.setDestination(BOREWELL_RELAY_NODE_ID);
-	highLevelTankMessage.setDestination(BOREWELL_RELAY_NODE_ID);
-	waterLevelTankMessage.setDestination(BOREWELL_RELAY_NODE_ID);
+	lowLevelTankMessage.setDestination(BOREWELL_NODE_ID);
+	highLevelTankMessage.setDestination(BOREWELL_NODE_ID);
+	waterLevelTankMessage.setDestination(BOREWELL_NODE_ID);
 
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 
-	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
 	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
 	Alarm.disable(waterLevelRisingTimer);
+	hourlyTimer = Alarm.timerRepeat(ONE_HOUR, hourlyUpdate);
+	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
 void presentation()
@@ -196,7 +200,7 @@ void getWaterLevel()
 
 void sendWaterLevel(int waterLevel)
 {
-	if (waterLevel != prevWaterLevelValue)
+	if ((waterLevel != prevWaterLevelValue) || isHourlyUpdate)
 	{
 		send(waterLevelMessage.set(waterLevel));
 		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
@@ -213,4 +217,11 @@ void checkWaterLowLevelRequestStatus()
 {
 	if (!waterLowLevelReceived)
 		sendWaterLowLevelRequest = true;
+}
+
+void hourlyUpdate()
+{
+	isHourlyUpdate = true;
+	getWaterLevel();
+	isHourlyUpdate = false;
 }
