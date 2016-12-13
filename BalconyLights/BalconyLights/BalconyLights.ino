@@ -3,8 +3,8 @@
 #include <Time.h>
 #include <SPI.h>
 
-#define NODE_HAS_RELAY
 #define LIGHT_NODE
+#define NODE_HAS_RELAY
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -16,7 +16,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Balcony Light"
-#define APPLICATION_VERSION "12Dec2016"
+#define APPLICATION_VERSION "13Dec2016"
 #define DEFAULT_CURR_MODE 0
 #define DEFAULT_LIGHT_ON_DURATION 60
 
@@ -142,29 +142,6 @@ void receive(const MyMessage &message)
 				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 				currMode = message.getInt();
 				break;
-			case ADHOC_MODE:
-				if (digitalRead(LIGHT_RELAY_PIN))
-				{
-					digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
-					send(lightRelayMessage.set(RELAY_OFF));
-					Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-					send(thingspeakMessage.set(RELAY_OFF));
-					Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-					send(staircaseLightRelayMessage.set(RELAY_OFF));
-					Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-				}
-				else
-				{
-					digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
-					send(lightRelayMessage.set(RELAY_ON));
-					Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-					send(thingspeakMessage.set(RELAY_ON));
-					Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-					send(staircaseLightRelayMessage.set(RELAY_ON));
-					Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-				}
-				currMode = message.getInt();
-				break;
 			}
 			MyMessage currModeMessage(CURR_MODE_ID, V_VAR1);
 			send(currModeMessage.set(message.getInt()));
@@ -205,6 +182,31 @@ void receive(const MyMessage &message)
 			Alarm.free(lightOnDurationTimer);
 			sendlightOnDurationRequest = false;
 			request(LIGHT_DURATION_ID, V_VAR2);
+		}
+		break;
+	case V_VAR3:
+		if (currMode == STANDBY_MODE)
+		{
+			if (message.getInt())
+			{
+				digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
+				send(lightRelayMessage.set(RELAY_ON));
+				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				send(thingspeakMessage.set(RELAY_ON));
+				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				send(staircaseLightRelayMessage.set(RELAY_ON));
+				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+			}
+			else
+			{
+				digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
+				send(lightRelayMessage.set(RELAY_OFF));
+				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				send(thingspeakMessage.set(RELAY_OFF));
+				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				send(staircaseLightRelayMessage.set(RELAY_OFF));
+				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+			}
 		}
 		break;
 	case V_STATUS:

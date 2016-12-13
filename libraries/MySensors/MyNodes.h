@@ -16,21 +16,22 @@
 /*
 The following are the Node Ids assigned, populated here as comments for easy reference.
 0 - Gateway
-1 - LCD Node
-2 - Controller
-3 - Balcony Lights
-4 - Staircase Lights
-5 - Gate Lights
-6 - Tank 01
+1 - Balcony Lights
+2 - Staircase Lights
+3 - Gate Lights
+4 - Tank 01
+5 - Tank 02
+6 - Tank 03
 7 - Borewell Motor
-8 - Tank 02
-9 - Sump Motor
-10 - Tank 03
-11 - Water Motor
+8 - Sump Motor
+9 - Sump Tank Motor
+10 - Balcony Repeater 
+11 - LCD
 12 - Battery Voltage
 13 - Solar Voltage
-14 - 3Phase Wattmeter
-15 - 1Phase Wattmeter
+14 - Controller
+15 - 3Phase Wattmeter
+16 - 1Phase Wattmeter
 254 - Wifi Node
 */
 
@@ -38,9 +39,26 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define THINGSPEAK_NODE_ID 254
 #define WIFI_NODEMCU_ID 1
 
+#if defined LIGHT_NODE
+
+#define BALCONYLIGHT_NODE_ID 1
+#define STAIRCASE_LIGHT_NODE_ID 2
+#define GATELIGHT_NODE_ID 3
+
+#define LIGHT_RELAY_ID 1
+#define CURR_MODE_ID 2
+#define LIGHT_DURATION_ID 3
+
+#define STANDBY_MODE 0
+#define DUSKLIGHT_MODE 1
+
+#define LIGHT_RELAY_PIN 7
+
+#endif
+
 // Overhead Tank 01
 #if defined TANK_01_NODE
-#define TANK_01_NODE_ID 6
+#define TANK_01_NODE_ID 4
 #define DRY_RUN_POLL_DURATION 900
 
 #define BOREWELL_NODE
@@ -53,7 +71,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 // Overhead Tank 02
 #if defined TANK_02_NODE
-#define TANK_02_NODE_ID 7
+#define TANK_02_NODE_ID 5
 
 #define WATER_TANK_NODE
 #define SUMP_MOTOR_NODE
@@ -63,41 +81,74 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 #endif
 
-#if defined NODE_HAS_RELAY
-#define RELAY_ON 1
-#define RELAY_OFF 0
+//Underground Tank
+#if defined TANK_03_NODE
+#define TANK03_NODE_ID 6
+#define WATER_TANK_NODE
 #endif
 
-#if defined NODE_INTERACTS_WITH_RELAY
-#define RELAY_ON 1
-#define RELAY_OFF 0
+#if defined BOREWELL_NODE
+#define BOREWELL_NODE_ID 7
+#define BOREWELL_MOTOR_STATUS_ID 1
+#define BORE_ON_RELAY_ID 2
+#define BORE_OFF_RELAY_ID 3
+#define RELAY_TRIGGER_INTERVAL 3
+
+#define MOTOR_STATUS_PIN 3
+#define BORE_ON_RELAY_PIN 7
+#define BORE_OFF_RELAY_PIN 8
 #endif
 
-#if defined NODE_WITH_ON_OFF_FEATURE
-#define TURN_ON 1
-#define TURN_OFF 0
+#if defined SUMP_RELATED_NODE
+#define SUMP_MOTOR_NODE_ID 8
+#define WATER_MOTOR_NODE_ID 9
+
+#define RELAY_ID 1
+#define RELAY_PIN 7
+
+#define MOTOR_STATUS_PIN 3
 #endif
 
-#if defined NODE_INTERACTS_WITH_LCD
-#define LCD_NODE_ID 1
+#if defined REPEATER_NODE
+#define BALCONY_REPEATER_NODE_ID 10
+#define DB_REPEATER_NODE_ID 15
 #endif
 
-#if defined KEYPAD_1R_2C
-#define ROWS 1
-#define COLS 2
-#define ON '1'
-#define OFF '2'
+#if defined LCD_NODE
 
-char keys[1][2] = { ON,OFF };
-byte rowsPins[1] = { 6 };
-byte colsPins[2] = { 4,5 };
+#define LCD_NODE_ID 11
+#define BATT_VOLTAGE_NODE_ID 12
+#define PH3_NODE_ID 15
+#define PH1_NODE_ID 16
+#define BATTERY_VOLTAGE_ID 1
+#define SOLAR_VOLTAGE_ID 2
 
+#define WATER_TANK_NODE_IDS
+
+#endif
+
+#if defined SOLAR_BATT_VOLTAGE_NODE
+#define BATT_VOLTAGE_NODE_ID 12
+#define SOLAR_VOLTAGE_NODE_ID 13
+
+#define BATTERY_VOLTAGE_ID 1
+#define SOLAR_VOLTAGE_ID 2
+
+#define VOLTAGE_SENSE_PIN A0
+#define INPUT_VOLTAGE_PIN A1
+
+#define UP 1
+
+#endif
+
+#if defined REMOTE_CONTROLLER_NODE
+#define REMOTE_CONTROLLER_NODE_ID 14
 #endif
 
 #if defined WATT_METER_NODE
 
-#define PH3_NODE_ID 10
-#define PH1_NODE_ID 11
+#define PH3_NODE_ID 15
+#define PH1_NODE_ID 16
 
 #define ZERO_PULSE 0
 #define ACCUMULATION_FREQUENCY_SECS 5
@@ -130,111 +181,60 @@ byte colsPins[2] = { 4,5 };
 
 #endif
 
-#if defined NODE_HAS_ULTRASONIC_SENSOR
-#define ECHO_PIN 5
-#define TRIGGER_PIN 6
-#define MAX_DISTANCE 300
-
-#define OVERHEAD_TANK_02_NODE_ID 8
-#define WATER_LEVEL_SENSOR_ID 1
-
-#endif
-
-#if defined MOTION_SENSOR_WITH_LIGHT
-#define MOTION_SENSOR_PIN 3
-#define INTERRUPT_MOTION 1 // MOTION_SENSOR_PIN - 2
-#define LIGHT_RELAY_PIN 7
-
-#define MOTION_SENSOR_ID 1
-#define LIGHT_RELAY_ID 2
-#define CURR_MODE_ID 3
-#define LIGHT_DURATION_ID 4
-
-#define STANDBY_MODE 0
-#define DUSKLIGHT_MODE 1
-#define SENSOR_MODE 2
-#define ADHOC_MODE 3
-
-#define MOTION_DETECTED 1
-#define NO_MOTION_DETECTED 0
-
-#define BALCONYLIGHT_WITH_PIR_NODE_ID 1
-#define GATELIGHT_WITH_PIR_NODE_ID 3
-
-#endif
-
-#if defined LCD_NODE
-
-#define LCD_NODE_ID 1
-#define PH3_NODE_ID 14
-#define PH1_NODE_ID 15
+#if defined WIFI_NODE
+#define BALCONYLIGHT_NODE_ID 1
+#define STAIRCASE_LIGHT_NODE_ID 2
+#define GATELIGHT_NODE_ID 3
+#define TANK_01_NODE_ID 4
+#define TANK_02_NODE_ID 5
+#define TANK_03_NODE_ID 6
+#define BOREWELL_NODE_ID 7
+#define SUMP_MOTOR_NODE_ID 8
 #define BATT_VOLTAGE_NODE_ID 12
+#define SOLAR_VOLTAGE_NODE_ID 13
+#define PH3_NODE_ID 15
+#define PH1_NODE_ID 16
 
-#define BATTERY_VOLTAGE_ID 1
-#define SOLAR_VOLTAGE_ID 2
-
-#define WATER_TANK_NODE_IDS
-
-#endif
-
-#if defined REMOTE_CONTROLLER_NODE
-#define REMOTE_CONTROLLER_NODE_ID 2
-#endif
-
-#if defined LIGHT_NODE
-
-#define BALCONYLIGHT_NODE_ID 3
-#define STAIRCASE_LIGHT_NODE_ID 4
-#define GATELIGHT_NODE_ID 5
-
-#define LIGHT_RELAY_ID 1
-#define CURR_MODE_ID 2
-#define LIGHT_DURATION_ID 3
-
-#define STANDBY_MODE 0
-#define DUSKLIGHT_MODE 1
-#define ADHOC_MODE 2
-
-#define LIGHT_RELAY_PIN 7
+char ssid[] = "NAGU";          //  your network SSID (name) 
+char pass[] = "4ever.Nagu";   // your network password
 
 #endif
 
-#if defined SUMP_MOTOR_NODE
-#define SUMP_RELAY_NODE_ID 9
-#define WATER_RELAY_NODE_ID 11
-
-#define SUMP_RELAY_ID 1
-#define SUMP_RELAY_PIN 7
-
+#if defined NODE_HAS_RELAY
+#define RELAY_ON 1
+#define RELAY_OFF 0
 #endif
 
-#if defined BOREWELL_NODE
-#define BOREWELL_RELAY_NODE_ID 7
-#define BOREWELL_MOTOR_ID 1
-#define BORE_ON_RELAY_ID 2
-#define BORE_OFF_RELAY_ID 3
-#define BORE_ON_RELAY_PIN 7
-#define BORE_OFF_RELAY_PIN 8
-#define RELAY_TRIGGER_INTERVAL 3
+#if defined NODE_INTERACTS_WITH_RELAY
+#define RELAY_ON 1
+#define RELAY_OFF 0
 #endif
 
-#if defined WATER_MOTOR_NODE
-#define WATER_RELAY_NODE_ID 14
-#define WATER_RELAY_ID 1
-#define  WATER_RELAY_PIN 7
-#define MOTOR_STATUS_PIN 3
+#if defined NODE_WITH_ON_OFF_FEATURE
+#define TURN_ON 1
+#define TURN_OFF 0
+#endif
 
-#define SUMP_RELAY_NODE_ID 4
-#define SUMP_RELAY_ID 1
+#if defined NODE_INTERACTS_WITH_LCD
+#define LCD_NODE_ID 10
+#endif
+
+#if defined KEYPAD_1R_2C
+#define ROWS 1
+#define COLS 2
+#define ON '1'
+#define OFF '2'
+
+char keys[1][2] = { ON,OFF };
+byte rowsPins[1] = { 6 };
+byte colsPins[2] = { 4,5 };
 
 #endif
 
 # if defined WATER_TANK_NODE_IDS
-#define TANK_01_NODE_ID 6
-#define TANK_02_NODE_ID 8
-#define TANK_03_NODE_ID 10
-
-#define MOTOR_STATUS_PIN 3
+#define TANK_01_NODE_ID 4
+#define TANK_02_NODE_ID 5
+#define TANK_03_NODE_ID 6
 #endif
 
 #if defined WATER_TANK_NODE
@@ -268,78 +268,45 @@ byte colsPins[2] = { 4,5 };
 #define NOT_LOW_LEVEL 0
 
 byte sensorPinArray[MAX_SENSORS] = { SENSOR_1_PIN,
-									 SENSOR_2_PIN,
-									 SENSOR_3_PIN,
-									 SENSOR_4_PIN,
-									 SENSOR_5_PIN,
-									 SENSOR_6_PIN 
-								   };
+SENSOR_2_PIN,
+SENSOR_3_PIN,
+SENSOR_4_PIN,
+SENSOR_5_PIN,
+SENSOR_6_PIN
+};
 
 byte sensorArray[MAX_SENSORS] = { 0,0,0,0,0,0 };
 byte binToDecArray[MAX_SENSORS] = { 1,2,4,8,16,32 };
 #endif
 
-//Underground Tank
-#if defined TANK_03_NODE
-#define TANK03_NODE_ID 8
-
-#define SENSOR_1 0
-#define SENSOR_2 1
-#define SENSOR_3 2
-#define SENSOR_4 3
-#define SENSOR_5 4
-
-#define LOW_LEVEL_SENSOR_ID 1
+#if defined NODE_HAS_ULTRASONIC_SENSOR
+#define ECHO_PIN 5
+#define TRIGGER_PIN 6
+#define MAX_DISTANCE 300
+#define WATER_LEVEL_SENSOR_ID 1
 
 #endif
 
+#if defined MOTION_SENSOR_WITH_LIGHT
+#define MOTION_SENSOR_PIN 3
+#define INTERRUPT_MOTION 1 // MOTION_SENSOR_PIN - 2
+#define LIGHT_RELAY_PIN 7
 
-#if defined PHASE3_METER
-#define PH3_NODE_ID 10
-#define PH1_NODE_ID 11
+#define MOTION_SENSOR_ID 1
+#define LIGHT_RELAY_ID 2
+#define CURR_MODE_ID 3
+#define LIGHT_DURATION_ID 4
 
+#define STANDBY_MODE 0
+#define DUSKLIGHT_MODE 1
+#define SENSOR_MODE 2
+#define ADHOC_MODE 3
 
-#endif
+#define MOTION_DETECTED 1
+#define NO_MOTION_DETECTED 0
 
-#if defined PHASE1_METER
-#define PH1_NODE_ID 11
-#endif
-
-#if defined SOLAR_BATT_VOLTAGE_NODE
-#define SOLAR_VOLTAGE_NODE_ID 12
-#define BATT_VOLTAGE_NODE_ID 13
-
-#define BATTERY_VOLTAGE_ID 1
-#define SOLAR_VOLTAGE_ID 2
-
-#define VOLTAGE_SENSE_PIN A0
-#define INPUT_VOLTAGE_PIN A1
-
-#define UP 1
-
-#endif
-
-#if defined REPEATER_NODE
-#define BALCONY_REPEATER_NODE_ID 14
-#define DB_REPEATER_NODE_ID 15
-#endif
-
-#if defined WIFI_NODE
-#define BALCONYLIGHT_WITH_PIR_NODE 1
-#define STAIRCASE_LIGHT_NODE 2
-#define GATELIGHT_WITH_PIR_NODE 3
-#define SUMP_RELAY_NODE_ID 4
-#define BOREWELL_RELAY_NODE_ID 5
-#define OVERHEAD_TANK_01_NODE_ID 6
-#define OVERHEAD_TANK_02_NODE_ID 7
-#define UNDERGROUND_NODE_ID 8
-#define PH3_NODE_ID 10
-#define PH1_NODE_ID 11
-#define SOLAR_VOLTAGE_NODE_ID 12
-#define BATT_VOLTAGE_NODE_ID 13
-
-char ssid[] = "NAGU";          //  your network SSID (name) 
-char pass[] = "4ever.Nagu";   // your network password
+#define BALCONYLIGHT_WITH_PIR_NODE_ID 1
+#define GATELIGHT_WITH_PIR_NODE_ID 3
 
 #endif
 
