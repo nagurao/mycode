@@ -3,15 +3,12 @@
 #include <Time.h>
 #include <SPI.h>
 
-#define WATER_TANK_NODE
-#define UNDERGROUND_TANK_NODE
-#define SUMP_MOTOR_NODE
-#define NODE_INTERACTS_WITH_RELAY
-#define NODE_INTERACTS_WITH_LCD
+
+#define TANK_03_NODE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID UNDERGROUND_NODE_ID
+#define MY_NODE_ID TANK03_NODE_ID
 #define MY_DEBUG
 
 #include <MyNodes.h>
@@ -19,12 +16,13 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Tank 03"
-#define APPLICATION_VERSION "11Dec2016"
+#define APPLICATION_VERSION "13Dec2016"
 
 AlarmId heartbeatTimer;
 AlarmId waterLowLevelRequestTimer;
 AlarmId waterLevelRisingTimer;
 AlarmId waterDefaultLevelTimer;
+AlarmId hourlyTimer;
 
 int prevWaterLevelValue;
 int currWaterLevelValue;
@@ -36,7 +34,7 @@ byte waterLowLevelInPercent;
 byte waterLowLevelRequestCount;
 boolean waterLowLevelReceived;
 boolean sendWaterLowLevelRequest;
-
+boolean isHourlyUpdate;
 boolean sumpMotorOn;
 boolean waterMotorOn;
 
@@ -68,21 +66,23 @@ void setup()
 	sendWaterLowLevelRequest = true;
 	sumpMotorOn = false;
 	waterMotorOn = false;
+	isHourlyUpdate = false;
 
 	lcdWaterLevelMessage.setDestination(LCD_NODE_ID);
 	lcdWaterLevelMessage.setSensor(CURR_WATER_LEVEL_ID);
 
-	lowLevelTankMessage.setDestination(SUMP_RELAY_NODE_ID);
-	highLevelTankMessage.setDestination(SUMP_RELAY_NODE_ID);
+	lowLevelTankMessage.setDestination(SUMP_MOTOR_NODE_ID);
+	highLevelTankMessage.setDestination(SUMP_MOTOR_NODE_ID);
 
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 
-	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
 	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
 
+	hourlyTimer = Alarm.timerRepeat(ONE_HOUR, hourlyUpdate);
+	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
 void presentation()
@@ -134,13 +134,13 @@ void receive(const MyMessage &message)
 
 		switch (message.sender)
 		{
-		case SUMP_RELAY_NODE_ID:
+		case SUMP_MOTOR_NODE_ID:
 			if (message.getInt())
 				sumpMotorOn = true;
 			else
 				sumpMotorOn = false;
 			break;
-		case UNDERGROUND_NODE_ID:
+		case WATER_MOTOR_NODE_ID:
 			if (message.getInt())
 				waterMotorOn = true;
 			else
@@ -202,16 +202,16 @@ void getWaterLevel()
 	}
 
 	if (sensorArray[waterOverFlowLevelIndex] == LOW)
-		send(highLevelTankMessage.set(RELAY_ON));
+		send(highLevelTankMessage.set(TURN_ON));
 	else
-		send(highLevelTankMessage.set(RELAY_OFF));
+		send(highLevelTankMessage.set(TURN_OFF));
 
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 
 	if (sensorArray[waterLowLevelIndex] == HIGH)
-		send(lowLevelTankMessage.set(RELAY_ON));
+		send(lowLevelTankMessage.set(TURN_ON));
 	else
-		send(lowLevelTankMessage.set(RELAY_OFF));
+		send(lowLevelTankMessage.set(TURN_OFF));
 
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 
@@ -221,7 +221,7 @@ void getWaterLevel()
 
 void sendWaterLevel(int waterLevel)
 {
-	if (waterLevel != prevWaterLevelValue)
+	if ((waterLevel != prevWaterLevelValue) || isHourlyUpdate)
 	{
 		send(waterLevelMessage.set(waterLevel));
 		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
@@ -236,4 +236,11 @@ void checkWaterLowLevelRequestStatus()
 {
 	if (!waterLowLevelReceived)
 		sendWaterLowLevelRequest = true;
+}
+
+void hourlyUpdate()
+{
+	isHourlyUpdate = true;
+	getWaterLevel();
+	isHourlyUpdate = false;
 }

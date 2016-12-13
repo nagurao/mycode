@@ -76,7 +76,7 @@ void setup()
 
 	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
 	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
-	Alarm.disable(waterLevelRisingTimer);
+
 	hourlyTimer = Alarm.timerRepeat(ONE_HOUR, hourlyUpdate);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
@@ -181,16 +181,16 @@ void getWaterLevel()
 	}
 
 	if (sensorArray[waterOverFlowLevelIndex] == LOW)
-		send(highLevelTankMessage.set(RELAY_ON));
+		send(highLevelTankMessage.set(TURN_ON));
 	else
-		send(highLevelTankMessage.set(RELAY_OFF));
+		send(highLevelTankMessage.set(TURN_OFF));
 	
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 
 	if (sensorArray[waterLowLevelIndex] == HIGH)
-		send(lowLevelTankMessage.set(RELAY_ON));
+		send(lowLevelTankMessage.set(TURN_ON));
 	else
-		send(lowLevelTankMessage.set(RELAY_OFF));
+		send(lowLevelTankMessage.set(TURN_OFF));
 
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 

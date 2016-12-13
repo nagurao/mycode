@@ -74,7 +74,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define TANK_02_NODE_ID 5
 
 #define WATER_TANK_NODE
-#define SUMP_MOTOR_NODE
+#define SUMP_RELATED_NODE
 #define NODE_INTERACTS_WITH_RELAY
 #define NODE_INTERACTS_WITH_LCD
 #define NODE_WITH_ON_OFF_FEATURE
@@ -85,6 +85,10 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #if defined TANK_03_NODE
 #define TANK03_NODE_ID 6
 #define WATER_TANK_NODE
+#define SUMP_RELATED_NODE
+#define NODE_INTERACTS_WITH_RELAY
+#define NODE_INTERACTS_WITH_LCD
+#define NODE_WITH_ON_OFF_FEATURE
 #endif
 
 #if defined BOREWELL_NODE
