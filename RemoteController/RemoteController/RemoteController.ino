@@ -15,7 +15,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Remote Controller"
-#define APPLICATION_VERSION "12Dec2016"
+#define APPLICATION_VERSION "13Dec2016"
 
 AlarmId heartbeatTimer;
 
