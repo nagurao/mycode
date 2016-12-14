@@ -16,7 +16,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "1Phase Watt Meter"
-#define APPLICATION_VERSION "12Nov2016"
+#define APPLICATION_VERSION "13Dec2016"
 
 #define DEFAULT_BLINKS_PER_KWH 6400 // value from energy meter
 AlarmId heartbeatTimer;
@@ -221,7 +221,7 @@ void receive(const MyMessage &message)
 			accumulationStatusCount = 0;
 			accumulationsStatus = ALL_DONE;
 			Alarm.free(accumulationTimer);
-			accumulationTimer = Alarm.timerRepeat(5 * ONE_MINUTE, sendAccumulation);
+			accumulationTimer = Alarm.timerRepeat(FIVE_MINUTES, sendAccumulation);
 			break;
 		case DELTA_WATT_CONSUMPTION_ID:
 			float monthlyConsumptionKWHPH3 = message.getFloat();
@@ -354,6 +354,7 @@ void sendAccumulation()
 	{
 		thingspeakMessage.setSensor(CURR_WATT_ID);
 		send(thingspeakMessage.set(currWatt, 2));
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 		lcdCurrWattMessage.setSensor(CURR_WATT_ID);
 		send(lcdCurrWattMessage.set(currWatt, 2));
 	}
