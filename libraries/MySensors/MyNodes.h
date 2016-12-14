@@ -115,6 +115,15 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 #define WATER_TANK_NODE_IDS
 
+#define LCD_I2C_ADDR 0x27
+#define LCD_ROWS 4
+#define LCD_COLUMNS 20
+#define LCD_BACKLIGHT_ID 1
+#define ROW_1 0
+#define ROW_2 1
+#define ROW_3 2
+#define ROW_4 3
+
 #endif
 
 #if defined SOLAR_BATT_VOLTAGE_NODE

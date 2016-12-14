@@ -17,16 +17,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "LCD Node"
-#define APPLICATION_VERSION "12Dec2016"
-
-#define LCD_I2C_ADDR 0x27
-#define LCD_ROWS 4
-#define LCD_COLUMNS 20
-#define LCD_BACKLIGHT_ID 1
-#define ROW_1 0
-#define ROW_2 1
-#define ROW_3 2
-#define ROW_4 3
+#define APPLICATION_VERSION "13Dec2016"
 
 AlarmId heartbeatTimer;
 AlarmId backlightTimer;
