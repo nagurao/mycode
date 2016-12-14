@@ -16,7 +16,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Battery Voltage"
-#define APPLICATION_VERSION "26Nov2016"
+#define APPLICATION_VERSION "13Dec2016"
 
 #define DEFAULT_R1_VALUE 47.20F
 #define DEFAULT_R2_VALUE 3.24F
@@ -66,8 +66,8 @@ void setup()
 	lcdVoltageMessage.setDestination(LCD_NODE_ID);
 	lcdVoltageMessage.setType(V_VOLTAGE);
 
-	getBatteryVoltageTimer = Alarm.timerRepeat(ONE_MINUTE, getBatteryVoltage);
-	thingspeakMessageTimer = Alarm.timerRepeat(FIVE_MINUTES, sendThingspeakMessage);
+	getBatteryVoltageTimer = Alarm.timerRepeat(FIVE_MINUTES, getBatteryVoltage);
+	thingspeakMessageTimer = Alarm.timerRepeat(ONE_HOUR, sendThingspeakMessage);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 
 }
@@ -119,7 +119,7 @@ void receive(const MyMessage &message)
 			if (!solarNodeUp)
 			{
 				solarNodeUp = true;
-				getSolarVoltageTimer = Alarm.timerRepeat(ONE_MINUTE, getSolarVoltage);
+				getSolarVoltageTimer = Alarm.timerRepeat(FIVE_MINUTES, getSolarVoltage);
 			}
 		}	
 		break;
@@ -163,9 +163,11 @@ void getBatteryVoltage()
 	{
 		send(batteryVoltageMessage.set(batteryVoltage, 5));
 		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-
 		lcdVoltageMessage.setSensor(BATTERY_VOLTAGE_ID);
 		send(lcdVoltageMessage.set(batteryVoltage, 5));
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+		thingspeakMessage.setSensor(BATTERY_VOLTAGE_ID);
+		send(thingspeakMessage.set(batteryVoltage, 5));
 		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 		batteryVoltage = prevBatteryVoltage;
 	}
@@ -188,25 +190,23 @@ void sendSolarVoltage ()
 	if (prevSolarVoltage != solarVoltage)
 	{
 		send(solarVoltageMessage.set(solarVoltage, 5));
-		Alarm.delay(WAIT_10MS);
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 		lcdVoltageMessage.setSensor(SOLAR_VOLTAGE_ID);
 		send(lcdVoltageMessage.set(solarVoltage, 5));
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+		thingspeakMessage.setSensor(SOLAR_VOLTAGE_ID);
+		send(thingspeakMessage.set(solarVoltage, 5));
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 		solarVoltage = prevSolarVoltage;
 	}
 }
 
 void sendThingspeakMessage()
 {
-	if (prevSolarVoltage != solarVoltage)
-	{
-		thingspeakMessage.setSensor(SOLAR_VOLTAGE_ID);
-		send(thingspeakMessage.set(solarVoltage, 5));
-		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-	}
-	if (prevBatteryVoltage != batteryVoltage)
-	{
-		thingspeakMessage.setSensor(BATTERY_VOLTAGE_ID);
-		send(thingspeakMessage.set(batteryVoltage, 5));
-		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-	}
+	thingspeakMessage.setSensor(SOLAR_VOLTAGE_ID);
+	send(thingspeakMessage.set(solarVoltage, 5));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	thingspeakMessage.setSensor(BATTERY_VOLTAGE_ID);
+	send(thingspeakMessage.set(batteryVoltage, 5));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
