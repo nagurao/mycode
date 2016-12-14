@@ -15,7 +15,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Solar Voltage"
-#define APPLICATION_VERSION "26Nov2016"
+#define APPLICATION_VERSION "13Dec2016"
 
 #define DEFAULT_R1_VALUE 47.20F
 #define DEFAULT_R2_VALUE 3.24F
