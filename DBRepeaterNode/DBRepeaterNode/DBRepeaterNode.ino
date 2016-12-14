@@ -14,8 +14,8 @@
 #include <MySensors.h>
 #include <MyConfig.h>
 
-#define APPLICATION_NAME "DB Repeater Node"
-#define APPLICATION_VERSION "03Sep2016"
+#define APPLICATION_NAME "Repeater Node"
+#define APPLICATION_VERSION "13Dec2016"
 
 AlarmId heartbeatTimer;
 
