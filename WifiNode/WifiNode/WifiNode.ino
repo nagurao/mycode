@@ -21,85 +21,105 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Thingspeak Node"
-#define APPLICATION_VERSION "25Sep2016"
+#define APPLICATION_VERSION "13Dec2016"
+
+//water level logging channel
+#define TANK_01_FIELD 1
+#define TANK_02_FILED 2
+#define TANK_03_FIELD 3
+//
+#define TANK_01_IDX 0
+#define TANK_02_IDX 1
+#define TANK_03_IDX 2
+
+//power cumulative logging channel
+#define PH3_HOURLY_FIELD 1
+#define PH3_DAILY_FIELD 2
+#define PH3_MONTHLY_FIELD 3
+#define PH1_HOURLY_FIELD 4
+#define PH1_DAILY_FIELD 5
+#define PH1_MONTHLY_FIELD 6
+#define PH3_PH1_DELTA_DAILY_FIELD 7
+//
+#define PH3_HOURLY_IDX 0
+#define PH3_DAILY_IDX 1
+#define PH3_MONTHLY_IDX 2
+#define PH1_HOURLY_IDX 3
+#define PH1_DAILY_IDX 4
+#define PH1_MONTHLY_IDX 5
+#define PH3_PH1_DELTA_DAILY_IDX 6
+
+//realtime power logging channel
+#define PH3_CURR_WATT_FIELD 1
+#define PH1_CURR_WATT_FIELD 2
+#define PH3_PH1_REAL_TIME_DELTA_FIELD 3
+//
+#define PH3_CURR_WATT_IDX 0
+#define PH1_CURR_WATT_IDX 1
+#define PH3_PH1_REAL_TIME_DELTA_IDX 2
 
 //static data logging channel
 #define BALCONY_LIGHTS_FIELD 1
 #define STAIRCASE_LIGHTS_FIELD 2
 #define GATE_LIGHTS_FIELD 3
-#define SUMP_MOTOR_FIELD 4
-#define BOREWELL_FIELD 5
-
-//real-time logging channel
-#define OVERHEAD_TANK01_FIELD 1
-#define OVERHEAD_TANK02_FIELD 2
-#define SUMP_TANK_FIELD 3
-#define SOLAR_VOLT_FIELD 4
-#define BATTERY_VOLT_FIELD 5
-#define CURR_WATT_PH3_FIELD 6
-#define CURR_WATT_PH1_FIELD 7
-#define REAL_TIME_DELTA_PH3_PH1_FIELD 8
-
-//power stat logging channel
-#define HOURLY_PH3_FIELD 1
-#define DAILY_PH3_FIELD 2
-#define MONTHLY_PH3_FIELD 3
-#define HOURLY_PH1_FIELD 4
-#define DAILY_PH1_FIELD 5
-#define MONTHLY_PH1_FIELD 6
-#define DELTA_PH3_PH1_FIELD 7
-
+#define BOREWELL_FIELD 4
+#define SUMP_MOTOR_FIELD 5
+//
 #define BALCONY_LIGHTS_IDX 0
 #define STAIRCASE_LIGHTS_IDX 1
 #define GATE_LIGHTS_IDX 2
-#define SUMP_MOTOR_IDX 3
-#define BOREWELL_MOTOR_IDX 4
+#define BOREWELL_IDX 3
+#define SUMP_MOTOR_IDX 4
+
+//battery & solar voltage
+#define BATTERY_VOLT_FIELD 1
+#define SOLAR_VOLT_FIELD 2
 //
-#define OVERHEAD_TANK01_IDX 5
-#define OVERHEAD_TANK02_IDX 6
-#define SUMP_TANK_IDX 7
-#define SOLAR_VOLTAGE_IDX 8
-#define BATTERY_VOLTAGE_IDX 9
-#define CURR_3PH_IDX 10
-#define CURR_1PH_IDX 11
-#define REAL_TIME_DELTA_KWH_IDX 12
-//
-#define HOURLY_3PH_IDX 13
-#define DAILY_3PH_IDX 14
-#define MONTHLY_3PH_IDX 15
-#define HOURLY_1PH_IDX 16
-#define DAILY_1PH_IDX 17
-#define MONTHLY_1PH_IDX 18
-#define DELTA_KWH_IDX 19
+#define BATTERY_VOLT_IDX 0
+#define SOLAR_VOLT_IDX 1
 
 #define THINGSPEAK_INTERVAL 20
 #define DEFAULT_CHANNEL_VALUE -99.00
 
-#define SEND_STATIC_DATA 0
-#define SEND_REAL_TIME_DATA 1
-#define SEND_POWER_STAT_DATA 2
+#define SEND_WATER_LEVEL_DATA 0
+#define SEND_POWER_CUMMLATIVE_DATA 1
+#define SEND_POWER_REALTIME_DATA 2
+#define SEND_STATIC_DATA 3
+#define SEND_VOLTAGE_DATA 4
 
-#define TYPES_OF_DATA 3
+#define TYPES_OF_DATA 5
+
+#define FIELDS_PER_CHANNEL 8
 byte currentDataToSend;
 
-byte maxDataInputs = 20;
-float channelData[20];
+float waterLevelChannelData[FIELDS_PER_CHANNEL];
+float powerCumulativeChannelData[FIELDS_PER_CHANNEL];
+float powerRealtimeChannelData[FIELDS_PER_CHANNEL];
+float staticChannelData[FIELDS_PER_CHANNEL];
+float voltageChannelData[FIELDS_PER_CHANNEL];
 
 int status = WL_IDLE_STATUS;
 WiFiClient  client;
 
-unsigned long staticChannelNumber = 140352;
-const char * myStaticWriteAPIKey = "E1Y9BE8CO5E7J8WR";
-const char * myStaticReadAPIKey = "4LVCQYHL7A58MOTU";
+unsigned long waterLevelChannelNumber = 203220;
+const char * waterLevelWriteAPIKey = "Q9OTOMNCUK5E8W00";
+const char * waterLevelReadAPIKey = "ZN1BBM94RJAULC1S";
 
-unsigned long realtimeChannelNumber = 141630;
-const char * myrealtimeWriteAPIKey = "QC5K9DN9COI9P4KU";
-const char * myrealtimeReadAPIKey = "X3JM31N6KQRNUG2P";
+unsigned long powerCumulativeChannelNumber = 203222;
+const char * powerCumulativeWriteAPIKey = "33QK8SG054YRX6CB";
+const char * powerCumulativeReadAPIKey = "Z7LPAEKBJO56APU9";
 
-unsigned long powerStatChannelNumber = 141628;
-const char * myPowerStatWriteAPIKey = "145BJIZPLWRVGREN";
-const char * myPowerStatReadAPIKey = "Q44VV3W71YNRNN3I";
+unsigned long powerRealtimeChannelNumber = 203224;
+const char * powerRealtimeWriteAPIKey = "L6WT1ZVB7POJE947";
+const char * powerRealtimeReadAPIKey = "48M7YBUGQFVBEZ3Q";
 
+unsigned long staticChannelNumber = 203226;
+const char * staticWriteAPIKey = "O0VIVXGA0Q7Q3HI1";
+const char * staticReadAPIKey = "4BJLHZM72HFNF71R";
+
+unsigned long voltageChannelNumber = 203228;
+const char * voltageWriteAPIKey = "DD8U0IJQVH32AXR3";
+const char * voltageReadAPIKey = "KFFC286643GSSAAT";
 
 AlarmId heartbeatTimer;
 AlarmId thingspeakTimer;
@@ -114,9 +134,15 @@ void setup()
 {
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	thingspeakTimer = Alarm.timerRepeat(THINGSPEAK_INTERVAL, sendDataToThingspeak);
-	for (byte channelId = 0; channelId < maxDataInputs; channelId++)
-		channelData[channelId] = DEFAULT_CHANNEL_VALUE;
-	currentDataToSend = SEND_STATIC_DATA;
+	for (byte channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+	{
+		waterLevelChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+		powerCumulativeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+		powerRealtimeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+		staticChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+		voltageChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+	}
+	currentDataToSend = SEND_WATER_LEVEL_DATA;
 }
 
 void presentation()
@@ -136,47 +162,60 @@ void receive(const MyMessage &message)
 	case V_CUSTOM: 
 		switch (message.sender)
 		{
-		case BALCONYLIGHT_WITH_PIR_NODE:
-			channelData[BALCONY_LIGHTS_IDX] = message.getInt();
+		case BALCONYLIGHT_NODE_ID:
+			staticChannelData[BALCONY_LIGHTS_IDX] = message.getInt();
 			break;
-		case STAIRCASE_LIGHT_NODE:
-			channelData[STAIRCASE_LIGHTS_IDX] = message.getInt();
+		case STAIRCASE_LIGHT_NODE_ID:
+			staticChannelData[STAIRCASE_LIGHTS_IDX] = message.getInt();
 			break;
-		case GATELIGHT_WITH_PIR_NODE:
-			channelData[GATE_LIGHTS_IDX] = message.getInt();
+		case GATELIGHT_NODE_ID:
+			staticChannelData[GATE_LIGHTS_IDX] = message.getInt();
 			break;
-		case SUMP_RELAY_NODE_ID:
-			channelData[SUMP_MOTOR_IDX] = message.getInt();
+		case TANK_01_NODE_ID:
+			waterLevelChannelData[TANK_01_IDX] = message.getInt();
 			break;
-		case BOREWELL_RELAY_NODE_ID:
-			channelData[BOREWELL_MOTOR_IDX] = message.getInt();
+		case TANK_02_NODE_ID:
+			waterLevelChannelData[TANK_02_IDX] = message.getInt();
 			break;
-		case OVERHEAD_TANK_01_NODE_ID:
-			channelData[OVERHEAD_TANK01_IDX] = message.getInt();
+		case TANK_03_NODE_ID:
+			waterLevelChannelData[TANK_03_IDX] = message.getInt();
 			break;
-		case OVERHEAD_TANK_02_NODE_ID:
-			channelData[OVERHEAD_TANK02_IDX] = message.getInt();
+		case BOREWELL_NODE_ID:
+			staticChannelData[BOREWELL_IDX] = message.getInt();
 			break;
-		case UNDERGROUND_NODE_ID:
-			channelData[SUMP_TANK_IDX] = message.getInt();
+		case SUMP_MOTOR_NODE_ID:
+			staticChannelData[SUMP_MOTOR_IDX] = message.getInt();
+			break;
+		case BATT_VOLTAGE_NODE_ID:
+			switch (message.sensor)
+			{
+			case BATTERY_VOLTAGE_ID:
+				voltageChannelData[BATTERY_VOLT_IDX] = message.getFloat();
+				break;
+			case SOLAR_VOLTAGE_ID:
+				voltageChannelData[SOLAR_VOLT_IDX] = message.getFloat();
+				break;
+			}
+			break;
+		case SOLAR_VOLTAGE_NODE_ID:
 			break;
 		case PH3_NODE_ID:
 			switch (message.sensor)
 			{
 			case CURR_WATT_ID:
-				channelData[CURR_3PH_IDX] = message.getFloat();
+				powerRealtimeChannelData[PH3_CURR_WATT_IDX] = message.getFloat();
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
-				channelData[HOURLY_3PH_IDX] = message.getFloat();
+				powerCumulativeChannelData[PH3_HOURLY_IDX] = message.getFloat();
 				break;
 			case DAILY_WATT_CONSUMPTION_ID:
-				channelData[DAILY_3PH_IDX] = message.getFloat();
+				powerCumulativeChannelData[PH3_DAILY_IDX] = message.getFloat();
 				break;
 			case MONTHLY_WATT_CONSUMPTION_ID:
-				channelData[MONTHLY_3PH_IDX] = message.getFloat();
+				powerCumulativeChannelData[PH3_MONTHLY_IDX] = message.getFloat();
 				break;
 			case DELTA_WATT_CONSUMPTION_ID:
-				channelData[DELTA_KWH_IDX] = message.getFloat();
+				powerCumulativeChannelData[PH3_PH1_DELTA_DAILY_IDX] = message.getFloat();
 				break;
 			}
 			break;
@@ -184,32 +223,19 @@ void receive(const MyMessage &message)
 			switch (message.sensor)
 			{
 			case CURR_WATT_ID:
-				channelData[CURR_1PH_IDX] = message.getFloat();
+				powerRealtimeChannelData[PH1_CURR_WATT_FIELD] = message.getFloat();
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
-				channelData[HOURLY_1PH_IDX] = message.getFloat();
+				powerCumulativeChannelData[PH1_HOURLY_IDX] = message.getFloat();
 				break;
 			case DAILY_WATT_CONSUMPTION_ID:
-				channelData[DAILY_1PH_IDX] = message.getFloat();
+				powerCumulativeChannelData[PH1_DAILY_IDX] = message.getFloat();
 				break;
 			case MONTHLY_WATT_CONSUMPTION_ID:
-				channelData[MONTHLY_1PH_IDX] = message.getFloat();
+				powerCumulativeChannelData[PH1_MONTHLY_IDX] = message.getFloat();
 				break;
 			case DELTA_WATT_CONSUMPTION_ID:
-				channelData[REAL_TIME_DELTA_KWH_IDX] = message.getFloat();
-				break;
-			}
-			break;
-		case SOLAR_VOLTAGE_NODE_ID:
-			break;
-		case BATT_VOLTAGE_NODE_ID:
-			switch (message.sensor)
-			{
-			case SOLAR_VOLTAGE_ID:
-				channelData[SOLAR_VOLTAGE_IDX] = message.getFloat();
-				break;
-			case BATTERY_VOLTAGE_ID:
-				channelData[BATTERY_VOLTAGE_IDX] = message.getFloat();
+				powerRealtimeChannelData[PH3_PH1_REAL_TIME_DELTA_FIELD] = message.getFloat();
 				break;
 			}
 			break;
@@ -220,121 +246,161 @@ void receive(const MyMessage &message)
 
 void sendDataToThingspeak()
 {
+	byte channelId;
 	switch (currentDataToSend)
 	{
-	case SEND_STATIC_DATA:
-		for (byte channelId = BALCONY_LIGHTS_IDX; channelId <= BOREWELL_MOTOR_IDX; channelId++)
+	case SEND_WATER_LEVEL_DATA:
+		for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
 		{
-			if (channelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			if (waterLevelChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case TANK_01_IDX:
+					ThingSpeak.setField(TANK_01_FIELD, waterLevelChannelData[channelId]);
+					break;
+				case TANK_02_IDX:
+					ThingSpeak.setField(TANK_02_FILED, waterLevelChannelData[channelId]);
+					break;
+				case TANK_03_IDX:
+					ThingSpeak.setField(TANK_03_FIELD, waterLevelChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(waterLevelChannelNumber, waterLevelWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (waterLevelChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					waterLevelChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
+	case SEND_POWER_CUMMLATIVE_DATA:
+		for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (powerCumulativeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case PH3_HOURLY_IDX:
+					ThingSpeak.setField(PH3_HOURLY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				case PH3_DAILY_IDX:
+					ThingSpeak.setField(PH3_DAILY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				case PH3_MONTHLY_IDX:
+					ThingSpeak.setField(PH3_MONTHLY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				case PH1_HOURLY_IDX:
+					ThingSpeak.setField(PH1_HOURLY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				case PH1_DAILY_IDX:
+					ThingSpeak.setField(PH1_DAILY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				case PH1_MONTHLY_IDX:
+					ThingSpeak.setField(PH1_MONTHLY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				case PH3_PH1_DELTA_DAILY_IDX:
+					ThingSpeak.setField(PH3_PH1_DELTA_DAILY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(powerCumulativeChannelNumber, powerCumulativeWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (powerCumulativeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					powerCumulativeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
+	case SEND_POWER_REALTIME_DATA:
+		for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (powerRealtimeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case PH3_CURR_WATT_IDX:
+					ThingSpeak.setField(PH3_CURR_WATT_FIELD, powerRealtimeChannelData[channelId]);
+					break;
+				case PH1_CURR_WATT_IDX:
+					ThingSpeak.setField(PH1_CURR_WATT_FIELD, powerRealtimeChannelData[channelId]);
+					break;
+				case PH3_PH1_REAL_TIME_DELTA_IDX:
+					ThingSpeak.setField(PH3_PH1_REAL_TIME_DELTA_FIELD, powerRealtimeChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(powerRealtimeChannelNumber, powerRealtimeWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (powerRealtimeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					powerRealtimeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
+	case SEND_STATIC_DATA:
+		for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (staticChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 			{
 				switch (channelId)
 				{
 				case BALCONY_LIGHTS_IDX:
-					ThingSpeak.setField(BALCONY_LIGHTS_FIELD, channelData[channelId]);
+					ThingSpeak.setField(BALCONY_LIGHTS_FIELD, staticChannelData[channelId]);
 					break;
 				case STAIRCASE_LIGHTS_IDX:
-					ThingSpeak.setField(STAIRCASE_LIGHTS_FIELD, channelData[channelId]);
+					ThingSpeak.setField(STAIRCASE_LIGHTS_FIELD, staticChannelData[channelId]);
 					break;
 				case GATE_LIGHTS_IDX:
-					ThingSpeak.setField(GATE_LIGHTS_FIELD, channelData[channelId]);
+					ThingSpeak.setField(GATE_LIGHTS_FIELD, staticChannelData[channelId]);
+					break;
+				case BOREWELL_IDX:
+					ThingSpeak.setField(BOREWELL_FIELD, staticChannelData[channelId]);
 					break;
 				case SUMP_MOTOR_IDX:
-					ThingSpeak.setField(SUMP_MOTOR_FIELD, channelData[channelId]);
-					break;
-				case BOREWELL_MOTOR_IDX:
-					ThingSpeak.setField(BOREWELL_FIELD, channelData[channelId]);
+					ThingSpeak.setField(SUMP_MOTOR_FIELD, staticChannelData[channelId]);
 					break;
 				}
 			}
 		}
-		if (ThingSpeak.writeFields(staticChannelNumber, myStaticWriteAPIKey) == OK_SUCCESS)
+		if (ThingSpeak.writeFields(staticChannelNumber, staticWriteAPIKey) == OK_SUCCESS)
 		{
-			for (byte channelId = BALCONY_LIGHTS_IDX; channelId <= BOREWELL_MOTOR_IDX; channelId++)
+			for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
 			{
-				if (channelData[channelId] != DEFAULT_CHANNEL_VALUE)
-					channelData[channelId] = DEFAULT_CHANNEL_VALUE;
+				if (staticChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					staticChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 			}
 		}
 		break;
-	case SEND_REAL_TIME_DATA:
-		for (byte channelId = OVERHEAD_TANK01_IDX; channelId <= REAL_TIME_DELTA_KWH_IDX; channelId++)
+	case SEND_VOLTAGE_DATA:
+		for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
 		{
-			if (channelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			if (voltageChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 			{
 				switch (channelId)
 				{
-				case OVERHEAD_TANK01_IDX:
-					ThingSpeak.setField(OVERHEAD_TANK01_FIELD, channelData[channelId]);
+				case BATTERY_VOLT_IDX:
+					ThingSpeak.setField(BATTERY_VOLT_FIELD, voltageChannelData[channelId]);
 					break;
-				case OVERHEAD_TANK02_IDX:
-					ThingSpeak.setField(OVERHEAD_TANK02_FIELD, channelData[channelId]);
-					break;
-				case SUMP_TANK_IDX:
-					ThingSpeak.setField(SUMP_TANK_FIELD, channelData[channelId]);
-					break;
-				case SOLAR_VOLTAGE_IDX:
-					ThingSpeak.setField(SOLAR_VOLT_FIELD, channelData[channelId]);
-					break;
-				case BATTERY_VOLTAGE_IDX:
-					ThingSpeak.setField(BATTERY_VOLT_FIELD, channelData[channelId]);
-					break;
-				case CURR_3PH_IDX:
-					ThingSpeak.setField(CURR_WATT_PH3_FIELD, channelData[channelId]);
-					break;
-				case CURR_1PH_IDX:
-					ThingSpeak.setField(CURR_WATT_PH1_FIELD, channelData[channelId]);
-					break;
-				case REAL_TIME_DELTA_KWH_IDX:
-					ThingSpeak.setField(REAL_TIME_DELTA_PH3_PH1_FIELD, channelData[channelId]);
-				}
-			}
-		}
-		if (ThingSpeak.writeFields(realtimeChannelNumber, myrealtimeWriteAPIKey) == OK_SUCCESS)
-		{
-			for (byte channelId = OVERHEAD_TANK01_IDX; channelId <= CURR_1PH_IDX; channelId++)
-			{
-				if (channelData[channelId] != DEFAULT_CHANNEL_VALUE)
-					channelData[channelId] = DEFAULT_CHANNEL_VALUE;
-			}
-		}
-		break;
-	case SEND_POWER_STAT_DATA:
-		for (byte channelId = HOURLY_3PH_IDX; channelId <= DELTA_KWH_IDX; channelId++)
-		{
-			if (channelData[channelId] != DEFAULT_CHANNEL_VALUE)
-			{
-				switch (channelId)
-				{
-				case HOURLY_3PH_IDX:
-					ThingSpeak.setField(HOURLY_PH3_FIELD, channelData[channelId]);
-					break;
-				case DAILY_3PH_IDX:
-					ThingSpeak.setField(DAILY_PH3_FIELD, channelData[channelId]);
-					break;
-				case MONTHLY_3PH_IDX:
-					ThingSpeak.setField(MONTHLY_PH3_FIELD, channelData[channelId]);
-					break;
-				case HOURLY_1PH_IDX:
-					ThingSpeak.setField(HOURLY_PH1_FIELD, channelData[channelId]);
-					break;
-				case DAILY_1PH_IDX:
-					ThingSpeak.setField(DAILY_PH1_FIELD, channelData[channelId]);
-					break;
-				case MONTHLY_1PH_IDX:
-					ThingSpeak.setField(MONTHLY_PH1_FIELD, channelData[channelId]);
-					break;
-				case DELTA_KWH_IDX:
-					ThingSpeak.setField(DELTA_PH3_PH1_FIELD, channelData[channelId]);
+				case SOLAR_VOLT_IDX:
+					ThingSpeak.setField(SOLAR_VOLT_FIELD, voltageChannelData[channelId]);
 					break;
 				}
 			}
 		}
-		if (ThingSpeak.writeFields(powerStatChannelNumber, myPowerStatWriteAPIKey) == OK_SUCCESS)
+		if (ThingSpeak.writeFields(voltageChannelNumber, voltageWriteAPIKey) == OK_SUCCESS)
 		{
-			for (byte channelId = HOURLY_3PH_IDX; channelId <= DELTA_KWH_IDX; channelId++)
+			for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
 			{
-				if (channelData[channelId] != DEFAULT_CHANNEL_VALUE)
-					channelData[channelId] = DEFAULT_CHANNEL_VALUE;
+				if (voltageChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					voltageChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 			}
 		}
 		break;
