@@ -60,13 +60,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #if defined TANK_01_NODE
 #define TANK_01_NODE_ID 4
 #define DRY_RUN_POLL_DURATION 900
-
-#define BOREWELL_NODE
-#define WATER_TANK_NODE
-#define NODE_INTERACTS_WITH_RELAY
-#define NODE_INTERACTS_WITH_LCD
-#define NODE_WITH_ON_OFF_FEATURE
-
+#define BOREWELL_NODE_ID 7
 #endif
 
 // Overhead Tank 02
@@ -98,6 +92,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define BORE_OFF_RELAY_ID 3
 #define RELAY_TRIGGER_INTERVAL 3
 
+#define DRY_RUN_POLL_DURATION 900
 #define MOTOR_STATUS_PIN 3
 #define BORE_ON_RELAY_PIN 7
 #define BORE_OFF_RELAY_PIN 8
@@ -217,6 +212,13 @@ char pass[] = "4ever.Nagu";   // your network password
 #if defined NODE_WITH_ON_OFF_FEATURE
 #define TURN_ON 1
 #define TURN_OFF 0
+#endif
+
+#if defined NODE_WITH_HIGH_LOW_FEATURE
+#define HIGH_LEVEL 1
+#define NOT_HIGH_LEVEL 0
+#define LOW_LEVEL 1
+#define NOT_LOW_LEVEL 0
 #endif
 
 #if defined NODE_INTERACTS_WITH_LCD
