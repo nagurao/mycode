@@ -10,6 +10,7 @@
 #define WIFI_NODE
 #define WATT_METER_NODE
 #define SOLAR_BATT_VOLTAGE_NODE
+#define NODE_INTERACTS_WITH_RELAY
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -78,16 +79,24 @@
 #define BATTERY_VOLT_IDX 0
 #define SOLAR_VOLT_IDX 1
 
+#define IN_BALCONY_LIGHT_OPER_MODE_IDX 0
+#define IN_GATE_LIGHT_OPER_MODE_IDX 1
+#define IN_BOREWELL_ON_IDX 2
+#define IN_BOREWELL_OFF_IDX 3
+#define IN_SUMP_MOTOR_IDX 4
+
 #define THINGSPEAK_INTERVAL 20
 #define DEFAULT_CHANNEL_VALUE -99.00
+#define DEFAULT_CHANNEL_VALUE_INT -99
 
 #define SEND_WATER_LEVEL_DATA 0
 #define SEND_POWER_CUMMLATIVE_DATA 1
 #define SEND_POWER_REALTIME_DATA 2
 #define SEND_STATIC_DATA 3
 #define SEND_VOLTAGE_DATA 4
+#define READ_AND_PROCESS_DATA 5
 
-#define TYPES_OF_DATA 5
+#define TYPES_OF_DATA 6
 
 #define FIELDS_PER_CHANNEL 8
 byte currentDataToSend;
@@ -97,6 +106,7 @@ float powerCumulativeChannelData[FIELDS_PER_CHANNEL];
 float powerRealtimeChannelData[FIELDS_PER_CHANNEL];
 float staticChannelData[FIELDS_PER_CHANNEL];
 float voltageChannelData[FIELDS_PER_CHANNEL];
+int incomingChannelData[FIELDS_PER_CHANNEL];
 
 int status = WL_IDLE_STATUS;
 WiFiClient  client;
@@ -121,8 +131,18 @@ unsigned long voltageChannelNumber = 203228;
 const char * voltageWriteAPIKey = "DD8U0IJQVH32AXR3";
 const char * voltageReadAPIKey = "KFFC286643GSSAAT";
 
+unsigned long incomingChannelNumber = 203604;
+const char * incomingWriteAPIKey = "NGZUM98NSGJ4EAG9";
+const char * incomingReadAPIKey = "81B9VBW1WKVPVIZK";
+
+boolean incomingDataFound;
+
 AlarmId heartbeatTimer;
 AlarmId thingspeakTimer;
+
+MyMessage lightNodeMessage;
+MyMessage borewellNodeMessage;
+MyMessage sumpMotorMessage;
 
 void before()
 {
@@ -133,7 +153,7 @@ void before()
 void setup()
 {
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
-	thingspeakTimer = Alarm.timerRepeat(THINGSPEAK_INTERVAL, sendDataToThingspeak);
+	thingspeakTimer = Alarm.timerRepeat(THINGSPEAK_INTERVAL, processThingspeakData);
 	for (byte channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
 		waterLevelChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
@@ -141,8 +161,10 @@ void setup()
 		powerRealtimeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 		staticChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 		voltageChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+		incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
 	}
 	currentDataToSend = SEND_WATER_LEVEL_DATA;
+	incomingDataFound = false;
 }
 
 void presentation()
@@ -244,13 +266,13 @@ void receive(const MyMessage &message)
 	}
 }
 
-void sendDataToThingspeak()
+void processThingspeakData()
 {
 	byte channelId;
 	switch (currentDataToSend)
 	{
 	case SEND_WATER_LEVEL_DATA:
-		for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 		{
 			if (waterLevelChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 			{
@@ -270,7 +292,7 @@ void sendDataToThingspeak()
 		}
 		if (ThingSpeak.writeFields(waterLevelChannelNumber, waterLevelWriteAPIKey) == OK_SUCCESS)
 		{
-			for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 			{
 				if (waterLevelChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 					waterLevelChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
@@ -278,7 +300,7 @@ void sendDataToThingspeak()
 		}
 		break;
 	case SEND_POWER_CUMMLATIVE_DATA:
-		for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 		{
 			if (powerCumulativeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 			{
@@ -310,7 +332,7 @@ void sendDataToThingspeak()
 		}
 		if (ThingSpeak.writeFields(powerCumulativeChannelNumber, powerCumulativeWriteAPIKey) == OK_SUCCESS)
 		{
-			for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 			{
 				if (powerCumulativeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 					powerCumulativeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
@@ -318,7 +340,7 @@ void sendDataToThingspeak()
 		}
 		break;
 	case SEND_POWER_REALTIME_DATA:
-		for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 		{
 			if (powerRealtimeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 			{
@@ -338,7 +360,7 @@ void sendDataToThingspeak()
 		}
 		if (ThingSpeak.writeFields(powerRealtimeChannelNumber, powerRealtimeWriteAPIKey) == OK_SUCCESS)
 		{
-			for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 			{
 				if (powerRealtimeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 					powerRealtimeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
@@ -346,7 +368,7 @@ void sendDataToThingspeak()
 		}
 		break;
 	case SEND_STATIC_DATA:
-		for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 		{
 			if (staticChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 			{
@@ -372,7 +394,7 @@ void sendDataToThingspeak()
 		}
 		if (ThingSpeak.writeFields(staticChannelNumber, staticWriteAPIKey) == OK_SUCCESS)
 		{
-			for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 			{
 				if (staticChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 					staticChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
@@ -380,7 +402,7 @@ void sendDataToThingspeak()
 		}
 		break;
 	case SEND_VOLTAGE_DATA:
-		for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 		{
 			if (voltageChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 			{
@@ -397,12 +419,77 @@ void sendDataToThingspeak()
 		}
 		if (ThingSpeak.writeFields(voltageChannelNumber, voltageWriteAPIKey) == OK_SUCCESS)
 		{
-			for (channelId = 0; channelId <= FIELDS_PER_CHANNEL; channelId++)
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 			{
 				if (voltageChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 					voltageChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 			}
 		}
+		break;
+	case READ_AND_PROCESS_DATA:
+		incomingDataFound = false;
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+		{
+			incomingChannelData[channelId] = ThingSpeak.readIntField(incomingChannelNumber, channelId + 1, incomingReadAPIKey);
+			if (ThingSpeak.getLastReadStatus() != OK_SUCCESS)
+				incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
+			if (ThingSpeak.getLastReadStatus() == OK_SUCCESS && (incomingChannelData[channelId] <= 0 || incomingChannelData[channelId] > 2))
+				incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
+		}
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+		{
+			if(incomingChannelData[channelId] != DEFAULT_CHANNEL_VALUE_INT)
+			{
+				incomingDataFound = true;
+				switch (channelId)
+				{
+				case IN_BALCONY_LIGHT_OPER_MODE_IDX:
+					lightNodeMessage.setDestination(BALCONYLIGHT_NODE_ID);
+					lightNodeMessage.setSensor(CURR_MODE_ID);
+					lightNodeMessage.setType(V_VAR1);
+					lightNodeMessage.set((incomingChannelData[channelId] == 1) ? RELAY_ON : RELAY_OFF);
+					send(lightNodeMessage);
+					break;
+				case IN_GATE_LIGHT_OPER_MODE_IDX:
+					lightNodeMessage.setDestination(GATELIGHT_NODE_ID);
+					lightNodeMessage.setSensor(CURR_MODE_ID);
+					lightNodeMessage.setType(V_VAR1);
+					lightNodeMessage.set((incomingChannelData[channelId] == 1) ? RELAY_ON : RELAY_OFF);
+					send(lightNodeMessage);
+					break;
+				case IN_BOREWELL_ON_IDX:
+					if (incomingChannelData[channelId] == 1)
+					{
+						borewellNodeMessage.setDestination(BOREWELL_NODE_ID);
+						borewellNodeMessage.setSensor(BORE_ON_RELAY_ID);
+						borewellNodeMessage.setType(V_STATUS);
+						borewellNodeMessage.set(RELAY_ON);
+						send(borewellNodeMessage);
+					}
+					break;
+				case IN_BOREWELL_OFF_IDX:
+					if (incomingChannelData[channelId] == 1)
+					{
+						borewellNodeMessage.setDestination(BOREWELL_NODE_ID);
+						borewellNodeMessage.setSensor(BORE_OFF_RELAY_ID);
+						borewellNodeMessage.setType(V_STATUS);
+						borewellNodeMessage.set(RELAY_ON);
+						send(borewellNodeMessage);
+					}
+					break;
+				case IN_SUMP_MOTOR_IDX:
+					sumpMotorMessage.setDestination(SUMP_MOTOR_NODE_ID);
+					sumpMotorMessage.setSensor(RELAY_ID);
+					sumpMotorMessage.setType(V_STATUS);
+					sumpMotorMessage.set((incomingChannelData[channelId] == 1) ? RELAY_ON : RELAY_OFF);
+					send(sumpMotorMessage);
+					break;
+				}
+				ThingSpeak.setField(channelId + 1, DEFAULT_CHANNEL_VALUE_INT);
+			}
+		}
+		if(incomingDataFound)
+			ThingSpeak.writeFields(incomingChannelNumber, incomingWriteAPIKey);
 		break;
 	}
 	currentDataToSend = (currentDataToSend + 1) % TYPES_OF_DATA;

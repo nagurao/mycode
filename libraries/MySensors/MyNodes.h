@@ -194,6 +194,11 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define PH3_NODE_ID 16
 #define PH1_NODE_ID 17
 
+#define RELAY_ID 1
+#define CURR_MODE_ID 2
+#define BORE_ON_RELAY_ID 2
+#define BORE_OFF_RELAY_ID 3
+
 char ssid[] = "NAGU";          //  your network SSID (name) 
 char pass[] = "4ever.Nagu";   // your network password
 
