@@ -150,7 +150,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define PH1_NODE_ID 16
 
 #define ZERO_PULSE 0
-#define ACCUMULATION_FREQUENCY_SECS 5
+#define ACCUMULATION_FREQUENCY_SECS 20
 #define MAX_WATT 10000
 
 #define CURR_WATT_ID 1
