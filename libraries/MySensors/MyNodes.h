@@ -146,8 +146,8 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 #if defined WATT_METER_NODE
 
-#define PH3_NODE_ID 15
-#define PH1_NODE_ID 16
+#define PH3_NODE_ID 16
+#define PH1_NODE_ID 17
 
 #define ZERO_PULSE 0
 #define ACCUMULATION_FREQUENCY_SECS 20
