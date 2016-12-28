@@ -11,7 +11,7 @@
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID TANK03_NODE_ID
+#define MY_NODE_ID TANK_03_NODE_ID
 #define MY_DEBUG
 
 #include <MyNodes.h>
@@ -39,7 +39,7 @@ boolean waterLowLevelReceived;
 boolean sendWaterLowLevelRequest;
 boolean isHourlyUpdate;
 boolean sumpMotorOn;
-boolean waterMotorOn;
+boolean tapMotorOn;
 
 MyMessage waterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
 MyMessage lcdWaterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
@@ -68,7 +68,7 @@ void setup()
 	waterLowLevelReceived = false;
 	sendWaterLowLevelRequest = true;
 	sumpMotorOn = false;
-	waterMotorOn = false;
+	tapMotorOn = false;
 	isHourlyUpdate = false;
 
 	lcdWaterLevelMessage.setDestination(LCD_NODE_ID);
@@ -129,7 +129,7 @@ void receive(const MyMessage &message)
 		}
 		break;
 	case V_VAR2:
-		if (!sumpMotorOn && !waterMotorOn && message.getInt())
+		if ((!sumpMotorOn || !tapMotorOn) && message.getInt())
 		{
 			Alarm.disable(waterDefaultLevelTimer);
 			Alarm.enable(waterLevelRisingTimer);
@@ -143,15 +143,15 @@ void receive(const MyMessage &message)
 			else
 				sumpMotorOn = false;
 			break;
-		case WATER_MOTOR_NODE_ID:
+		case TAP_MOTOR_NODE_ID:
 			if (message.getInt())
-				waterMotorOn = true;
+				tapMotorOn = true;
 			else
-				waterMotorOn = false;
+				tapMotorOn = false;
 			break;
 		}
 
-		if (!sumpMotorOn && !waterMotorOn && !message.getInt())
+		if (!sumpMotorOn && !tapMotorOn && !message.getInt())
 		{
 			Alarm.enable(waterDefaultLevelTimer);
 			Alarm.disable(waterLevelRisingTimer);

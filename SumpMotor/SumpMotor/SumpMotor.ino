@@ -5,6 +5,7 @@
 #include <Time.h>
 
 #define SUMP_RELATED_NODE
+#define LOW_TRIGGER_RELAY
 #define NODE_HAS_RELAY
 #define KEYPAD_1R_2C
 #define WATER_TANK_NODE_IDS
@@ -87,10 +88,20 @@ void loop()
 
 void receive(const MyMessage &message)
 {
-	switch (message.type)
+	byte incomingValue;
+	switch (message.sender)
+	{
+	case THINGSPEAK_NODE_ID:
+		incomingValue = message.getBool();
+		break;
+	default:
+		incomingValue = message.getInt();
+		break;
+	}
+	switch (message.type) 
 	{
 	case V_STATUS:
-		switch (message.getInt())
+		switch (incomingValue)
 		{
 		case RELAY_ON:
 			if (!tank02HighLevel && !tank03LowLevel && !sumpMotorOn)
@@ -118,7 +129,6 @@ void receive(const MyMessage &message)
 				tank03LowLevel = NOT_LOW_LEVEL;
 			break;
 		}
-
 
 		if(tank02LowLevel && !tank03LowLevel && !sumpMotorOn)
 			turnOnSumpMotor();

@@ -71,7 +71,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 //Underground Tank
 #if defined TANK_03_NODE
-#define TANK03_NODE_ID 6
+#define TANK_03_NODE_ID 6
 
 #endif
 
@@ -90,7 +90,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 #if defined SUMP_RELATED_NODE
 #define SUMP_MOTOR_NODE_ID 8
-#define WATER_MOTOR_NODE_ID 9
+#define TAP_MOTOR_NODE_ID 9
 
 #define CURR_WATER_LEVEL_ID 1
 #define RELAY_ID 1
@@ -142,6 +142,21 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 #if defined REMOTE_CONTROLLER_NODE
 #define REMOTE_CONTROLLER_NODE_ID 14
+#define KEYPAD_ID 1
+#define SCL_PIN 3
+#define SDA_PIN 4
+#define KEYPAD_SIZE 16
+#define KEYPAD_READ_INTERVAL 2
+
+#define RELAY_ID 1
+#define CURR_MODE_ID 2
+#define BORE_ON_RELAY_ID 2
+#define BORE_OFF_RELAY_ID 3
+
+#define BOREWELL_NODE_ID 7
+#define SUMP_MOTOR_NODE_ID 8
+#define TAP_MOTOR_NODE_ID 9
+
 #endif
 
 #if defined WATT_METER_NODE
@@ -194,10 +209,14 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define PH3_NODE_ID 16
 #define PH1_NODE_ID 17
 
+#define STANDBY_MODE 0
+#define DUSKLIGHT_MODE 1
+
 #define RELAY_ID 1
 #define CURR_MODE_ID 2
 #define BORE_ON_RELAY_ID 2
 #define BORE_OFF_RELAY_ID 3
+
 
 char ssid[] = "NAGU";          //  your network SSID (name) 
 char pass[] = "4ever.Nagu";   // your network password
@@ -227,7 +246,7 @@ char pass[] = "4ever.Nagu";   // your network password
 #endif
 
 #if defined NODE_INTERACTS_WITH_LCD
-#define LCD_NODE_ID 10
+#define LCD_NODE_ID 11
 #endif
 
 #if defined KEYPAD_1R_2C

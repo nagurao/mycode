@@ -87,7 +87,7 @@
 
 #define THINGSPEAK_INTERVAL 20
 #define DEFAULT_CHANNEL_VALUE -99.00
-#define DEFAULT_CHANNEL_VALUE_INT -99
+#define DEFAULT_CHANNEL_VALUE_INT 0
 
 #define SEND_WATER_LEVEL_DATA 0
 #define SEND_POWER_CUMMLATIVE_DATA 1
@@ -96,7 +96,7 @@
 #define SEND_VOLTAGE_DATA 4
 #define READ_AND_PROCESS_DATA 5
 
-#define TYPES_OF_DATA 6
+#define TYPES_OF_DATA 5
 
 #define FIELDS_PER_CHANNEL 8
 byte currentDataToSend;
@@ -139,10 +139,11 @@ boolean incomingDataFound;
 
 AlarmId heartbeatTimer;
 AlarmId thingspeakTimer;
+AlarmId incomingThingspeakTimer;
 
-MyMessage lightNodeMessage;
+MyMessage lightNodeMessage(CURR_MODE_ID, V_VAR1);
 MyMessage borewellNodeMessage;
-MyMessage sumpMotorMessage;
+MyMessage sumpMotorMessage(RELAY_ID, V_STATUS);
 
 void before()
 {
@@ -154,6 +155,8 @@ void setup()
 {
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	thingspeakTimer = Alarm.timerRepeat(THINGSPEAK_INTERVAL, processThingspeakData);
+	incomingThingspeakTimer = Alarm.timerRepeat(2*ONE_MINUTE, processIncomingData);
+
 	for (byte channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
 		waterLevelChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
@@ -245,7 +248,7 @@ void receive(const MyMessage &message)
 			switch (message.sensor)
 			{
 			case CURR_WATT_ID:
-				powerRealtimeChannelData[PH1_CURR_WATT_FIELD] = message.getFloat();
+				powerRealtimeChannelData[PH1_CURR_WATT_IDX] = message.getFloat();
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
 				powerCumulativeChannelData[PH1_HOURLY_IDX] = message.getFloat();
@@ -257,7 +260,7 @@ void receive(const MyMessage &message)
 				powerCumulativeChannelData[PH1_MONTHLY_IDX] = message.getFloat();
 				break;
 			case DELTA_WATT_CONSUMPTION_ID:
-				powerRealtimeChannelData[PH3_PH1_REAL_TIME_DELTA_FIELD] = message.getFloat();
+				powerRealtimeChannelData[PH3_PH1_REAL_TIME_DELTA_IDX] = message.getFloat();
 				break;
 			}
 			break;
@@ -426,71 +429,93 @@ void processThingspeakData()
 			}
 		}
 		break;
-	case READ_AND_PROCESS_DATA:
-		incomingDataFound = false;
-		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-		{
-			incomingChannelData[channelId] = ThingSpeak.readIntField(incomingChannelNumber, channelId + 1, incomingReadAPIKey);
-			if (ThingSpeak.getLastReadStatus() != OK_SUCCESS)
-				incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
-			if (ThingSpeak.getLastReadStatus() == OK_SUCCESS && (incomingChannelData[channelId] <= 0 || incomingChannelData[channelId] > 2))
-				incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
-		}
-		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-		{
-			if(incomingChannelData[channelId] != DEFAULT_CHANNEL_VALUE_INT)
-			{
-				incomingDataFound = true;
-				switch (channelId)
-				{
-				case IN_BALCONY_LIGHT_OPER_MODE_IDX:
-					lightNodeMessage.setDestination(BALCONYLIGHT_NODE_ID);
-					lightNodeMessage.setSensor(CURR_MODE_ID);
-					lightNodeMessage.setType(V_VAR1);
-					lightNodeMessage.set((incomingChannelData[channelId] == 1) ? RELAY_ON : RELAY_OFF);
-					send(lightNodeMessage);
-					break;
-				case IN_GATE_LIGHT_OPER_MODE_IDX:
-					lightNodeMessage.setDestination(GATELIGHT_NODE_ID);
-					lightNodeMessage.setSensor(CURR_MODE_ID);
-					lightNodeMessage.setType(V_VAR1);
-					lightNodeMessage.set((incomingChannelData[channelId] == 1) ? RELAY_ON : RELAY_OFF);
-					send(lightNodeMessage);
-					break;
-				case IN_BOREWELL_ON_IDX:
-					if (incomingChannelData[channelId] == 1)
-					{
-						borewellNodeMessage.setDestination(BOREWELL_NODE_ID);
-						borewellNodeMessage.setSensor(BORE_ON_RELAY_ID);
-						borewellNodeMessage.setType(V_STATUS);
-						borewellNodeMessage.set(RELAY_ON);
-						send(borewellNodeMessage);
-					}
-					break;
-				case IN_BOREWELL_OFF_IDX:
-					if (incomingChannelData[channelId] == 1)
-					{
-						borewellNodeMessage.setDestination(BOREWELL_NODE_ID);
-						borewellNodeMessage.setSensor(BORE_OFF_RELAY_ID);
-						borewellNodeMessage.setType(V_STATUS);
-						borewellNodeMessage.set(RELAY_ON);
-						send(borewellNodeMessage);
-					}
-					break;
-				case IN_SUMP_MOTOR_IDX:
-					sumpMotorMessage.setDestination(SUMP_MOTOR_NODE_ID);
-					sumpMotorMessage.setSensor(RELAY_ID);
-					sumpMotorMessage.setType(V_STATUS);
-					sumpMotorMessage.set((incomingChannelData[channelId] == 1) ? RELAY_ON : RELAY_OFF);
-					send(sumpMotorMessage);
-					break;
-				}
-				ThingSpeak.setField(channelId + 1, DEFAULT_CHANNEL_VALUE_INT);
-			}
-		}
-		if(incomingDataFound)
-			ThingSpeak.writeFields(incomingChannelNumber, incomingWriteAPIKey);
-		break;
 	}
 	currentDataToSend = (currentDataToSend + 1) % TYPES_OF_DATA;
+}
+
+void processIncomingData()
+{
+	byte channelId;
+	int valueToSend = 0;
+	incomingDataFound = false;
+	for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+	{
+		incomingChannelData[channelId] = (int)ThingSpeak.readIntField(incomingChannelNumber, channelId + 1, incomingReadAPIKey);
+		if (ThingSpeak.getLastReadStatus() != OK_SUCCESS)
+			incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
+		if (ThingSpeak.getLastReadStatus() == OK_SUCCESS && (incomingChannelData[channelId] <= 0 ))// || incomingChannelData[channelId] > 2))
+			incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
+		if (isDigit(incomingChannelData[channelId]))
+		{
+			incomingChannelData[channelId] = incomingChannelData[channelId] - '0';
+			if(incomingChannelData[channelId] > 2)
+				incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
+		}
+	}
+
+	for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+	{
+		if (incomingChannelData[channelId] != DEFAULT_CHANNEL_VALUE_INT)
+		{
+			boolean inVal = incomingChannelData[channelId];
+			incomingDataFound = true;
+			switch (channelId)
+			{
+			case IN_BALCONY_LIGHT_OPER_MODE_IDX:
+				lightNodeMessage.setDestination(BALCONYLIGHT_NODE_ID);
+				lightNodeMessage.setSensor(CURR_MODE_ID);
+				lightNodeMessage.setType(V_VAR1);
+				switch (incomingChannelData[channelId])
+				{
+				case 1:
+					lightNodeMessage.set(STANDBY_MODE);
+					send(lightNodeMessage);
+					break;
+				case 2:
+					lightNodeMessage.set(DUSKLIGHT_MODE);
+					send(lightNodeMessage);
+					break;
+				}
+				//lightNodeMessage.set((incomingChannelData[channelId] == 1) ? RELAY_ON : RELAY_OFF);
+				//send(lightNodeMessage);
+				break;
+			case IN_GATE_LIGHT_OPER_MODE_IDX:
+				lightNodeMessage.setDestination(GATELIGHT_NODE_ID);
+				lightNodeMessage.setSensor(CURR_MODE_ID);
+				lightNodeMessage.setType(V_VAR1);
+				lightNodeMessage.set((incomingChannelData[channelId] == 1) ? RELAY_ON : RELAY_OFF);
+				send(lightNodeMessage);
+				break;
+			case IN_BOREWELL_ON_IDX:
+				if (incomingChannelData[channelId] == 1)
+				{
+					borewellNodeMessage.setDestination(BOREWELL_NODE_ID);
+					borewellNodeMessage.setSensor(BORE_ON_RELAY_ID);
+					borewellNodeMessage.setType(V_STATUS);
+					borewellNodeMessage.set(RELAY_ON);
+					send(borewellNodeMessage);
+				}
+				break;
+			case IN_BOREWELL_OFF_IDX:
+				if (incomingChannelData[channelId] == 1)
+				{
+					borewellNodeMessage.setDestination(BOREWELL_NODE_ID);
+					borewellNodeMessage.setSensor(BORE_OFF_RELAY_ID);
+					borewellNodeMessage.setType(V_STATUS);
+					borewellNodeMessage.set(RELAY_ON);
+					send(borewellNodeMessage);
+				}
+				break;
+			case IN_SUMP_MOTOR_IDX:
+				sumpMotorMessage.setDestination(SUMP_MOTOR_NODE_ID);
+				sumpMotorMessage.setSensor(RELAY_ID);
+				sumpMotorMessage.set((incomingChannelData[channelId] == 1) ? (byte)RELAY_ON : (byte)RELAY_OFF);
+				send(sumpMotorMessage);
+				break;
+			}
+			ThingSpeak.setField(channelId + 1, DEFAULT_CHANNEL_VALUE_INT);
+		}
+	}
+	if (incomingDataFound)
+		ThingSpeak.writeFields(incomingChannelNumber, incomingWriteAPIKey);
 }
