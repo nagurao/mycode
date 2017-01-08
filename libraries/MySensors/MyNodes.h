@@ -24,7 +24,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 6 - Tank 03
 7 - Borewell Motor
 8 - Sump Motor
-9 - Sump Tank Motor
+9 - Tap Motor
 10 - Balcony Repeater 
 11 - LCD
 12 - Battery Voltage

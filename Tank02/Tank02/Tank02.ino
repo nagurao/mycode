@@ -118,6 +118,7 @@ void receive(const MyMessage &message)
 			Alarm.free(waterLowLevelRequestTimer);
 			sendWaterLowLevelRequest = false;
 			request(WATER_LOW_LEVEL_IND_ID, V_VAR1);
+			getWaterLevel();
 		}
 		break;
 	case V_VAR2:
@@ -146,6 +147,13 @@ void getWaterLevel()
 		currWaterLevelValueDec = currWaterLevelValueDec + power;
 		Alarm.delay(WAIT_5MS);
 	}
+
+	if (sensorArray[waterOverFlowLevelIndex] == LOW)
+		send(highLevelTankMessage.set(HIGH_LEVEL));
+	else
+		send(highLevelTankMessage.set(NOT_HIGH_LEVEL));
+
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 
 	switch (currWaterLevelValueDec)
 	{
@@ -178,13 +186,6 @@ void getWaterLevel()
 		currWaterLevelValue = LEVEL_0;
 		break;
 	}
-
-	if (sensorArray[waterOverFlowLevelIndex] == LOW)
-		send(highLevelTankMessage.set(HIGH_LEVEL));
-	else
-		send(highLevelTankMessage.set(NOT_HIGH_LEVEL));
-	
-	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 
 	if (sensorArray[waterLowLevelIndex] == HIGH)
 		send(lowLevelTankMessage.set(LOW_LEVEL));

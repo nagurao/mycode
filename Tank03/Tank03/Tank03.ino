@@ -35,9 +35,11 @@ byte waterOverFlowLevelIndex;
 byte waterLowLevelIndex;
 byte waterLowLevelInPercent;
 byte waterLowLevelRequestCount;
+
 boolean waterLowLevelReceived;
 boolean sendWaterLowLevelRequest;
 boolean isHourlyUpdate;
+boolean risingTimerSet;
 boolean sumpMotorOn;
 boolean tapMotorOn;
 
@@ -69,6 +71,7 @@ void setup()
 	sendWaterLowLevelRequest = true;
 	sumpMotorOn = false;
 	tapMotorOn = false;
+	risingTimerSet = false;
 	isHourlyUpdate = false;
 
 	lcdWaterLevelMessage.setDestination(LCD_NODE_ID);
@@ -126,15 +129,16 @@ void receive(const MyMessage &message)
 			Alarm.free(waterLowLevelRequestTimer);
 			sendWaterLowLevelRequest = false;
 			request(WATER_LOW_LEVEL_IND_ID, V_VAR1);
+			getWaterLevel();
 		}
 		break;
 	case V_VAR2:
-		if ((!sumpMotorOn || !tapMotorOn) && message.getInt())
+		if (!risingTimerSet && message.getInt())
 		{
 			Alarm.disable(waterDefaultLevelTimer);
 			Alarm.enable(waterLevelRisingTimer);
+			risingTimerSet = true;
 		}
-
 		switch (message.sender)
 		{
 		case SUMP_MOTOR_NODE_ID:
@@ -155,6 +159,7 @@ void receive(const MyMessage &message)
 		{
 			Alarm.enable(waterDefaultLevelTimer);
 			Alarm.disable(waterLevelRisingTimer);
+			risingTimerSet = false;
 		}
 		break;
 	}
@@ -171,6 +176,13 @@ void getWaterLevel()
 		currWaterLevelValueDec = currWaterLevelValueDec + power;
 		Alarm.delay(WAIT_5MS);
 	}
+
+	if (sensorArray[waterOverFlowLevelIndex] == LOW)
+		send(highLevelTankMessage.set(HIGH_LEVEL));
+	else
+		send(highLevelTankMessage.set(NOT_HIGH_LEVEL));
+
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 
 	switch (currWaterLevelValueDec)
 	{
@@ -203,13 +215,6 @@ void getWaterLevel()
 		currWaterLevelValue = LEVEL_0;
 		break;
 	}
-
-	if (sensorArray[waterOverFlowLevelIndex] == LOW)
-		send(highLevelTankMessage.set(HIGH_LEVEL));
-	else
-		send(highLevelTankMessage.set(NOT_HIGH_LEVEL));
-
-	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 
 	if (sensorArray[waterLowLevelIndex] == HIGH)
 		send(lowLevelTankMessage.set(LOW_LEVEL));

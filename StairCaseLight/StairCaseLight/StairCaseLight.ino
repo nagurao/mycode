@@ -6,7 +6,6 @@
 #define LIGHT_NODE
 
 #define MY_RADIO_NRF24
-#define MY_REPEATER_FEATURE
 #define MY_NODE_ID STAIRCASE_LIGHT_NODE_ID
 #define MY_DEBUG 
 
@@ -15,7 +14,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Staircase Light"
-#define APPLICATION_VERSION "13Dec2016"
+#define APPLICATION_VERSION "02Jan2017"
 
 boolean lightStatusReceived;
 boolean sendLightStatusRequest;

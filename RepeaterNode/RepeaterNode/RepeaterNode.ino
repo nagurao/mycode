@@ -15,8 +15,8 @@
 #define MY_WITH_LEDS_BLINKING_INVERSE
 
 #define MY_DEFAULT_ERR_LED_PIN 4  
-#define MY_DEFAULT_RX_LED_PIN  6  
-#define MY_DEFAULT_TX_LED_PIN  5  
+#define MY_DEFAULT_RX_LED_PIN  5  
+#define MY_DEFAULT_TX_LED_PIN  6  
 
 #include <MyNodes.h>
 #include <MySensors.h>

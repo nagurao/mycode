@@ -11,23 +11,22 @@
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID WATER_MOTOR_NODE_ID
+#define MY_NODE_ID TAP_MOTOR_NODE_ID
 #define MY_DEBUG 
 
 #include <MyNodes.h>
 #include <MySensors.h>
 #include <MyConfig.h>
 
-#define APPLICATION_NAME "Water Motor"
+#define APPLICATION_NAME "Tap Motor"
 #define APPLICATION_VERSION "13Dec2016"
 
 AlarmId heartbeatTimer;
 boolean tank02AndTank03HighLevel;
-boolean delayStartSet;
 boolean motorOn;
 byte motorDelayCheckCount;
 
-MyMessage waterMotorRelayMessage(RELAY_ID, V_STATUS);
+MyMessage tapMotorRelayMessage(RELAY_ID, V_STATUS);
 MyMessage sumpMotorMessage(RELAY_ID, V_STATUS);
 MyMessage pollTimerMessage;
 Keypad keypad = Keypad(makeKeymap(keys), rowsPins, colsPins, ROWS, COLS);
@@ -46,7 +45,7 @@ void setup()
 	digitalWrite(RELAY_PIN, LOW);
 	digitalWrite(MOTOR_STATUS_PIN, LOW);
 	tank02AndTank03HighLevel = false;
-	delayStartSet = false;
+	pollTimerMessage.setType(V_VAR2);
 	sumpMotorMessage.setDestination(SUMP_MOTOR_NODE_ID);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
@@ -54,9 +53,9 @@ void setup()
 void presentation()
 {
 	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
-	present(RELAY_ID, S_BINARY, "Water Motor Relay");
+	present(RELAY_ID, S_BINARY, "Tap Motor Relay");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-	send(waterMotorRelayMessage.set(RELAY_OFF));
+	send(tapMotorRelayMessage.set(RELAY_OFF));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
 
@@ -83,8 +82,11 @@ void receive(const MyMessage &message)
 			break;
 		}
 		break;
-	case V_VAR2:
+	case V_VAR3:
 		tank02AndTank03HighLevel = message.getInt();
+
+		if (tank02AndTank03HighLevel && motorOn)
+			turnOffMotor();
 		break;
 	}
 }
@@ -92,7 +94,7 @@ void receive(const MyMessage &message)
 void turnOnMotor()
 {
 	digitalWrite(RELAY_PIN, RELAY_ON);
-	send(waterMotorRelayMessage.set(RELAY_ON));
+	send(tapMotorRelayMessage.set(RELAY_ON));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	digitalWrite(MOTOR_STATUS_PIN, RELAY_ON);
 	motorOn = true;
@@ -106,7 +108,7 @@ void turnOnMotor()
 void turnOffMotor()
 {
 	digitalWrite(RELAY_PIN, RELAY_OFF);
-	send(waterMotorRelayMessage.set(RELAY_OFF));
+	send(tapMotorRelayMessage.set(RELAY_OFF));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	digitalWrite(MOTOR_STATUS_PIN, RELAY_OFF);
 	motorOn = false;

@@ -57,7 +57,8 @@ void setup()
 	currentWaterLevel = 0;
 	dryRunInitWaterLevel = 0;
 
-	digitalWrite(BORE_ON_RELAY_PIN, LOW);
+	digitalWrite(BORE_ON_RELAY_1_PIN, LOW);
+	digitalWrite(BORE_ON_RELAY_2_PIN, LOW);
 	digitalWrite(BORE_OFF_RELAY_PIN, LOW);
 	digitalWrite(MOTOR_STATUS_PIN, LOW);
 
@@ -142,7 +143,8 @@ void receive(const MyMessage &message)
 
 void turnOnBorewell()
 {
-	digitalWrite(BORE_ON_RELAY_PIN, RELAY_ON);
+	digitalWrite(BORE_ON_RELAY_1_PIN, RELAY_ON);
+	digitalWrite(BORE_ON_RELAY_2_PIN, RELAY_ON);
 	send(borewellMotorOnRelayMessage.set(RELAY_ON));
 	Alarm.timerOnce(RELAY_TRIGGER_INTERVAL, toggleOnRelay);
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
@@ -150,7 +152,8 @@ void turnOnBorewell()
 
 void toggleOnRelay()
 {
-	digitalWrite(BORE_ON_RELAY_PIN, RELAY_OFF);
+	digitalWrite(BORE_ON_RELAY_1_PIN, RELAY_OFF);
+	digitalWrite(BORE_ON_RELAY_2_PIN, RELAY_OFF);
 	send(borewellMotorOnRelayMessage.set(RELAY_OFF));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	send(borewellMotorMessage.set(RELAY_ON));

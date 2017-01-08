@@ -447,7 +447,7 @@ void processIncomingData()
 			incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
 		if (isDigit(incomingChannelData[channelId]))
 		{
-			incomingChannelData[channelId] = incomingChannelData[channelId] - '0';
+			incomingChannelData[channelId] = incomingChannelData[channelId] + '0';
 			if(incomingChannelData[channelId] > 2)
 				incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
 		}
@@ -476,8 +476,6 @@ void processIncomingData()
 					send(lightNodeMessage);
 					break;
 				}
-				//lightNodeMessage.set((incomingChannelData[channelId] == 1) ? RELAY_ON : RELAY_OFF);
-				//send(lightNodeMessage);
 				break;
 			case IN_GATE_LIGHT_OPER_MODE_IDX:
 				lightNodeMessage.setDestination(GATELIGHT_NODE_ID);

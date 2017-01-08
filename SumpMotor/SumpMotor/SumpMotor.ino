@@ -61,7 +61,7 @@ void setup()
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 
-	tank02And03WaterHighLevelMessage.setDestination(WATER_MOTOR_NODE_ID);
+	tank02And03WaterHighLevelMessage.setDestination(TAP_MOTOR_NODE_ID);
 	tank02And03WaterHighLevelMessage.setType(V_VAR3);
 	tank02And03WaterHighLevelMessage.setSensor(CURR_WATER_LEVEL_ID);
 	pollTimerMessage.setType(V_VAR2);
@@ -89,18 +89,18 @@ void loop()
 void receive(const MyMessage &message)
 {
 	byte incomingValue;
-	switch (message.sender)
-	{
-	case THINGSPEAK_NODE_ID:
-		incomingValue = message.getBool();
-		break;
-	default:
-		incomingValue = message.getInt();
-		break;
-	}
 	switch (message.type) 
 	{
 	case V_STATUS:
+		switch (message.sender)
+		{
+		case THINGSPEAK_NODE_ID:
+			incomingValue = message.getBool();
+			break;
+		default:
+			incomingValue = message.getInt();
+			break;
+		}
 		switch (incomingValue)
 		{
 		case RELAY_ON:
@@ -153,6 +153,8 @@ void receive(const MyMessage &message)
 			break;
 		}
 
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+
 		if(!tank02HighLevel && tank03HighLevel && !sumpMotorOn)
 			turnOnSumpMotor();
 
@@ -163,6 +165,9 @@ void receive(const MyMessage &message)
 			send(tank02And03WaterHighLevelMessage.set(HIGH_LEVEL));
 		else
 			send(tank02And03WaterHighLevelMessage.set(NOT_HIGH_LEVEL));
+		
+		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+
 		break;
 	}
 }
