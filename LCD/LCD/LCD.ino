@@ -5,12 +5,13 @@
 #include <SPI.h>
 
 #define LCD_NODE
+#define NODE_INTERACTS_WITH_WIFI_AND_LCD
 #define NODE_WITH_ON_OFF_FEATURE
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
 #define MY_NODE_ID LCD_NODE_ID
-#define MY_DEBUG
+//#define MY_DEBUG
 
 #include <MyNodes.h>
 #include <MySensors.h>
@@ -20,13 +21,14 @@
 
 AlarmId heartbeatTimer;
 AlarmId backlightTimer;
-AlarmId currWattTimer;
 
 LCD_I2C lcd(LCD_I2C_ADDR, LCD_COLUMNS, LCD_ROWS);
 
-uint8_t phi[8] = {0x4,0x4,0xe,0x15,0x15,0xe,0x4,0x4};
-uint8_t delta[8] = {0x0,0x4,0xe,0x1b,0x11,0x11,0x1f,0x0};
-
+uint8_t phi[8] = {0x4,0x4,0xE,0x15,0x15,0xE,0x4,0x4};
+uint8_t delta[8] = {0x0,0x4,0xE,0x1B,0x11,0x11,0x1F,0x0};
+uint8_t inverterIn[8] = { 0x04,0x04,0x04,0x04,0x04,0x15,0x0E,0x04 };
+uint8_t inverterOut[8] = { 0x04,0x0E,0x15,0x04,0x04,0x04,0x04,0x04 };
+uint8_t inverterDelta[8] = { 0x04,0x0E,0x15,0x04,0x04,0x15,0x0E,0x04 };
 boolean lcdBackLightFlag;
 byte lcdBackLightFlagRequestCount;
 boolean sendBackLightFlagRequest;
@@ -38,25 +40,38 @@ void before()
 {
 	lcd.begin();
 	lcd.home();
-	lcd.createChar(0, phi);
-	lcd.createChar(1, delta);
-	printLCDVal(0, ROW_1, "TANK1:",true);
+    lcd.createChar(1, inverterIn);
+	lcd.createChar(2, inverterOut);
+	lcd.createChar(3, inverterDelta);
+	lcd.createChar(4, delta);
+	lcd.createChar(5, phi);
+	/*printLCDVal(0, ROW_1, "TANK1:",true);
 	printLCDVal(0, ROW_2, "TANK2:",true);
-	printLCDVal(0, ROW_3, "TANK3:", true);
-	lcd.setCursor(0, ROW_4);
+	printLCDVal(0, ROW_3, "TANK3:", true);*/
+	lcd.setCursor(0, ROW_1);
 	lcd.write(1);
+	printLCDVal(1, ROW_1, ":", true);
+	lcd.setCursor(0, ROW_2);
+	lcd.write(2);
+	printLCDVal(1, ROW_2, ":", true);
+	lcd.setCursor(0, ROW_3);
+	lcd.write(3);
+	printLCDVal(1, ROW_3, ":", true);
+	lcd.setCursor(0, ROW_4);
+	lcd.write(4);
 	printLCDVal(1, ROW_4, ":", true);
+
 	printLCDVal(9, ROW_1, "|SOL:",true);
 	printLCDVal(19, ROW_1, "V", true);
 	printLCDVal(9, ROW_2, "|BAT:", true);
 	printLCDVal(19, ROW_2, "V", true);
 	printLCDVal(9, ROW_3, "|3",true);
 	lcd.setCursor(11, ROW_3);
-	lcd.write(0);
+	lcd.write(5);
 	printLCDVal(12, ROW_3, ":", true);
 	printLCDVal(9, ROW_4, "|1", true);
 	lcd.setCursor(11, ROW_4);
-	lcd.write(0);
+	lcd.write(5);
 	printLCDVal(12, ROW_4, ":", true);
 }
 
@@ -66,7 +81,6 @@ void setup()
 	lcdBackLightFlagRequestCount = 0;
 	lcdBackLightFlagReceived = false;
 	sendBackLightFlagRequest = true;
-	//currWattTimer = Alarm.timerRepeat(ONE_MINUTE, requestCurrentConsumption);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
@@ -104,13 +118,13 @@ void receive(const MyMessage &message)
 	case V_WATT:
 		currWatt = message.getFloat();
 		ftoa(currWatt, dispValue, 4, 2);
-		switch (message.sender)
+		switch (message.sensor)
 		{
-		case PH3_NODE_ID:
+		case PH3_CURR_WATT_ID:
 			column = 13;
 			row = ROW_3;
 			break;
-		case PH1_NODE_ID:
+		case PH1_CURR_WATT_ID:
 			column = 13;
 			row = ROW_4;
 			break;
@@ -123,8 +137,14 @@ void receive(const MyMessage &message)
 	case V_KWH:
 		currWatt = message.getFloat();
 		ftoa(currWatt, dispValue, 4, 2);
-		column = 2;
-		row = ROW_4;
+		switch (message.sensor)
+		{
+		case PH3_PH1_DELTA_ID:
+			column = 2;
+			row = ROW_4;
+			break;
+		}
+		
 		lcd.backlight();
 		for (byte index = 0; index < 7; index++, column++)
 			printLCDVal(column, row, dispValue[index], true);
@@ -192,12 +212,6 @@ void receive(const MyMessage &message)
 	}
 }
 
-void requestCurrentConsumption()
-{
-	request(CURR_WATT_ID, V_WATT, PH3_NODE_ID);
-	wait(WAIT_AFTER_SEND_MESSAGE);
-	request(CURR_WATT_ID, V_WATT, PH1_NODE_ID);
-}
 void checkBackLightFlagRequestStatus()
 {
 	if (!lcdBackLightFlagReceived)

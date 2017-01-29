@@ -11,6 +11,7 @@
 #define WATT_METER_NODE
 #define SOLAR_BATT_VOLTAGE_NODE
 #define NODE_INTERACTS_WITH_RELAY
+#define NODE_INTERACTS_WITH_WIFI_AND_LCD
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
@@ -22,7 +23,6 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Thingspeak Node"
-//#define APPLICATION_VERSION "13Dec2016"
 
 //water level logging channel
 #define TANK_01_FIELD 1
@@ -181,7 +181,7 @@ AlarmId incomingThingspeakTimer;
 MyMessage lightNodeMessage(CURR_MODE_ID, V_VAR1);
 MyMessage borewellNodeMessage;
 MyMessage sumpMotorMessage(RELAY_ID, V_STATUS);
-
+MyMessage lcdNodeMessage;
 void before()
 {
 	WiFi.begin(ssid, pass);
@@ -207,6 +207,7 @@ void setup()
 	}
 	currentDataToSend = SEND_POWER_CUMMLATIVE_DATA;
 	incomingDataFound = false;
+	lcdNodeMessage.setDestination(LCD_NODE_ID);
 }
 
 void presentation()
@@ -255,9 +256,19 @@ void receive(const MyMessage &message)
 			{
 			case BATTERY_VOLTAGE_ID:
 				voltageChannelData[BATTERY_VOLT_IDX] = message.getFloat();
+				lcdNodeMessage.setSensor(BATTERY_VOLTAGE_ID);
+				lcdNodeMessage.setType(V_VOLTAGE);
+				lcdNodeMessage.set(voltageChannelData[BATTERY_VOLT_IDX], 2);
+				send(lcdNodeMessage);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case SOLAR_VOLTAGE_ID:
 				voltageChannelData[SOLAR_VOLT_IDX] = message.getFloat();
+				lcdNodeMessage.setSensor(SOLAR_VOLTAGE_ID);
+				lcdNodeMessage.setType(V_VOLTAGE);
+				lcdNodeMessage.set(voltageChannelData[SOLAR_VOLT_IDX], 2);
+				send(lcdNodeMessage);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			}
 			break;
@@ -267,19 +278,24 @@ void receive(const MyMessage &message)
 			switch (message.sensor)
 			{
 			case CURR_WATT_ID:
-				powerRealtimeChannelData[INV_IN_CURR_WATT_IDX] = message.getFloat();
+				inverterRealtimeChannelData[INV_IN_CURR_WATT_IDX] = message.getFloat();
+				lcdNodeMessage.setSensor(INV_IN_CURR_WATT_ID);
+				lcdNodeMessage.setType(V_WATT);
+				lcdNodeMessage.set(inverterRealtimeChannelData[INV_IN_CURR_WATT_IDX],2);
+				send(lcdNodeMessage);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[INV_IN_HOURLY_IDX] = message.getFloat();
+				inverterCumulativeChannelData[INV_IN_HOURLY_IDX] = message.getFloat();
 				break;
 			case DAILY_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[INV_IN_DAILY_IDX] = message.getFloat();
+				inverterCumulativeChannelData[INV_IN_DAILY_IDX] = message.getFloat();
 				break;
 			case MONTHLY_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[INV_IN_MONTHLY_IDX] = message.getFloat();
+				inverterCumulativeChannelData[INV_IN_MONTHLY_IDX] = message.getFloat();
 				break;
 			case DELTA_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[INV_IN_OUT_DELTA_DAILY_IDX] = message.getFloat();
+				inverterCumulativeChannelData[INV_IN_OUT_DELTA_DAILY_IDX] = message.getFloat();
 				break;
 			}
 			break;
@@ -287,19 +303,29 @@ void receive(const MyMessage &message)
 			switch (message.sensor)
 			{
 			case CURR_WATT_ID:
-				powerRealtimeChannelData[INV_OUT_CURR_WATT_IDX] = message.getFloat();
+				inverterRealtimeChannelData[INV_OUT_CURR_WATT_IDX] = message.getFloat();
+				lcdNodeMessage.setSensor(INV_OUT_CURR_WATT_ID);
+				lcdNodeMessage.setType(V_WATT);
+				lcdNodeMessage.set(inverterRealtimeChannelData[INV_OUT_CURR_WATT_IDX], 2);
+				send(lcdNodeMessage);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[INV_OUT_HOURLY_IDX] = message.getFloat();
+				inverterCumulativeChannelData[INV_OUT_HOURLY_IDX] = message.getFloat();
 				break;
 			case DAILY_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[INV_OUT_DAILY_IDX] = message.getFloat();
+				inverterCumulativeChannelData[INV_OUT_DAILY_IDX] = message.getFloat();
 				break;
 			case MONTHLY_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[INV_OUT_MONTHLY_IDX] = message.getFloat();
+				inverterCumulativeChannelData[INV_OUT_MONTHLY_IDX] = message.getFloat();
 				break;
 			case DELTA_WATT_CONSUMPTION_ID:
-				powerRealtimeChannelData[INV_IN_OUT_REAL_TIME_DELTA_IDX] = message.getFloat();
+				inverterRealtimeChannelData[INV_IN_OUT_REAL_TIME_DELTA_IDX] = message.getFloat();
+				lcdNodeMessage.setSensor(INV_IN_OUT_DELTA_ID);
+				lcdNodeMessage.setType(V_KWH);
+				lcdNodeMessage.set(inverterRealtimeChannelData[INV_IN_OUT_REAL_TIME_DELTA_IDX], 2);
+				send(lcdNodeMessage);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			}
 			break;
@@ -308,6 +334,11 @@ void receive(const MyMessage &message)
 			{
 			case CURR_WATT_ID:
 				powerRealtimeChannelData[PH3_CURR_WATT_IDX] = message.getFloat();
+				lcdNodeMessage.setSensor(PH3_CURR_WATT_ID);
+				lcdNodeMessage.setType(V_WATT);
+				lcdNodeMessage.set(powerRealtimeChannelData[PH3_CURR_WATT_IDX], 2);
+				send(lcdNodeMessage);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
 				powerCumulativeChannelData[PH3_HOURLY_IDX] = message.getFloat();
@@ -328,6 +359,11 @@ void receive(const MyMessage &message)
 			{
 			case CURR_WATT_ID:
 				powerRealtimeChannelData[PH1_CURR_WATT_IDX] = message.getFloat();
+				lcdNodeMessage.setSensor(PH1_CURR_WATT_ID);
+				lcdNodeMessage.setType(V_WATT);
+				lcdNodeMessage.set(powerRealtimeChannelData[PH1_CURR_WATT_IDX], 2);
+				send(lcdNodeMessage);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
 				powerCumulativeChannelData[PH1_HOURLY_IDX] = message.getFloat();
@@ -340,6 +376,11 @@ void receive(const MyMessage &message)
 				break;
 			case DELTA_WATT_CONSUMPTION_ID:
 				powerRealtimeChannelData[PH3_PH1_REAL_TIME_DELTA_IDX] = message.getFloat();
+				lcdNodeMessage.setSensor(PH3_PH1_DELTA_ID);
+				lcdNodeMessage.setType(V_KWH);
+				lcdNodeMessage.set(powerRealtimeChannelData[PH3_PH1_REAL_TIME_DELTA_IDX], 2);
+				send(lcdNodeMessage);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			}
 			break;

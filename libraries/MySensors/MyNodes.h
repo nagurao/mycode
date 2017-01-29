@@ -225,6 +225,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define TANK_03_NODE_ID 6
 #define BOREWELL_NODE_ID 7
 #define SUMP_MOTOR_NODE_ID 8
+#define LCD_NODE_ID 11
 #define BATT_VOLTAGE_NODE_ID 12
 #define SOLAR_VOLTAGE_NODE_ID 13
 #define INV_IN_NODE_ID 16
@@ -240,12 +241,22 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define BORE_ON_RELAY_ID 2
 #define BORE_OFF_RELAY_ID 3
 
-
 char ssid[] = "NAGU";          //  your network SSID (name) 
 char pass[] = "4ever.Nagu";   // your network password
 
 #endif
 
+#if defined NODE_INTERACTS_WITH_WIFI_AND_LCD
+
+#define INV_IN_CURR_WATT_ID 1
+#define INV_OUT_CURR_WATT_ID 2
+#define PH3_CURR_WATT_ID 3
+#define PH1_CURR_WATT_ID 4
+#define INV_IN_OUT_DELTA_ID 5
+#define PH3_PH1_DELTA_ID 6
+
+
+#endif
 #if defined NODE_HAS_RELAY
 #define RELAY_ON 1
 #define RELAY_OFF 0
