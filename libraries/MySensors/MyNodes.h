@@ -10,6 +10,7 @@
 #define WAIT_50MS 50
 #define ONE_MINUTE 60
 #define FIVE_MINUTES 300
+#define HALF_HOUR 1800
 #define ONE_HOUR 3600
 #define REQUEST_INTERVAL 20
 #define HEARTBEAT_INTERVAL 600
@@ -25,13 +26,16 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 7 - Borewell Motor
 8 - Sump Motor
 9 - Tap Motor
-10 - Balcony Repeater 
+10 - Repeater Node 01
 11 - LCD
 12 - Battery Voltage
 13 - Solar Voltage
 14 - Controller
-15 - 3Phase Wattmeter
-16 - 1Phase Wattmeter
+15 - Repeater Node 02
+16 - Inverter In
+17 - Inverter Out
+18 - 3Phase Wattmeter
+19 - 1Phase Wattmeter
 254 - Wifi Node
 */
 
@@ -104,14 +108,23 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define DB_REPEATER_NODE_ID 15
 #endif
 
+#if defined STATUS_LEDS
+#define MY_DEFAULT_ERR_LED_PIN 4  
+#define MY_DEFAULT_RX_LED_PIN  5
+#define MY_DEFAULT_TX_LED_PIN  6
+#endif
+
 #if defined LCD_NODE
 
 #define LCD_NODE_ID 11
 #define BATT_VOLTAGE_NODE_ID 12
-#define PH3_NODE_ID 16
-#define PH1_NODE_ID 17
-#define BATTERY_VOLTAGE_ID 1
-#define SOLAR_VOLTAGE_ID 2
+#define INV_IN_NODE_ID 16
+#define INV_OUT_NODE_ID 17
+#define PH3_NODE_ID 18
+#define PH1_NODE_ID 19
+#define CURR_WATT_ID 1
+#define BATTERY_VOLTAGE_ID 4
+#define SOLAR_VOLTAGE_ID 5
 
 #define WATER_TANK_NODE_IDS
 
@@ -130,11 +143,16 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define BATT_VOLTAGE_NODE_ID 12
 #define SOLAR_VOLTAGE_NODE_ID 13
 
-#define BATTERY_VOLTAGE_ID 1
-#define SOLAR_VOLTAGE_ID 2
+#define R1_VALUE_ID 1
+#define R2_VALUE_ID 2
+#define SCALE_FACTOR_ID 3
+#define BATTERY_VOLTAGE_ID 4
+#define SOLAR_VOLTAGE_ID 5
 
 #define VOLTAGE_SENSE_PIN A0
-#define INPUT_VOLTAGE_PIN A1
+#define THRESHOLD_VOLTAGE_PIN A1
+
+
 
 #define UP 1
 
@@ -161,22 +179,25 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 #if defined WATT_METER_NODE
 
-#define PH3_NODE_ID 16
-#define PH1_NODE_ID 17
+#define INV_IN_NODE_ID 16
+#define INV_OUT_NODE_ID 17
+#define PH3_NODE_ID 18
+#define PH1_NODE_ID 19
 
 #define ZERO_PULSE 0
 #define ACCUMULATION_FREQUENCY_SECS 20
-#define MAX_WATT 10000
+#define MAX_WATT 6500
+#define MAX_WATT_INVERTER 2500
 
 #define CURR_WATT_ID 1
 #define HOURLY_WATT_CONSUMPTION_ID 2
 #define DAILY_WATT_CONSUMPTION_ID 3
 #define MONTHLY_WATT_CONSUMPTION_ID 4
 #define ACCUMULATED_WATT_CONSUMPTION_ID 5
-#define CURR_PULSE_COUNT_ID 6
-#define BLINKS_PER_KWH_ID 7
-#define RESET_TYPE_ID 8
-#define DELTA_WATT_CONSUMPTION_ID 9
+#define DELTA_WATT_CONSUMPTION_ID 6
+#define CURR_PULSE_COUNT_ID 7
+#define BLINKS_PER_KWH_ID 8
+#define RESET_TYPE_ID 9
 
 #define PULSE_SENSOR_PIN 3
 #define INTERRUPT_PULSE 1 // PULSE_SENSOR_PIN - 2
@@ -206,8 +227,10 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define SUMP_MOTOR_NODE_ID 8
 #define BATT_VOLTAGE_NODE_ID 12
 #define SOLAR_VOLTAGE_NODE_ID 13
-#define PH3_NODE_ID 16
-#define PH1_NODE_ID 17
+#define INV_IN_NODE_ID 16
+#define INV_OUT_NODE_ID 17
+#define PH3_NODE_ID 18
+#define PH1_NODE_ID 19
 
 #define STANDBY_MODE 0
 #define DUSKLIGHT_MODE 1

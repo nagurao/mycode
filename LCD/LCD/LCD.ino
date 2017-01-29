@@ -17,10 +17,10 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "LCD Node"
-#define APPLICATION_VERSION "13Dec2016"
 
 AlarmId heartbeatTimer;
 AlarmId backlightTimer;
+AlarmId currWattTimer;
 
 LCD_I2C lcd(LCD_I2C_ADDR, LCD_COLUMNS, LCD_ROWS);
 
@@ -66,12 +66,13 @@ void setup()
 	lcdBackLightFlagRequestCount = 0;
 	lcdBackLightFlagReceived = false;
 	sendBackLightFlagRequest = true;
+	//currWattTimer = Alarm.timerRepeat(ONE_MINUTE, requestCurrentConsumption);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
 void presentation()
 {
-	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
+	sendSketchInfo(APPLICATION_NAME, __DATE__);
 	present(LCD_BACKLIGHT_ID, S_BINARY, "LCD Backlit Light");
 }
 
@@ -134,13 +135,14 @@ void receive(const MyMessage &message)
 		ftoa(currVoltage, dispVoltValue, 2, 2);
 		switch (message.sensor)
 		{
+		case BATTERY_VOLTAGE_ID:
+			column = 14;
+			row = ROW_2;
+			break;
 		case SOLAR_VOLTAGE_ID:
 			column = 14;
 			row = ROW_1;
 			break;
-		case BATTERY_VOLTAGE_ID:
-			column = 14;
-			row = ROW_2;
 		}
 		lcd.backlight();
 		for (byte index = 0; index < 5; index++, column++)
@@ -190,6 +192,12 @@ void receive(const MyMessage &message)
 	}
 }
 
+void requestCurrentConsumption()
+{
+	request(CURR_WATT_ID, V_WATT, PH3_NODE_ID);
+	wait(WAIT_AFTER_SEND_MESSAGE);
+	request(CURR_WATT_ID, V_WATT, PH1_NODE_ID);
+}
 void checkBackLightFlagRequestStatus()
 {
 	if (!lcdBackLightFlagReceived)

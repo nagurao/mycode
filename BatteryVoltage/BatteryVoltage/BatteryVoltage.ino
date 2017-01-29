@@ -16,29 +16,43 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Battery Voltage"
-#define APPLICATION_VERSION "13Dec2016"
 
-#define DEFAULT_R1_VALUE 47.20F
+#define DEFAULT_R1_VALUE 47.70F
 #define DEFAULT_R2_VALUE 3.24F
 #define DEFAULT_VOLTS 0.00F
+#define DEFAULT_SCALE_FACTOR 0.28163F
 
 AlarmId heartbeatTimer;
 AlarmId getSolarVoltageTimer;
 AlarmId getBatteryVoltageTimer;
 AlarmId requestSolarVoltageTimer;
 AlarmId thingspeakMessageTimer;
+AlarmId requestTimer;
 
 byte solarNodeRequestCount;
 byte solarVoltageRequestCount;
 boolean solarNodeUp;
 boolean sendSolarVoltageRequest;
 boolean solarVoltageReceived;
+boolean sendR1Request;
+boolean sendR2Request;
+boolean sendScaleFactorRequest;
+boolean resistorR1Received;
+boolean resistorR2Received;
+boolean scaleFactorReceived;
+
+byte resistorR1RequestCount;
+byte resistorR2RequestCount;
+byte scaleFactorRequestCount;
 
 float voltsPerBit;
 float prevSolarVoltage;
 float solarVoltage;
 float prevBatteryVoltage;
 float batteryVoltage;
+float resistorR1Value;
+float resistorR2Value;
+float scaleFactor;
 
 MyMessage solarVoltageMessage(SOLAR_VOLTAGE_ID, V_VOLTAGE);
 MyMessage batteryVoltageMessage(BATTERY_VOLTAGE_ID, V_VOLTAGE);
@@ -48,10 +62,24 @@ MyMessage lcdVoltageMessage;
 void before()
 {
 	pinMode(VOLTAGE_SENSE_PIN, INPUT);
+	pinMode(THRESHOLD_VOLTAGE_PIN, INPUT);
 }
 
 void setup()
 {
+	resistorR1Value = DEFAULT_R1_VALUE;
+	resistorR2Value = DEFAULT_R2_VALUE;
+	scaleFactor = DEFAULT_SCALE_FACTOR;
+	sendR1Request = true;
+	sendR2Request = false;
+	sendScaleFactorRequest = false;
+	resistorR1Received = false;
+	resistorR2Received = false;
+	scaleFactorReceived = false;
+	resistorR1RequestCount = 0;
+	resistorR2RequestCount = 0;
+	scaleFactorRequestCount = 0;
+
 	solarVoltage = 0;
 	prevSolarVoltage = 0;
 	batteryVoltage = 0;
@@ -59,30 +87,76 @@ void setup()
 	solarNodeRequestCount = 0;
 	solarVoltageRequestCount = 0;
 	solarNodeUp = false;
-	sendSolarVoltageRequest = false;
+	sendSolarVoltageRequest = true;
 	solarVoltageReceived = false;
 
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	lcdVoltageMessage.setDestination(LCD_NODE_ID);
 	lcdVoltageMessage.setType(V_VOLTAGE);
 
-	getBatteryVoltageTimer = Alarm.timerRepeat(FIVE_MINUTES, getBatteryVoltage);
-	thingspeakMessageTimer = Alarm.timerRepeat(ONE_HOUR, sendThingspeakMessage);
+	thingspeakMessageTimer = Alarm.timerRepeat(HALF_HOUR, sendThingspeakMessage);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 
 }
 
 void presentation()
 {
-	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
-	present(SOLAR_VOLTAGE_ID, S_MULTIMETER, "Solar Voltage");
-	wait(WAIT_50MS);
+	sendSketchInfo(APPLICATION_NAME,__DATE__);
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(R1_VALUE_ID, S_CUSTOM, "R1 Value");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(R2_VALUE_ID, S_CUSTOM, "R2 Value"); 
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(SCALE_FACTOR_ID, S_CUSTOM, "Scale Factor");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(BATTERY_VOLTAGE_ID, S_MULTIMETER, "Battery Voltage");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(SOLAR_VOLTAGE_ID, S_MULTIMETER, "Solar Voltage");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	request(SOLAR_VOLTAGE_ID, V_VOLTAGE, SOLAR_VOLTAGE_NODE_ID);
 }
 
 void loop()
 {
-
+	if (sendR1Request)
+	{
+		sendR1Request = false;
+		request(R1_VALUE_ID, V_VAR1);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkR1RequestStatus);
+		resistorR1RequestCount++;
+		if (resistorR1RequestCount == 10)
+		{
+			MyMessage resistorR1ValueMessage(R1_VALUE_ID, V_VAR1);
+			send(resistorR1ValueMessage.set(DEFAULT_R1_VALUE,2));
+			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+		}
+	}
+	if (sendR2Request)
+	{
+		sendR2Request = false;
+		request(R2_VALUE_ID, V_VAR2);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkR2RequestStatus);
+		resistorR2RequestCount++;
+		if (resistorR2RequestCount == 10)
+		{
+			MyMessage resistorR2ValueMessage(R2_VALUE_ID, V_VAR2);
+			send(resistorR2ValueMessage.set(DEFAULT_R2_VALUE,2));
+			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+		}
+	}
+	if (sendScaleFactorRequest)
+	{
+		sendScaleFactorRequest = false;
+		request(SCALE_FACTOR_ID, V_VAR3);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkScaleFactorRequestStatus);
+		scaleFactorRequestCount++;
+		if (scaleFactorRequestCount == 10)
+		{
+			MyMessage scaleFactorMessage(SCALE_FACTOR_ID, V_VAR3);
+			send(scaleFactorMessage.set(DEFAULT_SCALE_FACTOR, 5));
+			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+		}
+	}
 	if (sendSolarVoltageRequest)
 	{
 		sendSolarVoltageRequest = false;
@@ -114,6 +188,38 @@ void receive(const MyMessage &message)
 	switch (message.type)
 	{
 	case V_VAR1:
+		resistorR1Value = message.getFloat();
+		if (!resistorR1Received)
+		{
+			resistorR1Received = true;
+			Alarm.free(requestTimer);
+			sendR1Request = false;
+			request(R1_VALUE_ID, V_VAR1);
+			sendR2Request = true;
+		}
+		break;
+	case V_VAR2:
+		resistorR2Value = message.getFloat();
+		if (!resistorR2Received)
+		{
+			resistorR2Received = true;
+			Alarm.free(requestTimer);
+			sendR2Request = false;
+			request(R2_VALUE_ID, V_VAR2);
+			sendScaleFactorRequest = true;
+		}
+		break;
+	case V_VAR3:
+		scaleFactor = message.getFloat();
+		if (!scaleFactorReceived)
+		{
+			scaleFactorReceived = true;
+			Alarm.free(requestTimer);
+			sendScaleFactorRequest = false;
+			request(SCALE_FACTOR_ID, V_VAR3);
+			getBatteryVoltageTimer = Alarm.timerRepeat(FIVE_MINUTES, getBatteryVoltage);
+		}
+	case V_VAR4:
 		if (message.getInt() == UP)
 		{
 			if (!solarNodeUp)
@@ -140,25 +246,26 @@ void receive(const MyMessage &message)
 
 void getBatteryVoltage()
 {
-	int sensedValue = 0;
-	int inputValue = 0;
-	int inputVolts = 0;
-	float sensedVolts = 0;
+	float sensedInputVoltage = 0;
+	float thresholdVoltage = 0;
 	for (byte readCount = 1; readCount <= 10; readCount++)
 	{
-		inputValue = inputValue + analogRead(VOLTAGE_SENSE_PIN);
+		thresholdVoltage = thresholdVoltage + analogRead(THRESHOLD_VOLTAGE_PIN);
 		Alarm.delay(WAIT_50MS);
-		inputVolts = inputVolts + analogRead(INPUT_VOLTAGE_PIN);
+		sensedInputVoltage = sensedInputVoltage + analogRead(VOLTAGE_SENSE_PIN);
 		Alarm.delay(WAIT_50MS);
 	}
+	thresholdVoltage = thresholdVoltage / 10;
+	thresholdVoltage = thresholdVoltage * 5.0 / 1024;
 
-	sensedValue = inputValue / 10;
-	sensedVolts = inputVolts / 10;
-
-	sensedVolts = sensedVolts * 5.0 / 1024;
-	voltsPerBit = ((sensedVolts * (DEFAULT_R1_VALUE + DEFAULT_R2_VALUE)) / (DEFAULT_R2_VALUE * 1024));
-	batteryVoltage = sensedValue * voltsPerBit;
+	voltsPerBit = ((thresholdVoltage * (resistorR1Value + resistorR2Value)) / (resistorR2Value * 1024));
 	
+	sensedInputVoltage = sensedInputVoltage / 10;
+	if (scaleFactor < 0.75)
+		batteryVoltage = (sensedInputVoltage * voltsPerBit) + scaleFactor;
+	else
+		batteryVoltage = (sensedInputVoltage * voltsPerBit) * scaleFactor;
+
 	if (prevBatteryVoltage != batteryVoltage)
 	{
 		send(batteryVoltageMessage.set(batteryVoltage, 5));
@@ -166,10 +273,7 @@ void getBatteryVoltage()
 		lcdVoltageMessage.setSensor(BATTERY_VOLTAGE_ID);
 		send(lcdVoltageMessage.set(batteryVoltage, 5));
 		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-		thingspeakMessage.setSensor(BATTERY_VOLTAGE_ID);
-		send(thingspeakMessage.set(batteryVoltage, 5));
-		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-		batteryVoltage = prevBatteryVoltage;
+		prevBatteryVoltage = batteryVoltage;
 	}
 }
 
@@ -194,10 +298,7 @@ void sendSolarVoltage ()
 		lcdVoltageMessage.setSensor(SOLAR_VOLTAGE_ID);
 		send(lcdVoltageMessage.set(solarVoltage, 5));
 		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-		thingspeakMessage.setSensor(SOLAR_VOLTAGE_ID);
-		send(thingspeakMessage.set(solarVoltage, 5));
-		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-		solarVoltage = prevSolarVoltage;
+		prevSolarVoltage = solarVoltage;
 	}
 }
 
@@ -209,4 +310,22 @@ void sendThingspeakMessage()
 	thingspeakMessage.setSensor(BATTERY_VOLTAGE_ID);
 	send(thingspeakMessage.set(batteryVoltage, 5));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+}
+
+void checkR1RequestStatus()
+{
+	if (!resistorR1Received)
+		sendR1Request = true;
+}
+
+void checkR2RequestStatus()
+{
+	if (!resistorR2Received)
+		sendR2Request = true;
+}
+
+void checkScaleFactorRequestStatus()
+{
+	if (!scaleFactorReceived)
+		sendScaleFactorRequest = true;
 }

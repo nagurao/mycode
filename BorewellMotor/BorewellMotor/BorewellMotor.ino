@@ -13,14 +13,13 @@
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
 #define MY_NODE_ID BOREWELL_NODE_ID
-#define MY_DEBUG 
+//#define MY_DEBUG 
 
 #include <MyNodes.h>
 #include <MySensors.h>
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Borewell Motor"
-#define APPLICATION_VERSION "13Dec2016"
 
 AlarmId heartbeatTimer;
 AlarmId dryRunTimer;
@@ -57,8 +56,7 @@ void setup()
 	currentWaterLevel = 0;
 	dryRunInitWaterLevel = 0;
 
-	digitalWrite(BORE_ON_RELAY_1_PIN, LOW);
-	digitalWrite(BORE_ON_RELAY_2_PIN, LOW);
+	digitalWrite(BORE_ON_RELAY_PIN, LOW);
 	digitalWrite(BORE_OFF_RELAY_PIN, LOW);
 	digitalWrite(MOTOR_STATUS_PIN, LOW);
 
@@ -76,7 +74,7 @@ void setup()
 
 void presentation()
 {
-	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
+	sendSketchInfo(APPLICATION_NAME, __DATE__);
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(BOREWELL_MOTOR_STATUS_ID, S_BINARY, "Borewell Motor");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
@@ -143,8 +141,7 @@ void receive(const MyMessage &message)
 
 void turnOnBorewell()
 {
-	digitalWrite(BORE_ON_RELAY_1_PIN, RELAY_ON);
-	digitalWrite(BORE_ON_RELAY_2_PIN, RELAY_ON);
+	digitalWrite(BORE_ON_RELAY_PIN, RELAY_ON);
 	send(borewellMotorOnRelayMessage.set(RELAY_ON));
 	Alarm.timerOnce(RELAY_TRIGGER_INTERVAL, toggleOnRelay);
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
@@ -152,8 +149,7 @@ void turnOnBorewell()
 
 void toggleOnRelay()
 {
-	digitalWrite(BORE_ON_RELAY_1_PIN, RELAY_OFF);
-	digitalWrite(BORE_ON_RELAY_2_PIN, RELAY_OFF);
+	digitalWrite(BORE_ON_RELAY_PIN, RELAY_OFF);
 	send(borewellMotorOnRelayMessage.set(RELAY_OFF));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	send(borewellMotorMessage.set(RELAY_ON));

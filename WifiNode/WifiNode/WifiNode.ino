@@ -22,7 +22,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Thingspeak Node"
-#define APPLICATION_VERSION "13Dec2016"
+//#define APPLICATION_VERSION "13Dec2016"
 
 //water level logging channel
 #define TANK_01_FIELD 1
@@ -59,6 +59,32 @@
 #define PH1_CURR_WATT_IDX 1
 #define PH3_PH1_REAL_TIME_DELTA_IDX 2
 
+//inverter cumulative logging channel
+#define INV_IN_HOURLY_FIELD 1
+#define INV_IN_DAILY_FIELD 2
+#define INV_IN_MONTHLY_FIELD 3
+#define INV_OUT_HOURLY_FIELD 4
+#define INV_OUT_DAILY_FIELD 5
+#define INV_OUT_MONTHLY_FIELD 6
+#define INV_IN_OUT_DELTA_DAILY_FIELD 7
+//
+#define INV_IN_HOURLY_IDX 0
+#define INV_IN_DAILY_IDX 1
+#define INV_IN_MONTHLY_IDX 2
+#define INV_OUT_HOURLY_IDX 3
+#define INV_OUT_DAILY_IDX 4
+#define INV_OUT_MONTHLY_IDX 5
+#define INV_IN_OUT_DELTA_DAILY_IDX 6
+
+//inverter power logging channel
+#define INV_IN_CURR_WATT_FIELD 1
+#define INV_OUT_CURR_WATT_FIELD 2
+#define INV_IN_OUT_REAL_TIME_DELTA_FIELD 3
+//
+#define INV_IN_CURR_WATT_IDX 0
+#define INV_OUT_CURR_WATT_IDX 1
+#define INV_IN_OUT_REAL_TIME_DELTA_IDX 2
+
 //static data logging channel
 #define BALCONY_LIGHTS_FIELD 1
 #define STAIRCASE_LIGHTS_FIELD 2
@@ -89,16 +115,17 @@
 #define DEFAULT_CHANNEL_VALUE -99.00
 #define DEFAULT_CHANNEL_VALUE_INT 0
 
-#define SEND_WATER_LEVEL_DATA 0
-#define SEND_POWER_CUMMLATIVE_DATA 1
-#define SEND_POWER_REALTIME_DATA 2
-#define SEND_STATIC_DATA 3
+#define SEND_POWER_CUMMLATIVE_DATA 0
+#define SEND_POWER_REALTIME_DATA 1
+#define SEND_INVETER_CUMMLATIVE_DATA 2
+#define SEND_INVETER_REALTIME_DATA 3
 #define SEND_VOLTAGE_DATA 4
-#define READ_AND_PROCESS_DATA 5
-
-#define TYPES_OF_DATA 5
+#define SEND_WATER_LEVEL_DATA 5
+#define SEND_STATIC_DATA 6
+#define TYPES_OF_DATA 7
 
 #define FIELDS_PER_CHANNEL 8
+
 byte currentDataToSend;
 
 float waterLevelChannelData[FIELDS_PER_CHANNEL];
@@ -106,6 +133,8 @@ float powerCumulativeChannelData[FIELDS_PER_CHANNEL];
 float powerRealtimeChannelData[FIELDS_PER_CHANNEL];
 float staticChannelData[FIELDS_PER_CHANNEL];
 float voltageChannelData[FIELDS_PER_CHANNEL];
+float inverterCumulativeChannelData[FIELDS_PER_CHANNEL];
+float inverterRealtimeChannelData[FIELDS_PER_CHANNEL];
 int incomingChannelData[FIELDS_PER_CHANNEL];
 
 int status = WL_IDLE_STATUS;
@@ -130,6 +159,14 @@ const char * staticReadAPIKey = "4BJLHZM72HFNF71R";
 unsigned long voltageChannelNumber = 203228;
 const char * voltageWriteAPIKey = "DD8U0IJQVH32AXR3";
 const char * voltageReadAPIKey = "KFFC286643GSSAAT";
+
+unsigned long inverterCumulativeChannelNumber = 217341;
+const char * inverterCumulativeWriteAPIKey = "PMRIK4ECEHZSDWB9";
+const char * inverterCumulativeReadAPIKey = "U81EQ15HQUXOUOFM";
+
+unsigned long inverterRealtimeChannelNumber = 217342;
+const char * inverterRealtimeWriteAPIKey = "F3U8OCLMQUX9QLHV";
+const char * inverterRealtimeReadAPIKey = "CNGCV1JI5E8L71ZU";
 
 unsigned long incomingChannelNumber = 203604;
 const char * incomingWriteAPIKey = "NGZUM98NSGJ4EAG9";
@@ -162,17 +199,19 @@ void setup()
 		waterLevelChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 		powerCumulativeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 		powerRealtimeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+		inverterCumulativeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+		inverterRealtimeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 		staticChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 		voltageChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 		incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
 	}
-	currentDataToSend = SEND_WATER_LEVEL_DATA;
+	currentDataToSend = SEND_POWER_CUMMLATIVE_DATA;
 	incomingDataFound = false;
 }
 
 void presentation()
 {
-	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
+	sendSketchInfo(APPLICATION_NAME, __DATE__);
 }
 
 void loop()
@@ -224,6 +263,46 @@ void receive(const MyMessage &message)
 			break;
 		case SOLAR_VOLTAGE_NODE_ID:
 			break;
+		case INV_IN_NODE_ID:
+			switch (message.sensor)
+			{
+			case CURR_WATT_ID:
+				powerRealtimeChannelData[INV_IN_CURR_WATT_IDX] = message.getFloat();
+				break;
+			case HOURLY_WATT_CONSUMPTION_ID:
+				powerCumulativeChannelData[INV_IN_HOURLY_IDX] = message.getFloat();
+				break;
+			case DAILY_WATT_CONSUMPTION_ID:
+				powerCumulativeChannelData[INV_IN_DAILY_IDX] = message.getFloat();
+				break;
+			case MONTHLY_WATT_CONSUMPTION_ID:
+				powerCumulativeChannelData[INV_IN_MONTHLY_IDX] = message.getFloat();
+				break;
+			case DELTA_WATT_CONSUMPTION_ID:
+				powerCumulativeChannelData[INV_IN_OUT_DELTA_DAILY_IDX] = message.getFloat();
+				break;
+			}
+			break;
+		case INV_OUT_NODE_ID:
+			switch (message.sensor)
+			{
+			case CURR_WATT_ID:
+				powerRealtimeChannelData[INV_OUT_CURR_WATT_IDX] = message.getFloat();
+				break;
+			case HOURLY_WATT_CONSUMPTION_ID:
+				powerCumulativeChannelData[INV_OUT_HOURLY_IDX] = message.getFloat();
+				break;
+			case DAILY_WATT_CONSUMPTION_ID:
+				powerCumulativeChannelData[INV_OUT_DAILY_IDX] = message.getFloat();
+				break;
+			case MONTHLY_WATT_CONSUMPTION_ID:
+				powerCumulativeChannelData[INV_OUT_MONTHLY_IDX] = message.getFloat();
+				break;
+			case DELTA_WATT_CONSUMPTION_ID:
+				powerRealtimeChannelData[INV_IN_OUT_REAL_TIME_DELTA_IDX] = message.getFloat();
+				break;
+			}
+			break;
 		case PH3_NODE_ID:
 			switch (message.sensor)
 			{
@@ -274,34 +353,7 @@ void processThingspeakData()
 	byte channelId;
 	switch (currentDataToSend)
 	{
-	case SEND_WATER_LEVEL_DATA:
-		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-		{
-			if (waterLevelChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-			{
-				switch (channelId)
-				{
-				case TANK_01_IDX:
-					ThingSpeak.setField(TANK_01_FIELD, waterLevelChannelData[channelId]);
-					break;
-				case TANK_02_IDX:
-					ThingSpeak.setField(TANK_02_FILED, waterLevelChannelData[channelId]);
-					break;
-				case TANK_03_IDX:
-					ThingSpeak.setField(TANK_03_FIELD, waterLevelChannelData[channelId]);
-					break;
-				}
-			}
-		}
-		if (ThingSpeak.writeFields(waterLevelChannelNumber, waterLevelWriteAPIKey) == OK_SUCCESS)
-		{
-			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-			{
-				if (waterLevelChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-					waterLevelChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
-			}
-		}
-		break;
+
 	case SEND_POWER_CUMMLATIVE_DATA:
 		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 		{
@@ -370,6 +422,127 @@ void processThingspeakData()
 			}
 		}
 		break;
+	case SEND_INVETER_CUMMLATIVE_DATA:
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (inverterCumulativeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case INV_IN_HOURLY_IDX:
+					ThingSpeak.setField(INV_IN_HOURLY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				case INV_IN_DAILY_IDX:
+					ThingSpeak.setField(INV_IN_DAILY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				case INV_IN_MONTHLY_IDX:
+					ThingSpeak.setField(INV_IN_MONTHLY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				case INV_OUT_HOURLY_IDX:
+					ThingSpeak.setField(INV_OUT_HOURLY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				case INV_OUT_DAILY_IDX:
+					ThingSpeak.setField(INV_OUT_DAILY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				case INV_OUT_MONTHLY_IDX:
+					ThingSpeak.setField(INV_OUT_MONTHLY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				case INV_IN_OUT_DELTA_DAILY_IDX:
+					ThingSpeak.setField(INV_IN_OUT_DELTA_DAILY_FIELD, powerCumulativeChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(inverterCumulativeChannelNumber, inverterCumulativeWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (inverterCumulativeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					inverterCumulativeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
+	case SEND_INVETER_REALTIME_DATA:
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (inverterRealtimeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case INV_IN_CURR_WATT_IDX:
+					ThingSpeak.setField(INV_IN_CURR_WATT_FIELD, inverterRealtimeChannelData[channelId]);
+					break;
+				case INV_OUT_CURR_WATT_IDX:
+					ThingSpeak.setField(INV_OUT_CURR_WATT_FIELD, inverterRealtimeChannelData[channelId]);
+					break;
+				case INV_IN_OUT_REAL_TIME_DELTA_IDX:
+					ThingSpeak.setField(INV_IN_OUT_REAL_TIME_DELTA_FIELD, inverterRealtimeChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(inverterRealtimeChannelNumber, inverterRealtimeWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (inverterRealtimeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					inverterRealtimeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
+	case SEND_VOLTAGE_DATA:
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (voltageChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case BATTERY_VOLT_IDX:
+					ThingSpeak.setField(BATTERY_VOLT_FIELD, voltageChannelData[channelId]);
+					break;
+				case SOLAR_VOLT_IDX:
+					ThingSpeak.setField(SOLAR_VOLT_FIELD, voltageChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(voltageChannelNumber, voltageWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (voltageChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					voltageChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
+	case SEND_WATER_LEVEL_DATA:
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (waterLevelChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case TANK_01_IDX:
+					ThingSpeak.setField(TANK_01_FIELD, waterLevelChannelData[channelId]);
+					break;
+				case TANK_02_IDX:
+					ThingSpeak.setField(TANK_02_FILED, waterLevelChannelData[channelId]);
+					break;
+				case TANK_03_IDX:
+					ThingSpeak.setField(TANK_03_FIELD, waterLevelChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(waterLevelChannelNumber, waterLevelWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (waterLevelChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					waterLevelChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
 	case SEND_STATIC_DATA:
 		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 		{
@@ -401,31 +574,6 @@ void processThingspeakData()
 			{
 				if (staticChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 					staticChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
-			}
-		}
-		break;
-	case SEND_VOLTAGE_DATA:
-		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-		{
-			if (voltageChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-			{
-				switch (channelId)
-				{
-				case BATTERY_VOLT_IDX:
-					ThingSpeak.setField(BATTERY_VOLT_FIELD, voltageChannelData[channelId]);
-					break;
-				case SOLAR_VOLT_IDX:
-					ThingSpeak.setField(SOLAR_VOLT_FIELD, voltageChannelData[channelId]);
-					break;
-				}
-			}
-		}
-		if (ThingSpeak.writeFields(voltageChannelNumber, voltageWriteAPIKey) == OK_SUCCESS)
-		{
-			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-			{
-				if (voltageChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-					voltageChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 			}
 		}
 		break;

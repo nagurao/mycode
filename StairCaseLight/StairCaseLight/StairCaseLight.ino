@@ -6,6 +6,7 @@
 #define LIGHT_NODE
 
 #define MY_RADIO_NRF24
+#define MY_REPEATER_FEATURE
 #define MY_NODE_ID STAIRCASE_LIGHT_NODE_ID
 #define MY_DEBUG 
 
@@ -23,6 +24,7 @@ byte lightStatusRequstCount;
 
 AlarmId lightStatusTimer;
 AlarmId heartbeatTimer;
+AlarmId lightStatusRequestTimer;
 
 MyMessage lightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
@@ -43,6 +45,7 @@ void setup()
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
+	lightStatusRequestTimer = Alarm.timerRepeat(HALF_HOUR, requestLightStatus);
 }
 
 void presentation()
@@ -109,4 +112,9 @@ void checkLightStatusRequest()
 {
 	if (!lightStatusReceived)
 		sendLightStatusRequest = true;
+}
+
+void requestLightStatus()
+{
+	request(LIGHT_RELAY_ID, V_STATUS, BALCONYLIGHT_NODE_ID);
 }
