@@ -187,7 +187,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define ZERO_PULSE 0
 #define ACCUMULATION_FREQUENCY_SECS 20
 #define MAX_WATT 6500
-#define MAX_WATT_INVERTER 2500
+#define MAX_WATT_INVERTER 2000
 
 #define CURR_WATT_ID 1
 #define HOURLY_WATT_CONSUMPTION_ID 2
