@@ -14,7 +14,7 @@
 #define NODE_INTERACTS_WITH_WIFI_AND_LCD
 
 #define MY_RADIO_NRF24
-#define MY_REPEATER_FEATURE
+//#define MY_REPEATER_FEATURE
 #define MY_NODE_ID THINGSPEAK_NODE_ID
 #define MY_DEBUG
 
@@ -111,18 +111,26 @@
 #define IN_BOREWELL_OFF_IDX 3
 #define IN_SUMP_MOTOR_IDX 4
 
-#define THINGSPEAK_INTERVAL 20
+#define THINGSPEAK_INTERVAL 60
 #define DEFAULT_CHANNEL_VALUE -99.00
 #define DEFAULT_CHANNEL_VALUE_INT 0
 
-#define SEND_POWER_CUMMLATIVE_DATA 0
-#define SEND_POWER_REALTIME_DATA 1
-#define SEND_INVETER_CUMMLATIVE_DATA 2
-#define SEND_INVETER_REALTIME_DATA 3
-#define SEND_VOLTAGE_DATA 4
-#define SEND_WATER_LEVEL_DATA 5
-#define SEND_STATIC_DATA 6
-#define TYPES_OF_DATA 7
+#define GET_INCOMING_DATA  0
+#define SEND_POWER_CUMMLATIVE_DATA 1
+#define SEND_POWER_REALTIME_DATA 2
+#define SEND_INVETER_CUMMLATIVE_DATA 3
+#define SEND_INVETER_REALTIME_DATA 4
+#define SEND_VOLTAGE_DATA 5
+#define SEND_WATER_LEVEL_DATA 6
+#define SEND_STATIC_DATA 7
+
+#define REQ_INV_IN_CURR_WATT 8
+#define REQ_INV_OUT_CURR_WATT 9
+#define REQ_INV_IN_OUT_CURR_DELTA 10
+#define REQ_3PHASE_CURR_WATT 11
+#define REQ_1PHASE_CURR_WATT 12
+#define REQ_PH3_PH1_CURR_DELTA 13
+#define TYPES_OF_DATA 8
 
 #define FIELDS_PER_CHANNEL 8
 
@@ -182,6 +190,8 @@ MyMessage lightNodeMessage(CURR_MODE_ID, V_VAR1);
 MyMessage borewellNodeMessage;
 MyMessage sumpMotorMessage(RELAY_ID, V_STATUS);
 MyMessage lcdNodeMessage;
+MyMessage currWattMessage;
+MyMessage currDeltaMessage;
 void before()
 {
 	WiFi.begin(ssid, pass);
@@ -192,7 +202,6 @@ void setup()
 {
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	thingspeakTimer = Alarm.timerRepeat(THINGSPEAK_INTERVAL, processThingspeakData);
-	incomingThingspeakTimer = Alarm.timerRepeat(2*ONE_MINUTE, processIncomingData);
 
 	for (byte channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
@@ -389,12 +398,15 @@ void receive(const MyMessage &message)
 	}
 }
 
+
 void processThingspeakData()
 {
 	byte channelId;
 	switch (currentDataToSend)
 	{
-
+	case GET_INCOMING_DATA:
+		processIncomingData();
+		break;
 	case SEND_POWER_CUMMLATIVE_DATA:
 		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 		{
@@ -471,25 +483,25 @@ void processThingspeakData()
 				switch (channelId)
 				{
 				case INV_IN_HOURLY_IDX:
-					ThingSpeak.setField(INV_IN_HOURLY_FIELD, powerCumulativeChannelData[channelId]);
+					ThingSpeak.setField(INV_IN_HOURLY_FIELD, inverterCumulativeChannelData[channelId]);
 					break;
 				case INV_IN_DAILY_IDX:
-					ThingSpeak.setField(INV_IN_DAILY_FIELD, powerCumulativeChannelData[channelId]);
+					ThingSpeak.setField(INV_IN_DAILY_FIELD, inverterCumulativeChannelData[channelId]);
 					break;
 				case INV_IN_MONTHLY_IDX:
-					ThingSpeak.setField(INV_IN_MONTHLY_FIELD, powerCumulativeChannelData[channelId]);
+					ThingSpeak.setField(INV_IN_MONTHLY_FIELD, inverterCumulativeChannelData[channelId]);
 					break;
 				case INV_OUT_HOURLY_IDX:
-					ThingSpeak.setField(INV_OUT_HOURLY_FIELD, powerCumulativeChannelData[channelId]);
+					ThingSpeak.setField(INV_OUT_HOURLY_FIELD, inverterCumulativeChannelData[channelId]);
 					break;
 				case INV_OUT_DAILY_IDX:
-					ThingSpeak.setField(INV_OUT_DAILY_FIELD, powerCumulativeChannelData[channelId]);
+					ThingSpeak.setField(INV_OUT_DAILY_FIELD, inverterCumulativeChannelData[channelId]);
 					break;
 				case INV_OUT_MONTHLY_IDX:
-					ThingSpeak.setField(INV_OUT_MONTHLY_FIELD, powerCumulativeChannelData[channelId]);
+					ThingSpeak.setField(INV_OUT_MONTHLY_FIELD, inverterCumulativeChannelData[channelId]);
 					break;
 				case INV_IN_OUT_DELTA_DAILY_IDX:
-					ThingSpeak.setField(INV_IN_OUT_DELTA_DAILY_FIELD, powerCumulativeChannelData[channelId]);
+					ThingSpeak.setField(INV_IN_OUT_DELTA_DAILY_FIELD, inverterCumulativeChannelData[channelId]);
 					break;
 				}
 			}
@@ -617,6 +629,48 @@ void processThingspeakData()
 					staticChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 			}
 		}
+		break;
+	case REQ_INV_IN_CURR_WATT:
+		currWattMessage.setDestination(INV_IN_NODE_ID);
+		currWattMessage.setType(V_VAR5);
+		currWattMessage.setSensor(CURR_WATT_ID);
+		currWattMessage.set(0);
+		send(currWattMessage);
+		break;
+	case REQ_INV_OUT_CURR_WATT:
+		currWattMessage.setDestination(INV_OUT_NODE_ID);
+		currWattMessage.setType(V_VAR5);
+		currWattMessage.setSensor(CURR_WATT_ID);
+		currWattMessage.set(0);
+		send(currWattMessage);
+		break;
+	case REQ_INV_IN_OUT_CURR_DELTA:
+		currDeltaMessage.setDestination(INV_OUT_NODE_ID);
+		currDeltaMessage.setType(V_VAR5);
+		currDeltaMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
+		currDeltaMessage.set(5);
+		send(currDeltaMessage);
+		break;
+	case REQ_3PHASE_CURR_WATT:
+		currWattMessage.setDestination(PH3_NODE_ID);
+		currWattMessage.setType(V_VAR5);
+		currWattMessage.setSensor(CURR_WATT_ID);
+		currWattMessage.set(0);
+		send(currWattMessage);
+		break;
+	case REQ_1PHASE_CURR_WATT:
+		currWattMessage.setDestination(PH1_NODE_ID);
+		currWattMessage.setType(V_VAR5);
+		currWattMessage.setSensor(CURR_WATT_ID);
+		currWattMessage.set(0);
+		send(currWattMessage);
+		break;
+	case REQ_PH3_PH1_CURR_DELTA:
+		currDeltaMessage.setDestination(PH1_NODE_ID);
+		currDeltaMessage.setType(V_VAR5);
+		currDeltaMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
+		currDeltaMessage.set(5);
+		send(currDeltaMessage);
 		break;
 	}
 	currentDataToSend = (currentDataToSend + 1) % TYPES_OF_DATA;

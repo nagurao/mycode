@@ -12,16 +12,15 @@
 #define NODE_WITH_HIGH_LOW_FEATURE
 
 #define MY_RADIO_NRF24
-#define MY_REPEATER_FEATURE
+//#define MY_REPEATER_FEATURE
 #define MY_NODE_ID SUMP_MOTOR_NODE_ID
-#define MY_DEBUG 
+//#define MY_DEBUG 
 
 #include <MyNodes.h>
 #include <MySensors.h>
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Sump Motor"
-#define APPLICATION_VERSION "13Dec2016"
 
 AlarmId heartbeatTimer;
 boolean tank02LowLevel;
@@ -71,7 +70,7 @@ void setup()
 
 void presentation()
 {
-	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
+	sendSketchInfo(APPLICATION_NAME, __DATE__);
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(RELAY_ID, S_BINARY, "Sump Motor Relay");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);

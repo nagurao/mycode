@@ -45,9 +45,6 @@ void before()
 	lcd.createChar(3, inverterDelta);
 	lcd.createChar(4, delta);
 	lcd.createChar(5, phi);
-	/*printLCDVal(0, ROW_1, "TANK1:",true);
-	printLCDVal(0, ROW_2, "TANK2:",true);
-	printLCDVal(0, ROW_3, "TANK3:", true);*/
 	lcd.setCursor(0, ROW_1);
 	lcd.write(1);
 	printLCDVal(1, ROW_1, ":", true);
@@ -120,6 +117,14 @@ void receive(const MyMessage &message)
 		ftoa(currWatt, dispValue, 4, 2);
 		switch (message.sensor)
 		{
+		case INV_IN_CURR_WATT_ID:
+			column = 2;
+			row = ROW_1;
+			break;
+		case INV_OUT_CURR_WATT_ID:
+			column = 2;
+			row = ROW_2;
+			break;
 		case PH3_CURR_WATT_ID:
 			column = 13;
 			row = ROW_3;
@@ -139,6 +144,10 @@ void receive(const MyMessage &message)
 		ftoa(currWatt, dispValue, 4, 2);
 		switch (message.sensor)
 		{
+		case INV_IN_OUT_DELTA_ID:
+			column = 2;
+			row = ROW_3;
+			break;
 		case PH3_PH1_DELTA_ID:
 			column = 2;
 			row = ROW_4;
@@ -205,8 +214,8 @@ void receive(const MyMessage &message)
 				break;
 		}
 		lcd.backlight();
-		for (byte index = 0; index < 3; index++, column++)
-			printLCDVal(column, row, dispWaterLevel[index], true);
+		//for (byte index = 0; index < 3; index++, column++)
+		//	printLCDVal(column, row, dispWaterLevel[index], true);
 		Alarm.timerOnce(ONE_MINUTE, turnOffLCDLight);
 		break;
 	}

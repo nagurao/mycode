@@ -6,8 +6,9 @@
 #define WATT_METER_NODE
 
 #define MY_RADIO_NRF24
-#define MY_REPEATER_FEATURE
+//#define MY_REPEATER_FEATURE
 #define MY_NODE_ID INV_IN_NODE_ID
+//#define MY_PARENT_NODE_ID BATT_VOLTAGE_NODE_ID
 //#define MY_DEBUG
 
 #include <MyNodes.h>
@@ -46,11 +47,12 @@ float monthlyConsumptionInitKWH;
 float unitsPerHour;
 float unitsPerDay;
 float unitsPerMonth;
-float deltaUnitsPerMonth;
+float deltaUnitsPerDay;
 
 byte accumulationsStatus;
 byte accumulationStatusCount;
 boolean firstTime;
+boolean sendAccumulationData;
 
 MyMessage currentConsumptionMessage(CURR_WATT_ID, V_WATT);
 MyMessage hourlyConsumptionMessage(HOURLY_WATT_CONSUMPTION_ID, V_KWH);
@@ -86,10 +88,11 @@ void setup()
 	unitsPerHour = 0.00;
 	unitsPerDay = 0.00;
 	unitsPerMonth = 0.00;
-	deltaUnitsPerMonth = 0.00;
+	deltaUnitsPerDay = 0.00;
 	accumulationsStatus = GET_HOURLY_KWH;
 	accumulationStatusCount = 0;
 	firstTime = true;
+	sendAccumulationData = true;
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 }
 
@@ -114,6 +117,8 @@ void presentation()
 	present(BLINKS_PER_KWH_ID, S_CUSTOM, "Pulses per KWH");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(RESET_TYPE_ID, S_CUSTOM, "Reset Consumption");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(INCOMING_REQUEST_ID, S_CUSTOM, "Request Data");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
 
@@ -210,32 +215,32 @@ void receive(const MyMessage &message)
 	case V_VAR5:
 		switch (message.getInt())
 		{
-		case 0:
+		case REQ_CURR_WATT:
 			thingspeakMessage.setSensor(CURR_WATT_ID);
 			send(thingspeakMessage.set(currWatt, 5));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			break;
-		case 1:
+		case REQ_HOURLY_WATT:
 			thingspeakMessage.setSensor(HOURLY_WATT_CONSUMPTION_ID);
 			send(thingspeakMessage.set(unitsPerHour, 5));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			break;
-		case 2:
+		case REQ_DAILY_WATT:
 			thingspeakMessage.setSensor(DAILY_WATT_CONSUMPTION_ID);
 			send(thingspeakMessage.set(unitsPerDay, 5));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			break;
-		case 3:
+		case REQ_MONTHLY_WATT:
 			thingspeakMessage.setSensor(MONTHLY_WATT_CONSUMPTION_ID);
 			send(thingspeakMessage.set(unitsPerMonth, 5));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			break;
-		case 4:
+		case REQ_DAILY_DELTA_WATT:
 			thingspeakMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
-			send(thingspeakMessage.set(deltaUnitsPerMonth, 5));
+			send(thingspeakMessage.set(deltaUnitsPerDay, 5));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			break;
-		case 5:
+		case REQ_REAL_DELTA_WATT:
 			float deltaKWH = accumulatedKWH - monthlyConsumptionInitKWH;
 			MyMessage realtimeDeltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
 			realtimeDeltaConsumptionMessage.setDestination(INV_OUT_NODE_ID);
@@ -266,10 +271,11 @@ void receive(const MyMessage &message)
 			accumulationStatusCount = 0;
 			accumulationsStatus = ALL_DONE;
 			Alarm.free(accumulationTimer);
+			accumulationTimer = Alarm.timerRepeat(FIVE_MINUTES, setAccumulationDataFlag);
 			break;
 		case DELTA_WATT_CONSUMPTION_ID:
-			deltaUnitsPerMonth = unitsPerMonth - message.getFloat();
-			send(deltaConsumptionMessage.set(deltaUnitsPerMonth, 5));
+			deltaUnitsPerDay = unitsPerDay - message.getFloat();
+			send(deltaConsumptionMessage.set(deltaUnitsPerDay, 5));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			break;
 		}
@@ -315,13 +321,20 @@ void updateConsumptionData()
 				accumulationTimer = Alarm.timerRepeat(REQUEST_INTERVAL, getAccumulation);
 			}
 		}
-		if (accumulationsStatus == ALL_DONE)
+		if (accumulationsStatus == ALL_DONE && sendAccumulationData)
 		{
 			send(hourlyConsumptionMessage.set((accumulatedKWH - hourlyConsumptionInitKWH), 5));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			send(dailyConsumptionMessage.set((accumulatedKWH - dailyConsumptionInitKWH), 5));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			send(monthlyConsumptionMessage.set((accumulatedKWH - monthlyConsumptionInitKWH), 5));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+			sendAccumulationData = false;
+			float deltaKWH = accumulatedKWH - monthlyConsumptionInitKWH;
+			MyMessage realtimeDeltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
+			realtimeDeltaConsumptionMessage.setDestination(INV_OUT_NODE_ID);
+			realtimeDeltaConsumptionMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
+			send(realtimeDeltaConsumptionMessage.set(deltaKWH, 2));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 	}
@@ -332,6 +345,9 @@ void resetHour()
 	unitsPerHour = accumulatedKWH - hourlyConsumptionInitKWH;
 	hourlyConsumptionInitKWH = accumulatedKWH;
 	send(hourlyConsumptionMessage.set(unitsPerHour, 5));
+	wait(WAIT_AFTER_SEND_MESSAGE);
+	thingspeakMessage.setSensor(HOURLY_WATT_CONSUMPTION_ID);
+	send(thingspeakMessage.set(unitsPerHour, 5));
 	wait(WAIT_AFTER_SEND_MESSAGE);
 	MyMessage resetTypeMessage(RESET_TYPE_ID, V_VAR3);
 	send(resetTypeMessage.set(RESET_NONE));
@@ -344,6 +360,9 @@ void resetDay()
 	dailyConsumptionInitKWH = accumulatedKWH;
 	send(dailyConsumptionMessage.set(unitsPerDay, 5));
 	wait(WAIT_AFTER_SEND_MESSAGE);
+	thingspeakMessage.setSensor(DAILY_WATT_CONSUMPTION_ID);
+	send(thingspeakMessage.set(unitsPerDay, 5));
+	wait(WAIT_AFTER_SEND_MESSAGE);
 	MyMessage resetTypeMessage(RESET_TYPE_ID, V_VAR3);
 	send(resetTypeMessage.set(RESET_NONE));
 	wait(WAIT_AFTER_SEND_MESSAGE);
@@ -354,6 +373,9 @@ void resetMonth()
 	unitsPerMonth = accumulatedKWH - monthlyConsumptionInitKWH;
 	monthlyConsumptionInitKWH = accumulatedKWH;
 	send(monthlyConsumptionMessage.set(unitsPerMonth, 5));
+	wait(WAIT_AFTER_SEND_MESSAGE);
+	thingspeakMessage.setSensor(MONTHLY_WATT_CONSUMPTION_ID);
+	send(thingspeakMessage.set(unitsPerMonth, 5));
 	wait(WAIT_AFTER_SEND_MESSAGE);
 	MyMessage resetTypeMessage(RESET_TYPE_ID, V_VAR3);
 	send(resetTypeMessage.set(RESET_NONE));
@@ -370,7 +392,7 @@ void resetAll()
 	unitsPerHour = 0.00;
 	unitsPerDay = 0.00;
 	unitsPerMonth = 0.00;
-	deltaUnitsPerMonth = 0.00;
+	deltaUnitsPerDay = 0.00;
 }
 
 void checkPulseCountRequestStatus()
@@ -388,5 +410,10 @@ void checkBlinksPerWattHourRequest()
 void getAccumulation()
 {
 	request(RESET_TYPE_ID, V_VAR3);
+}
+
+void setAccumulationDataFlag()
+{
+	sendAccumulationData = true;
 }
 

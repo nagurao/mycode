@@ -11,7 +11,7 @@
 #define KEYPAD_1R_2C
 
 #define MY_RADIO_NRF24
-#define MY_REPEATER_FEATURE
+//#define MY_REPEATER_FEATURE
 #define MY_NODE_ID BOREWELL_NODE_ID
 //#define MY_DEBUG 
 

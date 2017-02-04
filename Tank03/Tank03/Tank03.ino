@@ -10,16 +10,15 @@
 #define NODE_INTERACTS_WITH_LCD
 
 #define MY_RADIO_NRF24
-#define MY_REPEATER_FEATURE
+//#define MY_REPEATER_FEATURE
 #define MY_NODE_ID TANK_03_NODE_ID
-#define MY_DEBUG
+//#define MY_DEBUG
 
 #include <MyNodes.h>
 #include <MySensors.h>
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Tank 03"
-#define APPLICATION_VERSION "13Dec2016"
 
 AlarmId heartbeatTimer;
 AlarmId waterLowLevelRequestTimer;
@@ -93,7 +92,7 @@ void setup()
 
 void presentation()
 {
-	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
+	sendSketchInfo(APPLICATION_NAME, __DATE__);
 	present(CURR_WATER_LEVEL_ID, S_WATER, "Tank 03 Water Level");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(WATER_LOW_LEVEL_IND_ID, S_CUSTOM, "T3 Low Water Level %");

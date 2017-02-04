@@ -12,8 +12,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C5F80730-F44F-4478-BDAE-6634EFC2CA88}</ProjectGuid>
-    <RootNamespace>WaterMotor</RootNamespace>
-    <ProjectName>WaterMotor</ProjectName>
+    <RootNamespace>TapMotor</RootNamespace>
+    <ProjectName>TapMotor</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -47,8 +47,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\NBA\Source\Repos\mycode\libraries\Keypad;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src;C:\Users\NBA\Source\Repos\mycode\libraries\TimeAlarms;C:\Users\NBA\Source\Repos\mycode\libraries\Time;C:\Users\NBA\Source\Repos\mycode\libraries\MySensors;C:\Users\NBA\Source\Repos\mycode\libraries\Keypad\utility;C:\Users\NBA\Source\Repos\mycode\libraries\MySensors\utility;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src\utility;C:\Users\NBA\Source\Repos\mycode\libraries\Time\utility;C:\Users\NBA\Source\Repos\mycode\libraries\TimeAlarms\utility;C:\Program Files (x86)\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;C:\Users\NBA\Source\Repos\mycode\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files (x86)\Arduino\hardware\arduino\avr\variants\eightanaloginputs;C:\Users\NBA\Source\Repos\mycode\WaterMotor\WaterMotor;C:\Program Files (x86)\Arduino\hardware\tools\avr/avr/include/;C:\Program Files (x86)\Arduino\hardware\tools\avr//avr/include/avr/;C:\Program Files (x86)\Arduino\hardware\tools\avr/lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>C:\Users\NBA\Source\Repos\mycode\WaterMotor\WaterMotor\__vm\.WaterMotor.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>C:\Users\NBA\Source\Repos\mycode\libraries\Keypad;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src;C:\Users\NBA\Source\Repos\mycode\libraries\TimeAlarms;C:\Users\NBA\Source\Repos\mycode\libraries\Time;C:\Users\NBA\Source\Repos\mycode\libraries\MySensors;C:\Users\NBA\Source\Repos\mycode\libraries\Keypad\utility;C:\Users\NBA\Source\Repos\mycode\libraries\MySensors\utility;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src\utility;C:\Users\NBA\Source\Repos\mycode\libraries\Time\utility;C:\Users\NBA\Source\Repos\mycode\libraries\TimeAlarms\utility;C:\Program Files (x86)\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;C:\Users\NBA\Source\Repos\mycode\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files (x86)\Arduino\hardware\arduino\avr\variants\eightanaloginputs;c:\Users\NBA\Source\Repos\mycode\TapMotor\TapMotor;C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files (x86)\Arduino\hardware\arduino\avr\variants\eightanaloginputs;C:\Users\NBA\Source\Repos\mycode\libraries\Keypad;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src;C:\Users\NBA\Source\Repos\mycode\libraries\TimeAlarms;C:\Users\NBA\Source\Repos\mycode\libraries\Time;C:\Users\NBA\Source\Repos\mycode\libraries\MySensors;C:\Program Files (x86)\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\ei4uyvns.xta\Micro Platforms\default\debuggers;C:\Users\NBA\Source\Repos\mycode\libraries;C:\Users\NBA\Source\Repos\mycode\libraries\Keypad\utility;C:\Program Files (x86)\Arduino\hardware\tools\avr/avr/include/;C:\Program Files (x86)\Arduino\hardware\tools\avr//avr/include/avr/;C:\Program Files (x86)\Arduino\hardware\tools\avr/lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>c:\Users\NBA\Source\Repos\mycode\TapMotor\TapMotor\__vm\.TapMotor.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <PreprocessorDefinitions>__AVR_ATmega328p__;__AVR_ATmega328P__;F_CPU=16000000L;ARDUINO=10609;ARDUINO_AVR_NANO;ARDUINO_ARCH_AVR;__cplusplus=201103L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -77,12 +77,12 @@
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="WaterMotor.ino">
+    <None Include="TapMotor.ino">
       <FileType>CppCode</FileType>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="__vm\.WaterMotor.vsarduino.h" />
+    <ClInclude Include="__vm\.TapMotor.vsarduino.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

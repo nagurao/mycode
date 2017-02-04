@@ -183,10 +183,11 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define INV_OUT_NODE_ID 17
 #define PH3_NODE_ID 18
 #define PH1_NODE_ID 19
+#define BATT_VOLTAGE_NODE_ID 12
 
 #define ZERO_PULSE 0
 #define ACCUMULATION_FREQUENCY_SECS 20
-#define MAX_WATT 6500
+#define MAX_WATT 6000
 #define MAX_WATT_INVERTER 2000
 
 #define CURR_WATT_ID 1
@@ -198,6 +199,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define CURR_PULSE_COUNT_ID 7
 #define BLINKS_PER_KWH_ID 8
 #define RESET_TYPE_ID 9
+#define INCOMING_REQUEST_ID 10
 
 #define PULSE_SENSOR_PIN 3
 #define INTERRUPT_PULSE 1 // PULSE_SENSOR_PIN - 2
@@ -213,6 +215,13 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define GET_DAILY_KWH 1
 #define GET_MONTHLY_KWH 2
 #define ALL_DONE 3
+
+#define REQ_CURR_WATT 1
+#define REQ_HOURLY_WATT 2
+#define REQ_DAILY_WATT 3
+#define REQ_MONTHLY_WATT 4
+#define REQ_DAILY_DELTA_WATT 5
+#define REQ_REAL_DELTA_WATT 6
 
 #endif
 

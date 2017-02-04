@@ -76,7 +76,7 @@ void receive(const MyMessage &message)
 				turnOnMotor();
 			break;
 		case RELAY_OFF:
-			if(motorOn)
+			if (motorOn)
 				turnOffMotor();
 			break;
 		}
