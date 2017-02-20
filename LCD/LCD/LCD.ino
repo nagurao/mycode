@@ -9,7 +9,7 @@
 #define NODE_WITH_ON_OFF_FEATURE
 
 #define MY_RADIO_NRF24
-#define MY_REPEATER_FEATURE
+//#define MY_REPEATER_FEATURE
 #define MY_NODE_ID LCD_NODE_ID
 //#define MY_DEBUG
 

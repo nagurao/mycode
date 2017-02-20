@@ -7,16 +7,17 @@
 #define NODE_HAS_RELAY
 
 #define MY_RADIO_NRF24
-#define MY_REPEATER_FEATURE
+//#define MY_REPEATER_FEATURE
 #define MY_NODE_ID BALCONYLIGHT_NODE_ID
-#define MY_DEBUG 
+#define MY_PARENT_NODE_ID BALCONY_REPEATER_NODE_ID
+//#define MY_DEBUG 
 
 #include <MyNodes.h>
 #include <MySensors.h>
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Balcony Light"
-#define APPLICATION_VERSION "13Dec2016"
+
 #define DEFAULT_CURR_MODE 0
 #define DEFAULT_LIGHT_ON_DURATION 60
 
@@ -50,7 +51,7 @@ void setup()
 	currModeReceived = false;
 	lightOnDurationReceived = false;
 	sendCurrModeRequest = true;
-	sendlightOnDurationRequest = true;
+	sendlightOnDurationRequest = false;
 	staircaseLightRelayMessage.setDestination(STAIRCASE_LIGHT_NODE_ID);
 	staircaseLightRelayMessage.setType(V_STATUS);
 	staircaseLightRelayMessage.setSensor(LIGHT_RELAY_ID);
@@ -64,7 +65,7 @@ void setup()
 
 void presentation()
 {
-	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
+	sendSketchInfo(APPLICATION_NAME, __DATE__);
 	present(LIGHT_RELAY_ID, S_BINARY, "Balcony Light Relay");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(CURR_MODE_ID, S_CUSTOM, "Operating Mode");

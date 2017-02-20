@@ -5,11 +5,12 @@
 
 #define SOLAR_BATT_VOLTAGE_NODE
 #define NODE_INTERACTS_WITH_LCD
+#define NODE_HAS_RELAY
 
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
 #define MY_NODE_ID BATT_VOLTAGE_NODE_ID
-#define MY_DEBUG
+//#define MY_DEBUG
 
 #include <MyNodes.h>
 #include <MySensors.h>
@@ -58,15 +59,18 @@ MyMessage solarVoltageMessage(SOLAR_VOLTAGE_ID, V_VOLTAGE);
 MyMessage batteryVoltageMessage(BATTERY_VOLTAGE_ID, V_VOLTAGE);
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 MyMessage lcdVoltageMessage;
+MyMessage resetRelayMessage(RESET_RELAY_ID, V_STATUS);
 
 void before()
 {
 	pinMode(VOLTAGE_SENSE_PIN, INPUT);
 	pinMode(THRESHOLD_VOLTAGE_PIN, INPUT);
+	pinMode(RELAY_PIN, OUTPUT);
 }
 
 void setup()
 {
+	digitalWrite(RELAY_PIN, LOW);
 	resistorR1Value = DEFAULT_R1_VALUE;
 	resistorR2Value = DEFAULT_R2_VALUE;
 	scaleFactor = DEFAULT_SCALE_FACTOR;
@@ -112,6 +116,10 @@ void presentation()
 	present(BATTERY_VOLTAGE_ID, S_MULTIMETER, "Battery Voltage");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(SOLAR_VOLTAGE_ID, S_MULTIMETER, "Solar Voltage");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(RESET_RELAY_ID, S_BINARY, "Reset Relay");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	send(resetRelayMessage.set(RELAY_OFF));
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	request(SOLAR_VOLTAGE_ID, V_VOLTAGE, SOLAR_VOLTAGE_NODE_ID);
 }
@@ -241,6 +249,14 @@ void receive(const MyMessage &message)
 			solarVoltageRequestCount = 0;
 		}
 		break;
+	case V_STATUS:
+		if (message.getInt())
+		{
+			digitalWrite(RELAY_PIN, RELAY_ON);
+			send(resetRelayMessage.set(RELAY_ON));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+			Alarm.timerOnce(ONE_MINUTE, resetRelay);
+		}
 	}
 }
 
@@ -328,4 +344,11 @@ void checkScaleFactorRequestStatus()
 {
 	if (!scaleFactorReceived)
 		sendScaleFactorRequest = true;
+}
+
+void resetRelay()
+{
+	digitalWrite(RELAY_PIN, RELAY_OFF);
+	send(resetRelayMessage.set(RELAY_OFF));
+	wait(WAIT_AFTER_SEND_MESSAGE);
 }

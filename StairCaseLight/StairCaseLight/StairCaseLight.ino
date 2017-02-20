@@ -6,16 +6,16 @@
 #define LIGHT_NODE
 
 #define MY_RADIO_NRF24
-#define MY_REPEATER_FEATURE
+//#define MY_REPEATER_FEATURE
 #define MY_NODE_ID STAIRCASE_LIGHT_NODE_ID
-#define MY_DEBUG 
+#define MY_PARENT_NODE_ID BALCONY_REPEATER_NODE_ID
+//#define MY_DEBUG 
 
 #include <MyNodes.h>
 #include <MySensors.h>
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Staircase Light"
-#define APPLICATION_VERSION "02Jan2017"
 
 boolean lightStatusReceived;
 boolean sendLightStatusRequest;
@@ -45,12 +45,12 @@ void setup()
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
-	lightStatusRequestTimer = Alarm.timerRepeat(HALF_HOUR, requestLightStatus);
+	//lightStatusRequestTimer = Alarm.timerRepeat(HALF_HOUR, requestLightStatus);
 }
 
 void presentation()
 {
-	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
+	sendSketchInfo(APPLICATION_NAME, __DATE__);
 	present(LIGHT_RELAY_ID, S_BINARY, "Staircase Light");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	send(lightRelayMessage.set(RELAY_OFF));

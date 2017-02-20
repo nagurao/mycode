@@ -7,16 +7,15 @@
 #define NODE_HAS_RELAY
 
 #define MY_RADIO_NRF24
-#define MY_REPEATER_FEATURE
+//#define MY_REPEATER_FEATURE
 #define MY_NODE_ID GATELIGHT_NODE_ID
-#define MY_DEBUG 
+//#define MY_DEBUG 
 
 #include <MyNodes.h>
 #include <MySensors.h>
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Gate Light"
-#define APPLICATION_VERSION "13Dec2016"
 
 #define DEFAULT_CURR_MODE 0
 #define DEFAULT_LIGHT_ON_DURATION 60
@@ -63,7 +62,7 @@ void setup()
 
 void presentation()
 {
-	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
+	sendSketchInfo(APPLICATION_NAME, __DATE__);
 	present(LIGHT_RELAY_ID, S_BINARY, "Gate Light Relay");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(CURR_MODE_ID, S_CUSTOM, "Operating Mode");

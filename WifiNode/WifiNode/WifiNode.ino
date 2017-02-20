@@ -1,12 +1,19 @@
 #define PRINT_DEBUG_MESSAGES
 #define PRINT_HTTP
 #include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+
 #include <TimeAlarms.h>
 #include <TimeLib.h>
 #include <Time.h>
 #include <ThingSpeak.h>
 #include <SPI.h>
 
+/*
+#include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
+#include <ESP8266HTTPUpdateServer.h>
+*/
 #define WIFI_NODE
 #define WATT_METER_NODE
 #define SOLAR_BATT_VOLTAGE_NODE
@@ -192,10 +199,24 @@ MyMessage sumpMotorMessage(RELAY_ID, V_STATUS);
 MyMessage lcdNodeMessage;
 MyMessage currWattMessage;
 MyMessage currDeltaMessage;
+
+/*
+const char* host = "esp8266-webupdate";
+const char* update_path = "/firmware";
+const char* update_username = "admin";
+const char* update_password = "admin"; 
+ESP8266WebServer httpServer(80);
+ESP8266HTTPUpdateServer httpUpdater;*/
+//
 void before()
 {
+	//WiFi.mode(WIFI_AP_STA);
 	WiFi.begin(ssid, pass);
 	ThingSpeak.begin(client);
+	//MDNS.begin(host);
+	//httpUpdater.setup(&httpServer, update_path, update_username, update_password);
+	//httpServer.begin();
+	//MDNS.addService("http", "tcp", 80);
 }
 
 void setup()
@@ -226,6 +247,7 @@ void presentation()
 
 void loop()
 {
+	//httpServer.handleClient();
 	Alarm.delay(1);
 }
 

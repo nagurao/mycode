@@ -43,6 +43,9 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define THINGSPEAK_NODE_ID 254
 #define WIFI_NODEMCU_ID 1
 
+#define BALCONY_REPEATER_NODE_ID 10
+#define DB_REPEATER_NODE_ID 15
+
 #if defined LIGHT_NODE
 
 #define BALCONYLIGHT_NODE_ID 1
@@ -148,12 +151,11 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define SCALE_FACTOR_ID 3
 #define BATTERY_VOLTAGE_ID 4
 #define SOLAR_VOLTAGE_ID 5
+#define RESET_RELAY_ID 6
 
 #define VOLTAGE_SENSE_PIN A0
 #define THRESHOLD_VOLTAGE_PIN A1
-
-
-
+#define RELAY_PIN 7
 #define UP 1
 
 #endif
@@ -221,7 +223,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define REQ_DAILY_WATT 3
 #define REQ_MONTHLY_WATT 4
 #define REQ_DAILY_DELTA_WATT 5
-#define REQ_REAL_DELTA_WATT 6
+#define REQ_CURR_DELTA_WATT 6
 
 #endif
 

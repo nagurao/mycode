@@ -19,8 +19,7 @@
 
 #define DEFAULT_BLINKS_PER_KWH 6400 // value from energy meter
 AlarmId heartbeatTimer;
-AlarmId pulseCountTimer;
-AlarmId pulsesPerWattHourTimer;
+AlarmId requestTimer;
 AlarmId updateConsumptionTimer;
 AlarmId accumulationTimer;
 
@@ -47,7 +46,7 @@ float monthlyConsumptionInitKWH;
 float unitsPerHour;
 float unitsPerDay;
 float unitsPerMonth;
-float deltaUnitsPerDay;
+float deltaUnitsTillDay;
 
 byte accumulationsStatus;
 byte accumulationStatusCount;
@@ -74,7 +73,7 @@ void setup()
 	sendPulseCountRequest = true;
 	pulseCountReceived = false;
 	pulseCountRequestCount = 0;
-	sendBlinksPerWattHourRequest = true;
+	sendBlinksPerWattHourRequest = false;
 	blinksPerWattHourReceived = false;
 	blinksPerWattHourCount = 0;
 	lastBlink = 0;
@@ -88,7 +87,7 @@ void setup()
 	unitsPerHour = 0.00;
 	unitsPerDay = 0.00;
 	unitsPerMonth = 0.00;
-	deltaUnitsPerDay = 0.00;
+	deltaUnitsTillDay = 0.00;
 	accumulationsStatus = GET_HOURLY_KWH;
 	accumulationStatusCount = 0;
 	firstTime = true;
@@ -128,7 +127,7 @@ void loop()
 	{
 		sendPulseCountRequest = false;
 		request(CURR_PULSE_COUNT_ID, V_VAR1);
-		pulseCountTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkPulseCountRequestStatus);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkPulseCountRequestStatus);
 		pulseCountRequestCount++;
 		if (pulseCountRequestCount == 10)
 		{
@@ -140,7 +139,7 @@ void loop()
 	{
 		sendBlinksPerWattHourRequest = false;
 		request(BLINKS_PER_KWH_ID, V_VAR2);
-		pulsesPerWattHourTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkBlinksPerWattHourRequest);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkBlinksPerWattHourRequest);
 		blinksPerWattHourCount++;
 		if (blinksPerWattHourCount == 10)
 		{
@@ -159,15 +158,16 @@ void receive(const MyMessage &message)
 		if (!pulseCountReceived)
 		{
 			pulseCountReceived = true;
-			Alarm.free(pulseCountTimer);
-			updateConsumptionTimer = Alarm.timerRepeat(ACCUMULATION_FREQUENCY_SECS, updateConsumptionData);
+			Alarm.free(requestTimer);
+			sendBlinksPerWattHourRequest = true;
+			requestTimer = Alarm.timerRepeat(ACCUMULATION_FREQUENCY_SECS, updateConsumptionData);
 		}
 		break;
 	case V_VAR2:
 		if (!blinksPerWattHourReceived)
 		{
 			blinksPerWattHourReceived = true;
-			Alarm.free(pulsesPerWattHourTimer);
+			Alarm.free(requestTimer);
 		}
 		blinksPerWattHour = message.getLong();
 		pulseFactor = blinksPerWattHour / 1000;
@@ -211,7 +211,7 @@ void receive(const MyMessage &message)
 			resetAll();
 			break;
 		}
-		break;
+		break;/*
 	case V_VAR5:
 		switch (message.getInt())
 		{
@@ -249,7 +249,7 @@ void receive(const MyMessage &message)
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			break;
 		}
-		break;
+		break;*/
 	case V_KWH:
 		switch (message.sensor)
 		{
@@ -274,8 +274,11 @@ void receive(const MyMessage &message)
 			accumulationTimer = Alarm.timerRepeat(FIVE_MINUTES, setAccumulationDataFlag);
 			break;
 		case DELTA_WATT_CONSUMPTION_ID:
-			deltaUnitsPerDay = unitsPerDay - message.getFloat();
-			send(deltaConsumptionMessage.set(deltaUnitsPerDay, 5));
+			deltaUnitsTillDay = (accumulatedKWH - monthlyConsumptionInitKWH) - message.getFloat();
+			send(deltaConsumptionMessage.set(deltaUnitsTillDay, 5));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+			thingspeakMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
+			send(thingspeakMessage.set(deltaUnitsTillDay, 5));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			break;
 		}
@@ -323,6 +326,9 @@ void updateConsumptionData()
 		}
 		if (accumulationsStatus == ALL_DONE && sendAccumulationData)
 		{
+			thingspeakMessage.setSensor(CURR_WATT_ID);
+			send(thingspeakMessage.set(currWatt, 5));
+			wait(WAIT_AFTER_SEND_MESSAGE);
 			send(hourlyConsumptionMessage.set((accumulatedKWH - hourlyConsumptionInitKWH), 5));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			send(dailyConsumptionMessage.set((accumulatedKWH - dailyConsumptionInitKWH), 5));
@@ -392,7 +398,7 @@ void resetAll()
 	unitsPerHour = 0.00;
 	unitsPerDay = 0.00;
 	unitsPerMonth = 0.00;
-	deltaUnitsPerDay = 0.00;
+	deltaUnitsTillDay = 0.00;
 }
 
 void checkPulseCountRequestStatus()

@@ -19,8 +19,7 @@
 
 #define DEFAULT_BLINKS_PER_KWH 6400 // value from energy meter
 AlarmId heartbeatTimer;
-AlarmId pulseCountTimer;
-AlarmId pulsesPerWattHourTimer;
+AlarmId requestTimer;
 AlarmId updateConsumptionTimer;
 AlarmId accumulationTimer;
 
@@ -47,8 +46,7 @@ float monthlyConsumptionInitKWH;
 float unitsPerHour;
 float unitsPerDay;
 float unitsPerMonth;
-float deltaUnitsPerMonth;
-float deltaUnitsInOut;
+float deltaUnitsRealtime;
 
 byte accumulationsStatus;
 byte accumulationStatusCount;
@@ -75,7 +73,7 @@ void setup()
 	sendPulseCountRequest = true;
 	pulseCountReceived = false;
 	pulseCountRequestCount = 0;
-	sendBlinksPerWattHourRequest = true;
+	sendBlinksPerWattHourRequest = false;
 	blinksPerWattHourReceived = false;
 	blinksPerWattHourCount = 0;
 	lastBlink = 0;
@@ -89,8 +87,7 @@ void setup()
 	unitsPerHour = 0.00;
 	unitsPerDay = 0.00;
 	unitsPerMonth = 0.00;
-	deltaUnitsPerMonth = 0.00;
-	deltaUnitsInOut = 0.00;
+	deltaUnitsRealtime = 0.00;
 	accumulationsStatus = GET_HOURLY_KWH;
 	accumulationStatusCount = 0;
 	firstTime = true;
@@ -115,7 +112,7 @@ void presentation()
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(ACCUMULATED_WATT_CONSUMPTION_ID, S_POWER, "Total Consumption");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-	present(DELTA_WATT_CONSUMPTION_ID, S_POWER, "Delta Consumption Realtime");
+	present(DELTA_WATT_CONSUMPTION_ID, S_POWER, "Curr Delta Consumption");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(CURR_PULSE_COUNT_ID, S_CUSTOM, "Pulse Count");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
@@ -133,7 +130,7 @@ void loop()
 	{
 		sendPulseCountRequest = false;
 		request(CURR_PULSE_COUNT_ID, V_VAR1);
-		pulseCountTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkPulseCountRequestStatus);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkPulseCountRequestStatus);
 		pulseCountRequestCount++;
 		if (pulseCountRequestCount == 10)
 		{
@@ -145,7 +142,7 @@ void loop()
 	{
 		sendBlinksPerWattHourRequest = false;
 		request(BLINKS_PER_KWH_ID, V_VAR2);
-		pulsesPerWattHourTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkBlinksPerWattHourRequest);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkBlinksPerWattHourRequest);
 		blinksPerWattHourCount++;
 		if (blinksPerWattHourCount == 10)
 		{
@@ -164,15 +161,16 @@ void receive(const MyMessage &message)
 		if (!pulseCountReceived)
 		{
 			pulseCountReceived = true;
-			Alarm.free(pulseCountTimer);
-			updateConsumptionTimer = Alarm.timerRepeat(ACCUMULATION_FREQUENCY_SECS, updateConsumptionData);
+			Alarm.free(requestTimer);
+			sendBlinksPerWattHourRequest = true;
+			requestTimer = Alarm.timerRepeat(ACCUMULATION_FREQUENCY_SECS, updateConsumptionData);
 		}
 		break;
 	case V_VAR2:
 		if (!blinksPerWattHourReceived)
 		{
 			blinksPerWattHourReceived = true;
-			Alarm.free(pulsesPerWattHourTimer);
+			Alarm.free(requestTimer);
 		}
 		blinksPerWattHour = message.getLong();
 		pulseFactor = blinksPerWattHour / 1000;
@@ -216,7 +214,7 @@ void receive(const MyMessage &message)
 			resetAll();
 			break;
 		}
-		break;
+		break;/*
 	case V_VAR5:
 		switch (message.getInt())
 		{
@@ -246,7 +244,7 @@ void receive(const MyMessage &message)
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			break;
 		}
-		break;
+		break;*/
 	case V_KWH:
 		switch (message.sensor)
 		{
@@ -271,10 +269,10 @@ void receive(const MyMessage &message)
 			accumulationTimer = Alarm.timerRepeat(FIVE_MINUTES, setAccumulationDataFlag);
 			break;
 		case DELTA_WATT_CONSUMPTION_ID:
-			deltaUnitsInOut = message.getFloat() - (accumulatedKWH - monthlyConsumptionInitKWH);
+			deltaUnitsRealtime = message.getFloat() - (accumulatedKWH - monthlyConsumptionInitKWH);
 			MyMessage realtimeDeltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
 			realtimeDeltaConsumptionMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
-			send(realtimeDeltaConsumptionMessage.set(deltaUnitsInOut, 5));
+			send(realtimeDeltaConsumptionMessage.set(deltaUnitsRealtime, 5));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			break;
 		}
@@ -385,7 +383,7 @@ void resetAll()
 	unitsPerHour = 0.00;
 	unitsPerDay = 0.00;
 	unitsPerMonth = 0.00;
-	deltaUnitsPerMonth = 0.00;
+	deltaUnitsRealtime = 0.00;
 }
 
 void checkPulseCountRequestStatus()
