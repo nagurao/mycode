@@ -8,7 +8,7 @@
 #define MY_RADIO_NRF24
 //#define MY_REPEATER_FEATURE
 #define MY_NODE_ID INV_IN_NODE_ID
-//#define MY_PARENT_NODE_ID BATT_VOLTAGE_NODE_ID
+#define MY_PARENT_NODE_ID BATT_VOLTAGE_NODE_ID
 //#define MY_DEBUG
 
 #include <MyNodes.h>

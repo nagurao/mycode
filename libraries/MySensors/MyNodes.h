@@ -188,7 +188,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define BATT_VOLTAGE_NODE_ID 12
 
 #define ZERO_PULSE 0
-#define ACCUMULATION_FREQUENCY_SECS 20
+#define ACCUMULATION_FREQUENCY_SECS 30
 #define MAX_WATT 6000
 #define MAX_WATT_INVERTER 2000
 

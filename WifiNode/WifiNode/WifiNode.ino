@@ -1,7 +1,6 @@
 #define PRINT_DEBUG_MESSAGES
 #define PRINT_HTTP
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
 
 #include <TimeAlarms.h>
 #include <TimeLib.h>
@@ -19,6 +18,10 @@
 #define SOLAR_BATT_VOLTAGE_NODE
 #define NODE_INTERACTS_WITH_RELAY
 #define NODE_INTERACTS_WITH_WIFI_AND_LCD
+
+#define MY_DEFAULT_ERR_LED_PIN 4  
+#define MY_DEFAULT_RX_LED_PIN  5
+#define MY_DEFAULT_TX_LED_PIN  6
 
 #define MY_RADIO_NRF24
 //#define MY_REPEATER_FEATURE

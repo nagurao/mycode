@@ -8,7 +8,7 @@
 #define MY_RADIO_NRF24
 //#define MY_REPEATER_FEATURE
 #define MY_NODE_ID INV_OUT_NODE_ID
-//#define MY_PARENT_NODE_ID BATT_VOLTAGE_NODE_ID
+#define MY_PARENT_NODE_ID BATT_VOLTAGE_NODE_ID
 //#define MY_DEBUG
 
 #include <MyNodes.h>
@@ -273,6 +273,9 @@ void receive(const MyMessage &message)
 			MyMessage realtimeDeltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
 			realtimeDeltaConsumptionMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
 			send(realtimeDeltaConsumptionMessage.set(deltaUnitsRealtime, 5));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+			thingspeakMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
+			send(thingspeakMessage.set(deltaUnitsRealtime, 5));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			break;
 		}
