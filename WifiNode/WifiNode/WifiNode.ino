@@ -1,27 +1,16 @@
 #define PRINT_DEBUG_MESSAGES
 #define PRINT_HTTP
 #include <ESP8266WiFi.h>
-
 #include <TimeAlarms.h>
 #include <TimeLib.h>
 #include <Time.h>
 #include <ThingSpeak.h>
 #include <SPI.h>
 
-/*
-#include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
-#include <ESP8266HTTPUpdateServer.h>
-*/
 #define WIFI_NODE
 #define WATT_METER_NODE
 #define SOLAR_BATT_VOLTAGE_NODE
 #define NODE_INTERACTS_WITH_RELAY
-#define NODE_INTERACTS_WITH_WIFI_AND_LCD
-
-#define MY_DEFAULT_ERR_LED_PIN 4  
-#define MY_DEFAULT_RX_LED_PIN  5
-#define MY_DEFAULT_TX_LED_PIN  6
 
 #define MY_RADIO_NRF24
 //#define MY_REPEATER_FEATURE
@@ -33,6 +22,7 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Thingspeak Node"
+//#define APPLICATION_VERSION "13Dec2016"
 
 //water level logging channel
 #define TANK_01_FIELD 1
@@ -121,26 +111,19 @@
 #define IN_BOREWELL_OFF_IDX 3
 #define IN_SUMP_MOTOR_IDX 4
 
-#define THINGSPEAK_INTERVAL 60
+#define THINGSPEAK_INTERVAL 20
 #define DEFAULT_CHANNEL_VALUE -99.00
 #define DEFAULT_CHANNEL_VALUE_INT 0
 
-#define GET_INCOMING_DATA  0
-#define SEND_POWER_CUMMLATIVE_DATA 1
-#define SEND_POWER_REALTIME_DATA 2
-#define SEND_INVETER_CUMMLATIVE_DATA 3
-#define SEND_INVETER_REALTIME_DATA 4
-#define SEND_VOLTAGE_DATA 5
-#define SEND_WATER_LEVEL_DATA 6
-#define SEND_STATIC_DATA 7
-
-#define REQ_INV_IN_CURR_WATT 8
-#define REQ_INV_OUT_CURR_WATT 9
-#define REQ_INV_IN_OUT_CURR_DELTA 10
-#define REQ_3PHASE_CURR_WATT 11
-#define REQ_1PHASE_CURR_WATT 12
-#define REQ_PH3_PH1_CURR_DELTA 13
-#define TYPES_OF_DATA 8
+#define SEND_POWER_CUMMLATIVE_DATA 0
+#define SEND_POWER_REALTIME_DATA 1
+#define SEND_INVETER_CUMMLATIVE_DATA 2
+#define SEND_INVETER_REALTIME_DATA 3
+#define SEND_VOLTAGE_DATA 4
+#define SEND_WATER_LEVEL_DATA 5
+#define SEND_STATIC_DATA 6
+#define GET_
+#define TYPES_OF_DATA 7
 
 #define FIELDS_PER_CHANNEL 8
 
@@ -199,33 +182,18 @@ AlarmId incomingThingspeakTimer;
 MyMessage lightNodeMessage(CURR_MODE_ID, V_VAR1);
 MyMessage borewellNodeMessage;
 MyMessage sumpMotorMessage(RELAY_ID, V_STATUS);
-MyMessage lcdNodeMessage;
-MyMessage currWattMessage;
-MyMessage currDeltaMessage;
 
-/*
-const char* host = "esp8266-webupdate";
-const char* update_path = "/firmware";
-const char* update_username = "admin";
-const char* update_password = "admin"; 
-ESP8266WebServer httpServer(80);
-ESP8266HTTPUpdateServer httpUpdater;*/
-//
 void before()
 {
-	//WiFi.mode(WIFI_AP_STA);
 	WiFi.begin(ssid, pass);
 	ThingSpeak.begin(client);
-	//MDNS.begin(host);
-	//httpUpdater.setup(&httpServer, update_path, update_username, update_password);
-	//httpServer.begin();
-	//MDNS.addService("http", "tcp", 80);
 }
 
 void setup()
 {
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	thingspeakTimer = Alarm.timerRepeat(THINGSPEAK_INTERVAL, processThingspeakData);
+	incomingThingspeakTimer = Alarm.timerRepeat(2 * ONE_MINUTE, processIncomingData);
 
 	for (byte channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
@@ -240,7 +208,6 @@ void setup()
 	}
 	currentDataToSend = SEND_POWER_CUMMLATIVE_DATA;
 	incomingDataFound = false;
-	lcdNodeMessage.setDestination(LCD_NODE_ID);
 }
 
 void presentation()
@@ -250,7 +217,6 @@ void presentation()
 
 void loop()
 {
-	//httpServer.handleClient();
 	Alarm.delay(1);
 }
 
@@ -258,7 +224,7 @@ void receive(const MyMessage &message)
 {
 	switch (message.type)
 	{
-	case V_CUSTOM: 
+	case V_CUSTOM:
 		switch (message.sender)
 		{
 		case BALCONYLIGHT_NODE_ID:
@@ -290,19 +256,9 @@ void receive(const MyMessage &message)
 			{
 			case BATTERY_VOLTAGE_ID:
 				voltageChannelData[BATTERY_VOLT_IDX] = message.getFloat();
-				lcdNodeMessage.setSensor(BATTERY_VOLTAGE_ID);
-				lcdNodeMessage.setType(V_VOLTAGE);
-				lcdNodeMessage.set(voltageChannelData[BATTERY_VOLT_IDX], 2);
-				send(lcdNodeMessage);
-				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case SOLAR_VOLTAGE_ID:
 				voltageChannelData[SOLAR_VOLT_IDX] = message.getFloat();
-				lcdNodeMessage.setSensor(SOLAR_VOLTAGE_ID);
-				lcdNodeMessage.setType(V_VOLTAGE);
-				lcdNodeMessage.set(voltageChannelData[SOLAR_VOLT_IDX], 2);
-				send(lcdNodeMessage);
-				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			}
 			break;
@@ -313,11 +269,6 @@ void receive(const MyMessage &message)
 			{
 			case CURR_WATT_ID:
 				inverterRealtimeChannelData[INV_IN_CURR_WATT_IDX] = message.getFloat();
-				lcdNodeMessage.setSensor(INV_IN_CURR_WATT_ID);
-				lcdNodeMessage.setType(V_WATT);
-				lcdNodeMessage.set(inverterRealtimeChannelData[INV_IN_CURR_WATT_IDX],2);
-				send(lcdNodeMessage);
-				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
 				inverterCumulativeChannelData[INV_IN_HOURLY_IDX] = message.getFloat();
@@ -338,11 +289,6 @@ void receive(const MyMessage &message)
 			{
 			case CURR_WATT_ID:
 				inverterRealtimeChannelData[INV_OUT_CURR_WATT_IDX] = message.getFloat();
-				lcdNodeMessage.setSensor(INV_OUT_CURR_WATT_ID);
-				lcdNodeMessage.setType(V_WATT);
-				lcdNodeMessage.set(inverterRealtimeChannelData[INV_OUT_CURR_WATT_IDX], 2);
-				send(lcdNodeMessage);
-				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
 				inverterCumulativeChannelData[INV_OUT_HOURLY_IDX] = message.getFloat();
@@ -355,11 +301,6 @@ void receive(const MyMessage &message)
 				break;
 			case DELTA_WATT_CONSUMPTION_ID:
 				inverterRealtimeChannelData[INV_IN_OUT_REAL_TIME_DELTA_IDX] = message.getFloat();
-				lcdNodeMessage.setSensor(INV_IN_OUT_DELTA_ID);
-				lcdNodeMessage.setType(V_KWH);
-				lcdNodeMessage.set(inverterRealtimeChannelData[INV_IN_OUT_REAL_TIME_DELTA_IDX], 2);
-				send(lcdNodeMessage);
-				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			}
 			break;
@@ -368,11 +309,6 @@ void receive(const MyMessage &message)
 			{
 			case CURR_WATT_ID:
 				powerRealtimeChannelData[PH3_CURR_WATT_IDX] = message.getFloat();
-				lcdNodeMessage.setSensor(PH3_CURR_WATT_ID);
-				lcdNodeMessage.setType(V_WATT);
-				lcdNodeMessage.set(powerRealtimeChannelData[PH3_CURR_WATT_IDX], 2);
-				send(lcdNodeMessage);
-				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
 				powerCumulativeChannelData[PH3_HOURLY_IDX] = message.getFloat();
@@ -393,11 +329,6 @@ void receive(const MyMessage &message)
 			{
 			case CURR_WATT_ID:
 				powerRealtimeChannelData[PH1_CURR_WATT_IDX] = message.getFloat();
-				lcdNodeMessage.setSensor(PH1_CURR_WATT_ID);
-				lcdNodeMessage.setType(V_WATT);
-				lcdNodeMessage.set(powerRealtimeChannelData[PH1_CURR_WATT_IDX], 2);
-				send(lcdNodeMessage);
-				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
 				powerCumulativeChannelData[PH1_HOURLY_IDX] = message.getFloat();
@@ -410,11 +341,6 @@ void receive(const MyMessage &message)
 				break;
 			case DELTA_WATT_CONSUMPTION_ID:
 				powerRealtimeChannelData[PH3_PH1_REAL_TIME_DELTA_IDX] = message.getFloat();
-				lcdNodeMessage.setSensor(PH3_PH1_DELTA_ID);
-				lcdNodeMessage.setType(V_KWH);
-				lcdNodeMessage.set(powerRealtimeChannelData[PH3_PH1_REAL_TIME_DELTA_IDX], 2);
-				send(lcdNodeMessage);
-				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			}
 			break;
@@ -423,15 +349,12 @@ void receive(const MyMessage &message)
 	}
 }
 
-
 void processThingspeakData()
 {
 	byte channelId;
 	switch (currentDataToSend)
 	{
-	case GET_INCOMING_DATA:
-		processIncomingData();
-		break;
+
 	case SEND_POWER_CUMMLATIVE_DATA:
 		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 		{
@@ -655,50 +578,9 @@ void processThingspeakData()
 			}
 		}
 		break;
-	case REQ_INV_IN_CURR_WATT:
-		currWattMessage.setDestination(INV_IN_NODE_ID);
-		currWattMessage.setType(V_VAR5);
-		currWattMessage.setSensor(CURR_WATT_ID);
-		currWattMessage.set(0);
-		send(currWattMessage);
-		break;
-	case REQ_INV_OUT_CURR_WATT:
-		currWattMessage.setDestination(INV_OUT_NODE_ID);
-		currWattMessage.setType(V_VAR5);
-		currWattMessage.setSensor(CURR_WATT_ID);
-		currWattMessage.set(0);
-		send(currWattMessage);
-		break;
-	case REQ_INV_IN_OUT_CURR_DELTA:
-		currDeltaMessage.setDestination(INV_OUT_NODE_ID);
-		currDeltaMessage.setType(V_VAR5);
-		currDeltaMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
-		currDeltaMessage.set(5);
-		send(currDeltaMessage);
-		break;
-	case REQ_3PHASE_CURR_WATT:
-		currWattMessage.setDestination(PH3_NODE_ID);
-		currWattMessage.setType(V_VAR5);
-		currWattMessage.setSensor(CURR_WATT_ID);
-		currWattMessage.set(0);
-		send(currWattMessage);
-		break;
-	case REQ_1PHASE_CURR_WATT:
-		currWattMessage.setDestination(PH1_NODE_ID);
-		currWattMessage.setType(V_VAR5);
-		currWattMessage.setSensor(CURR_WATT_ID);
-		currWattMessage.set(0);
-		send(currWattMessage);
-		break;
-	case REQ_PH3_PH1_CURR_DELTA:
-		currDeltaMessage.setDestination(PH1_NODE_ID);
-		currDeltaMessage.setType(V_VAR5);
-		currDeltaMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
-		currDeltaMessage.set(5);
-		send(currDeltaMessage);
-		break;
 	}
 	currentDataToSend = (currentDataToSend + 1) % TYPES_OF_DATA;
+	Serial.print("currentDataToSend = "); Serial.println(currentDataToSend);
 }
 
 void processIncomingData()
@@ -711,12 +593,12 @@ void processIncomingData()
 		incomingChannelData[channelId] = (int)ThingSpeak.readIntField(incomingChannelNumber, channelId + 1, incomingReadAPIKey);
 		if (ThingSpeak.getLastReadStatus() != OK_SUCCESS)
 			incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
-		if (ThingSpeak.getLastReadStatus() == OK_SUCCESS && (incomingChannelData[channelId] <= 0 ))// || incomingChannelData[channelId] > 2))
+		if (ThingSpeak.getLastReadStatus() == OK_SUCCESS && (incomingChannelData[channelId] <= 0))// || incomingChannelData[channelId] > 2))
 			incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
 		if (isDigit(incomingChannelData[channelId]))
 		{
 			incomingChannelData[channelId] = incomingChannelData[channelId] + '0';
-			if(incomingChannelData[channelId] > 2)
+			if (incomingChannelData[channelId] > 2)
 				incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
 		}
 	}
