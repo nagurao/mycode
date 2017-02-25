@@ -18,7 +18,6 @@
 #define MY_DEFAULT_TX_LED_PIN  5 
 
 #define APPLICATION_NAME "Serial Gateway"
-#define APPLICATION_VERSION "13Dec2016"
 
 #include <SPI.h>
 #include <MySensors.h>  
@@ -30,7 +29,7 @@ void setup()
 
 void presentation()
 {
-	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
+	sendSketchInfo(APPLICATION_NAME, __DATE__);
 }
 
 void loop()

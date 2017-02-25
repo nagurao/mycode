@@ -16,7 +16,6 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Balcony Repeater Node"
-#define APPLICATION_VERSION "03Sep2016"
 
 AlarmId heartbeatTimer;
 
@@ -32,7 +31,7 @@ void setup()
 
 void presentation()
 {
-	sendSketchInfo(APPLICATION_NAME, APPLICATION_VERSION);
+	sendSketchInfo(APPLICATION_NAME, __DATE__);
 }
 
 void loop()
