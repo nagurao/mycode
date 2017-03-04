@@ -700,8 +700,8 @@ void processThingspeakData()
 void processIncomingData()
 {
 	byte channelId;
-	int valueToSend = 0;
 	incomingDataFound = false;
+	/*
 	for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
 		incomingChannelData[channelId] = (int)ThingSpeak.readIntField(incomingChannelNumber, channelId + 1, incomingReadAPIKey);
@@ -716,7 +716,7 @@ void processIncomingData()
 				incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
 		}
 	}
-
+	*/
 	for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
 		if (incomingChannelData[channelId] != DEFAULT_CHANNEL_VALUE_INT)
@@ -799,5 +799,30 @@ void insertQueue(byte data)
 
 void insertFetchAndProcessDataRequest()
 {
-	insertQueue(FETCH_AND_PROCESS_DATA);
+	byte channelId;
+	boolean dataToProcess = false;
+	for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+	{
+		incomingChannelData[channelId] = (int)ThingSpeak.readIntField(incomingChannelNumber, channelId + 1, incomingReadAPIKey);
+		if (ThingSpeak.getLastReadStatus() != OK_SUCCESS)
+			incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
+		if (ThingSpeak.getLastReadStatus() == OK_SUCCESS && (incomingChannelData[channelId] <= 0))// || incomingChannelData[channelId] > 2))
+			incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
+		if (isDigit(incomingChannelData[channelId]))
+		{
+			incomingChannelData[channelId] = incomingChannelData[channelId] + '0';
+			if (incomingChannelData[channelId] > 2)
+				incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
+		}
+	}
+	for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+	{
+		if (incomingChannelData[channelId] != DEFAULT_CHANNEL_VALUE_INT)
+		{
+			dataToProcess = true;
+			channelId = FIELDS_PER_CHANNEL;
+		}
+	}
+	if(dataToProcess)
+		insertQueue(FETCH_AND_PROCESS_DATA);
 }
