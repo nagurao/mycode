@@ -39,13 +39,17 @@ boolean solarVoltageReceived;
 boolean sendR1Request;
 boolean sendR2Request;
 boolean sendScaleFactorRequest;
+boolean sendRelayStatusRequest;
+
 boolean resistorR1Received;
 boolean resistorR2Received;
 boolean scaleFactorReceived;
+boolean relayStatusReceived;
 
 byte resistorR1RequestCount;
 byte resistorR2RequestCount;
 byte scaleFactorRequestCount;
+byte relayStatusRequestCount;
 
 float voltsPerBit;
 float prevSolarVoltage;
@@ -78,12 +82,15 @@ void setup()
 	sendR1Request = true;
 	sendR2Request = false;
 	sendScaleFactorRequest = false;
+	sendRelayStatusRequest = false;
 	resistorR1Received = false;
 	resistorR2Received = false;
 	scaleFactorReceived = false;
+	relayStatusReceived = false;
 	resistorR1RequestCount = 0;
 	resistorR2RequestCount = 0;
 	scaleFactorRequestCount = 0;
+	relayStatusRequestCount = 0;
 
 	solarVoltage = 0;
 	prevSolarVoltage = 0;
@@ -164,6 +171,19 @@ void loop()
 			MyMessage scaleFactorMessage(SCALE_FACTOR_ID, V_VAR3);
 			send(scaleFactorMessage.set(DEFAULT_SCALE_FACTOR, 5));
 			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+		}
+	}
+	if (sendRelayStatusRequest)
+	{
+		sendRelayStatusRequest = false;
+		request(RESET_RELAY_ID, V_STATUS);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkRelayStatusRequestStatus);
+		relayStatusRequestCount++;
+		if (relayStatusRequestCount == 10)
+		{
+			digitalWrite(RELAY_PIN, RELAY_OFF);
+			send(resetRelayMessage.set(RELAY_OFF));
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 	}
 	if (sendSolarVoltageRequest)
@@ -256,7 +276,19 @@ void receive(const MyMessage &message)
 			digitalWrite(RELAY_PIN, RELAY_ON);
 			send(resetRelayMessage.set(RELAY_ON));
 			wait(WAIT_AFTER_SEND_MESSAGE);
-			Alarm.timerOnce(ONE_MINUTE, resetRelay);
+		}
+		else
+		{
+			digitalWrite(RELAY_PIN, RELAY_OFF);
+			send(resetRelayMessage.set(RELAY_OFF));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+		}
+		if (!relayStatusReceived)
+		{
+			relayStatusReceived = true;
+			Alarm.free(requestTimer);
+			sendRelayStatusRequest = false;
+			request(RESET_RELAY_ID, V_STATUS);
 		}
 	}
 }
@@ -347,9 +379,8 @@ void checkScaleFactorRequestStatus()
 		sendScaleFactorRequest = true;
 }
 
-void resetRelay()
+void checkRelayStatusRequestStatus()
 {
-	digitalWrite(RELAY_PIN, RELAY_OFF);
-	send(resetRelayMessage.set(RELAY_OFF));
-	wait(WAIT_AFTER_SEND_MESSAGE);
+	if (!relayStatusReceived)
+		sendRelayStatusRequest = true;
 }
