@@ -47,6 +47,7 @@ float unitsPerHour;
 float unitsPerDay;
 float unitsPerMonth;
 float deltaUnitsRealtime;
+float deltaUnitsTillDay;
 
 byte accumulationsStatus;
 byte accumulationStatusCount;
@@ -88,6 +89,7 @@ void setup()
 	unitsPerDay = 0.00;
 	unitsPerMonth = 0.00;
 	deltaUnitsRealtime = 0.00;
+	deltaUnitsTillDay = 0.00;
 	accumulationsStatus = GET_HOURLY_KWH;
 	accumulationStatusCount = 0;
 	firstTime = true;
@@ -349,12 +351,13 @@ void resetDay()
 {
 	unitsPerDay = accumulatedKWH - dailyConsumptionInitKWH;
 	dailyConsumptionInitKWH = accumulatedKWH;
+	deltaUnitsTillDay = accumulatedKWH - monthlyConsumptionInitKWH;
 	send(dailyConsumptionMessage.set(unitsPerDay, 5));
 	wait(WAIT_AFTER_SEND_MESSAGE);
 	thingspeakMessage.setSensor(DAILY_WATT_CONSUMPTION_ID);
 	send(thingspeakMessage.set(unitsPerDay, 5));
 	wait(WAIT_AFTER_SEND_MESSAGE);
-	send(deltaConsumptionMessage.set(unitsPerDay, 5));
+	send(deltaConsumptionMessage.set(deltaUnitsTillDay, 5));
 	wait(WAIT_AFTER_SEND_MESSAGE);
 	MyMessage resetTypeMessage(RESET_TYPE_ID, V_VAR3);
 	send(resetTypeMessage.set(RESET_NONE));

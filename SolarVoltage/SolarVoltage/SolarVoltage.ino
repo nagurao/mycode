@@ -9,6 +9,7 @@
 //#define MY_REPEATER_FEATURE
 #define MY_NODE_ID SOLAR_VOLTAGE_NODE_ID
 #define MY_PARENT_NODE_ID BATT_VOLTAGE_NODE_ID
+#define MY_PARENT_NODE_IS_STATIC
 //#define MY_DEBUG
 
 #include <MyNodes.h>
@@ -95,7 +96,7 @@ void loop()
 		{
 			MyMessage resistorR1ValueMessage(R1_VALUE_ID, V_VAR1);
 			send(resistorR1ValueMessage.set(DEFAULT_R1_VALUE,2));
-			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 	}
 	if (sendR2Request)
@@ -108,7 +109,7 @@ void loop()
 		{
 			MyMessage resistorR2ValueMessage(R2_VALUE_ID, V_VAR2);
 			send(resistorR2ValueMessage.set(DEFAULT_R2_VALUE,2));
-			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 	}
 	if (sendScaleFactorRequest)
@@ -121,7 +122,7 @@ void loop()
 		{
 			MyMessage scaleFactorMessage(SCALE_FACTOR_ID, V_VAR3);
 			send(scaleFactorMessage.set(DEFAULT_SCALE_FACTOR, 5));
-			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 	}
 	Alarm.delay(1);
@@ -176,9 +177,9 @@ void readSolarVoltage()
 	for (byte readCount = 1; readCount <= 10; readCount++)
 	{
 		thresholdVoltage = thresholdVoltage + analogRead(THRESHOLD_VOLTAGE_PIN);
-		Alarm.delay(WAIT_50MS);
+		wait(WAIT_50MS);
 		sensedInputVoltage = sensedInputVoltage + analogRead(VOLTAGE_SENSE_PIN);
-		Alarm.delay(WAIT_50MS);
+		wait(WAIT_50MS);
 	}
 	thresholdVoltage = thresholdVoltage / 10;
 	thresholdVoltage = thresholdVoltage * 5.0 / 1024;
@@ -194,7 +195,7 @@ void readSolarVoltage()
 		solarVoltage = (sensedInputVoltage * voltsPerBit) * scaleFactor;
 
 	send(solarVoltageMessage.set(solarVoltage, 5));
-	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	wait(WAIT_AFTER_SEND_MESSAGE);
 }
 
 void sendNodeUpMessage()
@@ -202,7 +203,7 @@ void sendNodeUpMessage()
 	MyMessage nodeUpMessage(SOLAR_VOLTAGE_ID,V_VAR4);
 	nodeUpMessage.setDestination(BATT_VOLTAGE_NODE_ID);
 	send(nodeUpMessage.set(UP));
-	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	wait(WAIT_AFTER_SEND_MESSAGE);
 }
 
 void checkR1RequestStatus()

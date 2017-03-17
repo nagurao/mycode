@@ -144,7 +144,7 @@ void loop()
 		{
 			MyMessage resistorR1ValueMessage(R1_VALUE_ID, V_VAR1);
 			send(resistorR1ValueMessage.set(DEFAULT_R1_VALUE,2));
-			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 	}
 	if (sendR2Request)
@@ -157,7 +157,7 @@ void loop()
 		{
 			MyMessage resistorR2ValueMessage(R2_VALUE_ID, V_VAR2);
 			send(resistorR2ValueMessage.set(DEFAULT_R2_VALUE,2));
-			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 	}
 	if (sendScaleFactorRequest)
@@ -170,7 +170,7 @@ void loop()
 		{
 			MyMessage scaleFactorMessage(SCALE_FACTOR_ID, V_VAR3);
 			send(scaleFactorMessage.set(DEFAULT_SCALE_FACTOR, 5));
-			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 	}
 	if (sendRelayStatusRequest)
@@ -247,6 +247,7 @@ void receive(const MyMessage &message)
 			sendScaleFactorRequest = false;
 			request(SCALE_FACTOR_ID, V_VAR3);
 			getBatteryVoltageTimer = Alarm.timerRepeat(FIVE_MINUTES, getBatteryVoltage);
+			sendRelayStatusRequest = true;
 		}
 	case V_VAR4:
 		if (message.getInt() == UP)
@@ -300,9 +301,9 @@ void getBatteryVoltage()
 	for (byte readCount = 1; readCount <= 10; readCount++)
 	{
 		thresholdVoltage = thresholdVoltage + analogRead(THRESHOLD_VOLTAGE_PIN);
-		Alarm.delay(WAIT_50MS);
+		wait(WAIT_50MS);
 		sensedInputVoltage = sensedInputVoltage + analogRead(VOLTAGE_SENSE_PIN);
-		Alarm.delay(WAIT_50MS);
+		wait(WAIT_50MS);
 	}
 	thresholdVoltage = thresholdVoltage / 10;
 	thresholdVoltage = thresholdVoltage * 5.0 / 1024;
@@ -318,10 +319,10 @@ void getBatteryVoltage()
 	if (prevBatteryVoltage != batteryVoltage)
 	{
 		send(batteryVoltageMessage.set(batteryVoltage, 5));
-		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+		wait(WAIT_AFTER_SEND_MESSAGE);
 		lcdVoltageMessage.setSensor(BATTERY_VOLTAGE_ID);
 		send(lcdVoltageMessage.set(batteryVoltage, 5));
-		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+		wait(WAIT_AFTER_SEND_MESSAGE);
 		prevBatteryVoltage = batteryVoltage;
 	}
 }
@@ -343,10 +344,10 @@ void sendSolarVoltage ()
 	if (prevSolarVoltage != solarVoltage)
 	{
 		send(solarVoltageMessage.set(solarVoltage, 5));
-		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+		wait(WAIT_AFTER_SEND_MESSAGE);
 		lcdVoltageMessage.setSensor(SOLAR_VOLTAGE_ID);
 		send(lcdVoltageMessage.set(solarVoltage, 5));
-		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+		wait(WAIT_AFTER_SEND_MESSAGE);
 		prevSolarVoltage = solarVoltage;
 	}
 }
@@ -355,10 +356,10 @@ void sendThingspeakMessage()
 {
 	thingspeakMessage.setSensor(SOLAR_VOLTAGE_ID);
 	send(thingspeakMessage.set(solarVoltage, 5));
-	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	wait(WAIT_AFTER_SEND_MESSAGE);
 	thingspeakMessage.setSensor(BATTERY_VOLTAGE_ID);
 	send(thingspeakMessage.set(batteryVoltage, 5));
-	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	wait(WAIT_AFTER_SEND_MESSAGE);
 }
 
 void checkR1RequestStatus()
