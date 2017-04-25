@@ -1,3 +1,4 @@
+#include <MPXNNNN.h>
 #include <TimeAlarms.h>
 #include <TimeLib.h>
 #include <Time.h>
@@ -19,22 +20,18 @@
 #define APPLICATION_NAME "Tank 01"
 
 AlarmId heartbeatTimer;
-AlarmId waterLowLevelRequestTimer;
+AlarmId gatewayRequestTimer;
 AlarmId waterLevelRisingTimer;
 AlarmId waterDefaultLevelTimer;
-AlarmId hourlyTimer;
 
-int prevWaterLevelValue;
-int currWaterLevelValue;
-int currWaterLevelValueDec;
-
-byte waterOverFlowLevelIndex;
-byte waterLowLevelIndex;
 byte waterLowLevelInPercent;
-byte waterLowLevelRequestCount;
+byte gatewayRequestCount;
 boolean waterLowLevelReceived;
 boolean sendWaterLowLevelRequest;
-boolean isHourlyUpdate;
+
+byte tankHeight;
+boolean tankHeightReceived;
+boolean sendTankHeightRequest;
 
 MyMessage waterLevelMessage(CURR_WATER_LEVEL_ID,V_VOLUME);
 MyMessage lcdWaterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
@@ -46,26 +43,24 @@ MyMessage waterLevelTankMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
 
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 
+MPXNNNN pressureSensor(MPX5050, PRESSURE_SENSOR_PIN, REFERENCE_VOLTAGE_PIN, MPX5050_CONSTANT);
+
 void before()
 {
-	for (byte sensorIndex = 0; sensorIndex < MAX_SENSORS; sensorIndex++)
-		pinMode(sensorPinArray[sensorIndex], INPUT_PULLUP);
+	pressureSensor.setErrorCount(25);
 }
 
 void setup()
 {
-	prevWaterLevelValue = 200;
-	currWaterLevelValue = 0;
-	currWaterLevelValueDec = 0;
-	waterOverFlowLevelIndex = 0;
-	waterLowLevelIndex = 0;
 	waterLowLevelInPercent = 0;
-	waterLowLevelRequestCount = 0;
-	isHourlyUpdate = false;
+	tankHeight = 0;
+	gatewayRequestCount = 0;
 	waterLowLevelReceived = false;
 	sendWaterLowLevelRequest = true;
-	lcdWaterLevelMessage.setDestination(LCD_NODE_ID);
+	tankHeightReceived = false;
+	sendTankHeightRequest = false;
 
+	lcdWaterLevelMessage.setDestination(LCD_NODE_ID);
 	lowLevelTankMessage.setDestination(BOREWELL_NODE_ID);
 	highLevelTankMessage.setDestination(BOREWELL_NODE_ID);
 	waterLevelTankMessage.setDestination(BOREWELL_NODE_ID);
@@ -77,7 +72,6 @@ void setup()
 	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
 	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
 
-	hourlyTimer = Alarm.timerRepeat(ONE_HOUR, hourlyUpdate);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
@@ -87,6 +81,8 @@ void presentation()
 	present(CURR_WATER_LEVEL_ID, S_WATER, "Tank 01 Water Level");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(WATER_LOW_LEVEL_IND_ID, S_CUSTOM, "T1 Low Water Level %");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(TANK_DEPTH_ID, S_CUSTOM, "Tank01 Height");
 }
 
 void loop() 
@@ -95,9 +91,9 @@ void loop()
 	{
 		sendWaterLowLevelRequest = false;
 		request(WATER_LOW_LEVEL_IND_ID, V_VAR1);
-		waterLowLevelRequestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkWaterLowLevelRequestStatus);
-		waterLowLevelRequestCount++;
-		if (waterLowLevelRequestCount == 10)
+		gatewayRequestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkWaterLowLevelRequestStatus);
+		gatewayRequestCount++;
+		if (gatewayRequestCount == 10)
 		{
 			MyMessage waterLowLevelMessage(WATER_LOW_LEVEL_IND_ID, V_VAR1);
 			send(waterLowLevelMessage.set(DEFAULT_LOW_LEVEL));
@@ -111,18 +107,19 @@ void receive(const MyMessage &message)
 	{
 	case V_VAR1:	
 		waterLowLevelInPercent = message.getByte();
-		waterLowLevelIndex = (waterLowLevelInPercent / 20) ? MAX_SENSORS - (waterLowLevelInPercent / 20) - 1 : (MAX_SENSORS - 1);
 		send(waterLowLevelMessage.set(message.getByte()));
 		if (!waterLowLevelReceived)
 		{
 			waterLowLevelReceived = true;
-			Alarm.free(waterLowLevelRequestTimer);
+			Alarm.free(gatewayRequestTimer);
 			sendWaterLowLevelRequest = false;
 			request(WATER_LOW_LEVEL_IND_ID, V_VAR1);
-			getWaterLevel();
+			gatewayRequestCount = 0;
 		}
 		break;
 	case V_VAR2:
+		break;
+	case V_VAR3:
 		if (message.getInt())
 		{
 			Alarm.disable(waterDefaultLevelTimer);
@@ -139,6 +136,9 @@ void receive(const MyMessage &message)
 
 void getWaterLevel()
 {
+	float waterColumnHeight;
+	waterColumnHeight = pressureSensor.readMPXNNNNInHeight();
+
 	currWaterLevelValueDec = 0;
 	for (byte sensorIndex = 0; sensorIndex < MAX_SENSORS; sensorIndex++)
 	{

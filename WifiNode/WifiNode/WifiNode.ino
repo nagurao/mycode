@@ -228,6 +228,7 @@ void setup()
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 	thingspeakTimer = Alarm.timerRepeat(THINGSPEAK_INTERVAL, processThingspeakData);
 	incomingDataTimer = Alarm.timerRepeat(FIVE_MINUTES, insertFetchAndProcessDataRequest);
+	Alarm.timerOnce(ONE_MINUTE, insertFetchAndProcessDataRequest);
 
 	for (byte channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
@@ -717,6 +718,7 @@ void processIncomingData()
 		}
 	}
 	*/
+
 	for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
 		if (incomingChannelData[channelId] != DEFAULT_CHANNEL_VALUE_INT)
@@ -745,7 +747,7 @@ void processIncomingData()
 				lightNodeMessage.setDestination(GATELIGHT_NODE_ID);
 				lightNodeMessage.setSensor(CURR_MODE_ID);
 				lightNodeMessage.setType(V_VAR1);
-				lightNodeMessage.set((incomingChannelData[channelId] == 1) ? RELAY_ON : RELAY_OFF);
+				lightNodeMessage.set((incomingChannelData[channelId] == '1') ? 0 : 1);
 				send(lightNodeMessage);
 				break;
 			case IN_BOREWELL_ON_IDX:
@@ -755,6 +757,14 @@ void processIncomingData()
 					borewellNodeMessage.setSensor(BORE_ON_RELAY_ID);
 					borewellNodeMessage.setType(V_STATUS);
 					borewellNodeMessage.set(RELAY_ON);
+					send(borewellNodeMessage);
+				}
+				else
+				{
+					borewellNodeMessage.setDestination(BOREWELL_NODE_ID);
+					borewellNodeMessage.setSensor(BORE_ON_RELAY_ID);
+					borewellNodeMessage.setType(V_STATUS);
+					borewellNodeMessage.set(RELAY_OFF);
 					send(borewellNodeMessage);
 				}
 				break;
@@ -776,6 +786,7 @@ void processIncomingData()
 				break;
 			}
 			ThingSpeak.setField(channelId + 1, DEFAULT_CHANNEL_VALUE_INT);
+			incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
 		}
 	}
 	if (incomingDataFound)
@@ -799,21 +810,35 @@ void insertQueue(byte data)
 
 void insertFetchAndProcessDataRequest()
 {
-	byte channelId;
+	byte channelId; 
+	int readValue;
 	boolean dataToProcess = false;
 	for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
-		incomingChannelData[channelId] = (int)ThingSpeak.readIntField(incomingChannelNumber, channelId + 1, incomingReadAPIKey);
-		if (ThingSpeak.getLastReadStatus() != OK_SUCCESS)
-			incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
-		if (ThingSpeak.getLastReadStatus() == OK_SUCCESS && (incomingChannelData[channelId] <= 0))// || incomingChannelData[channelId] > 2))
-			incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
-		if (isDigit(incomingChannelData[channelId]))
+		if (incomingChannelData[channelId] == DEFAULT_CHANNEL_VALUE_INT)
 		{
-			incomingChannelData[channelId] = incomingChannelData[channelId] + '0';
-			if (incomingChannelData[channelId] > 2)
+			readValue = (int)ThingSpeak.readIntField(incomingChannelNumber, channelId + 1, incomingReadAPIKey);
+			//if (ThingSpeak.getLastReadStatus() != OK_SUCCESS)
+			//	incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
+			//if (ThingSpeak.getLastReadStatus() == OK_SUCCESS && (incomingChannelData[channelId] <= 0 || incomingChannelData[channelId] > 3))
+			//	incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
+			if (ThingSpeak.getLastReadStatus() != OK_SUCCESS)
 				incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
+			else
+			{
+				switch (readValue)
+				{
+				case 1: incomingChannelData[channelId] = 1; break;
+				case 2: incomingChannelData[channelId] = 2; break;
+				case 3: incomingChannelData[channelId] = 3; break;
+				default: incomingChannelData[channelId] = 0; break;
+				}
+			}
 		}
+	}
+	for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+	{
+		Serial.print("Channel Id - "); Serial.print(channelId); Serial.print(" - "); Serial.println(incomingChannelData[channelId]);
 	}
 	for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{

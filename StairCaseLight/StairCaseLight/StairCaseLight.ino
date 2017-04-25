@@ -67,7 +67,7 @@ void loop()
 		request(LIGHT_RELAY_ID, V_STATUS, BALCONYLIGHT_NODE_ID);
 		lightStatusTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkLightStatusRequest);
 		lightStatusRequstCount++;
-		if (lightStatusRequstCount == 10)
+		if (lightStatusRequstCount == 20)
 		{
 			lightStatusReceived = true;
 			Alarm.free(lightStatusTimer);
