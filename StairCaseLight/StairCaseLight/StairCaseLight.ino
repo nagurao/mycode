@@ -45,7 +45,7 @@ void setup()
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
-	//lightStatusRequestTimer = Alarm.timerRepeat(HALF_HOUR, requestLightStatus);
+	lightStatusRequestTimer = Alarm.timerRepeat(HALF_HOUR, requestLightStatus);
 }
 
 void presentation()
@@ -67,7 +67,7 @@ void loop()
 		request(LIGHT_RELAY_ID, V_STATUS, BALCONYLIGHT_NODE_ID);
 		lightStatusTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkLightStatusRequest);
 		lightStatusRequstCount++;
-		if (lightStatusRequstCount == 20)
+		if (lightStatusRequstCount == 30)
 		{
 			lightStatusReceived = true;
 			Alarm.free(lightStatusTimer);
