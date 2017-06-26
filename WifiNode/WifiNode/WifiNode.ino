@@ -181,6 +181,18 @@ unsigned long inverterRealtimeChannelNumber = 217342;
 const char * inverterRealtimeWriteAPIKey = "F3U8OCLMQUX9QLHV";
 const char * inverterRealtimeReadAPIKey = "CNGCV1JI5E8L71ZU";
 
+unsigned long powerHourlyChannelNumber = 285031;
+const char * powerHourlyWriteAPIKey = "380D5229W2K000NM";
+const char * powerHourlyReadAPIKey = "WCCH1FZ3X6KOWQSF";
+
+unsigned long powerDailyChannelNumber = 285032;
+const char * powerDailyWriteAPIKey = "B5URBCT81GG11Y7X";
+const char * powerDailyReadAPIKey = "BS0SHRSNK04M5Y40";
+
+unsigned long powerMonthlyChannelNumber = 285033;
+const char * powerMonthlyWriteAPIKey = "9FS2WS3NC5YJVJB3";
+const char * powerMonthlyReadAPIKey = "0LPD6ZBN1C2H73JX";
+
 unsigned long incomingChannelNumber = 203604;
 const char * incomingWriteAPIKey = "NGZUM98NSGJ4EAG9";
 const char * incomingReadAPIKey = "81B9VBW1WKVPVIZK";
@@ -836,10 +848,10 @@ void insertFetchAndProcessDataRequest()
 			}
 		}
 	}
-	for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+	/*for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
 		Serial.print("Channel Id - "); Serial.print(channelId); Serial.print(" - "); Serial.println(incomingChannelData[channelId]);
-	}
+	}*/
 	for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
 		if (incomingChannelData[channelId] != DEFAULT_CHANNEL_VALUE_INT)
