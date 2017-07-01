@@ -35,6 +35,7 @@ int lightOnDuration;
 AlarmId currModeTimer;
 AlarmId lightOnDurationTimer;
 AlarmId heartbeatTimer;
+AlarmId sendLightStatusTimer;
 
 MyMessage lightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
 MyMessage staircaseLightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
@@ -60,6 +61,7 @@ void setup()
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 	currModeRequestCount = 0;
 	lightOnDurationRequestCount = 0;
+	sendLightStatusTimer = Alarm.timerRepeat(FIVE_MINUTES, sendLightStatus);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
@@ -95,7 +97,7 @@ void loop()
 			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 		}
 	}
-
+	
 	if (sendlightOnDurationRequest)
 	{
 		sendlightOnDurationRequest = false;
@@ -235,8 +237,11 @@ void checkLightOnDurationRequest()
 		sendlightOnDurationRequest = true;
 }
 
-void requestCurrMode()
+void sendLightStatus()
 {
-	currModeReceived = false;
-	sendCurrModeRequest = true;
+	if (digitalRead(LIGHT_RELAY_PIN))
+		send(staircaseLightRelayMessage.set(RELAY_ON));
+	else
+		send(staircaseLightRelayMessage.set(RELAY_OFF));
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }

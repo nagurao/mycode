@@ -21,6 +21,7 @@ boolean lightStatusReceived;
 boolean sendLightStatusRequest;
 
 byte lightStatusRequstCount;
+byte prevLightStatus;
 
 AlarmId lightStatusTimer;
 AlarmId heartbeatTimer;
@@ -40,7 +41,7 @@ void setup()
 	lightStatusReceived = false;
 	sendLightStatusRequest = true;
 	lightStatusRequstCount = 0;
-	
+	prevLightStatus = 0;
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
@@ -87,16 +88,24 @@ void receive(const MyMessage &message)
 			digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 			send(lightRelayMessage.set(RELAY_ON));
 			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-			send(thingspeakMessage.set(RELAY_ON));
-			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+			if (prevLightStatus != message.getInt())
+			{
+				send(thingspeakMessage.set(RELAY_ON));
+				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				prevLightStatus = message.getInt();
+			}
 		}
 		else
 		{
 			digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 			send(lightRelayMessage.set(RELAY_OFF));
 			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-			send(thingspeakMessage.set(RELAY_OFF));
-			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+			if (prevLightStatus != message.getInt())
+			{
+				send(thingspeakMessage.set(RELAY_OFF));
+				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				prevLightStatus = message.getInt();
+			}
 		}
 		if (!lightStatusReceived)
 		{
