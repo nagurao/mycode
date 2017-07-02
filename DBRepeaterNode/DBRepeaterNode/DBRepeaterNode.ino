@@ -5,10 +5,11 @@
 
 #define REPEATER_NODE
 #define STATUS_LEDS
+
 #define MY_RADIO_NRF24
 #define MY_REPEATER_FEATURE
 #define MY_NODE_ID DB_REPEATER_NODE_ID
-#define MY_DEBUG
+//#define MY_DEBUG
 
 #define MY_LEDS_BLINKING_FEATURE
 #define MY_DEFAULT_LED_BLINK_PERIOD 300
@@ -40,8 +41,4 @@ void presentation()
 void loop()
 {
 	Alarm.delay(1);
-}
-void receive(const MyMessage &message)
-{
-
 }
