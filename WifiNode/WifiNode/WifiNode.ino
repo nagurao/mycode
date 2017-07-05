@@ -42,24 +42,53 @@
 #define TANK_02_IDX 1
 #define TANK_03_IDX 2
 
-//power cumulative logging channel
-#define PH3_HOURLY_FIELD 1
-#define PH3_DAILY_FIELD 2
-#define PH3_MONTHLY_FIELD 3
+//power hourly logging channel
+#define INV_IN_HOURLY_FIELD 1
+#define INV_OUT_HOURLY_FIELD 2
+#define PH3_HOURLY_FIELD 3
 #define PH1_HOURLY_FIELD 4
-#define PH1_DAILY_FIELD 5
-#define PH1_MONTHLY_FIELD 6
-#define PH3_PH1_DELTA_DAILY_FIELD 7
 //
-#define PH3_HOURLY_IDX 0
-#define PH3_DAILY_IDX 1
-#define PH3_MONTHLY_IDX 2
+#define INV_IN_HOURLY_IDX 0
+#define INV_OUT_HOURLY_IDX 1
+#define PH3_HOURLY_IDX 2
 #define PH1_HOURLY_IDX 3
-#define PH1_DAILY_IDX 4
-#define PH1_MONTHLY_IDX 5
-#define PH3_PH1_DELTA_DAILY_IDX 6
 
-//realtime power logging channel
+//power daily logging channel
+#define INV_IN_DAILY_FIELD 1
+#define INV_OUT_DAILY_FIELD 2
+#define PH3_DAILY_FIELD 3
+#define PH1_DAILY_FIELD 4
+#define INV_IN_OUT_DELTA_DAILY_FIELD 5
+#define PH3_PH1_DELTA_DAILY_FIELD 6
+//
+#define INV_IN_DAILY_IDX 0
+#define INV_OUT_DAILY_IDX 1
+#define PH3_DAILY_IDX 2
+#define PH1_DAILY_IDX 3
+#define INV_IN_OUT_DELTA_DAILY_IDX 4
+#define PH3_PH1_DELTA_DAILY_IDX 5
+
+//power monthly logging channel
+#define INV_IN_MONTHLY_FIELD 1
+#define INV_OUT_MONTHLY_FIELD 2
+#define PH3_MONTHLY_FIELD 3
+#define PH1_MONTHLY_FIELD 4
+//
+#define INV_IN_MONTHLY_IDX 0
+#define INV_OUT_MONTHLY_IDX 1
+#define PH3_MONTHLY_IDX 2
+#define PH1_MONTHLY_IDX 3
+
+//power inverter realtime
+#define INV_IN_CURR_WATT_FIELD 1
+#define INV_OUT_CURR_WATT_FIELD 2
+#define INV_IN_OUT_REAL_TIME_DELTA_FIELD 3
+//
+#define INV_IN_CURR_WATT_IDX 0
+#define INV_OUT_CURR_WATT_IDX 1
+#define INV_IN_OUT_REAL_TIME_DELTA_IDX 2
+
+//power watt meter realtime
 #define PH3_CURR_WATT_FIELD 1
 #define PH1_CURR_WATT_FIELD 2
 #define PH3_PH1_REAL_TIME_DELTA_FIELD 3
@@ -68,31 +97,6 @@
 #define PH1_CURR_WATT_IDX 1
 #define PH3_PH1_REAL_TIME_DELTA_IDX 2
 
-//inverter cumulative logging channel
-#define INV_IN_HOURLY_FIELD 1
-#define INV_IN_DAILY_FIELD 2
-#define INV_IN_MONTHLY_FIELD 3
-#define INV_OUT_HOURLY_FIELD 4
-#define INV_OUT_DAILY_FIELD 5
-#define INV_OUT_MONTHLY_FIELD 6
-#define INV_IN_OUT_DELTA_DAILY_FIELD 7
-//
-#define INV_IN_HOURLY_IDX 0
-#define INV_IN_DAILY_IDX 1
-#define INV_IN_MONTHLY_IDX 2
-#define INV_OUT_HOURLY_IDX 3
-#define INV_OUT_DAILY_IDX 4
-#define INV_OUT_MONTHLY_IDX 5
-#define INV_IN_OUT_DELTA_DAILY_IDX 6
-
-//inverter power logging channel
-#define INV_IN_CURR_WATT_FIELD 1
-#define INV_OUT_CURR_WATT_FIELD 2
-#define INV_IN_OUT_REAL_TIME_DELTA_FIELD 3
-//
-#define INV_IN_CURR_WATT_IDX 0
-#define INV_OUT_CURR_WATT_IDX 1
-#define INV_IN_OUT_REAL_TIME_DELTA_IDX 2
 
 //static data logging channel
 #define BALCONY_LIGHTS_FIELD 1
@@ -124,15 +128,16 @@
 #define DEFAULT_CHANNEL_VALUE -99.00
 #define DEFAULT_CHANNEL_VALUE_INT 0
 
-#define SEND_POWER_CUMMLATIVE_DATA 0
-#define SEND_POWER_REALTIME_DATA 1
-#define SEND_INVETER_CUMMLATIVE_DATA 2
-#define SEND_INVETER_REALTIME_DATA 3
-#define SEND_VOLTAGE_DATA 4
-#define SEND_WATER_LEVEL_DATA 5
-#define SEND_STATIC_DATA 6
-#define FETCH_AND_PROCESS_DATA 7
-#define TYPES_OF_DATA 8
+#define SEND_STATIC_DATA 0
+#define SEND_WATER_LEVEL_DATA 1
+#define SEND_VOLTAGE_DATA 2
+#define SEND_POWER_HOURLY_DATA 3
+#define SEND_POWER_DAILY_DATA 4
+#define SEND_POWER_MONTHLY_DATA 5
+#define SEND_REALTIME_INVERTER_DATA 6
+#define SEND_REALTIME_WATTMETER_DATA 7
+#define FETCH_AND_PROCESS_DATA 8
+#define TYPES_OF_DATA 9
 
 #define FIELDS_PER_CHANNEL 8
 #define DEFAULT_QUEUE_VALUE 127
@@ -142,12 +147,13 @@ byte processQueueHead;
 byte processQueueTail;
 
 float waterLevelChannelData[FIELDS_PER_CHANNEL];
-float powerCumulativeChannelData[FIELDS_PER_CHANNEL];
-float powerRealtimeChannelData[FIELDS_PER_CHANNEL];
 float staticChannelData[FIELDS_PER_CHANNEL];
 float voltageChannelData[FIELDS_PER_CHANNEL];
-float inverterCumulativeChannelData[FIELDS_PER_CHANNEL];
-float inverterRealtimeChannelData[FIELDS_PER_CHANNEL];
+float powerHourlyChannelData[FIELDS_PER_CHANNEL];
+float powerDailyChannelData[FIELDS_PER_CHANNEL];
+float powerMonthlyChannelData[FIELDS_PER_CHANNEL];
+float powerRealtimeInverterChannelData[FIELDS_PER_CHANNEL];
+float powerRealtimeWattmeterChannelData[FIELDS_PER_CHANNEL];
 int incomingChannelData[FIELDS_PER_CHANNEL];
 
 int status = WL_IDLE_STATUS;
@@ -157,14 +163,6 @@ unsigned long waterLevelChannelNumber = 203220;
 const char * waterLevelWriteAPIKey = "Q9OTOMNCUK5E8W00";
 const char * waterLevelReadAPIKey = "ZN1BBM94RJAULC1S";
 
-unsigned long powerCumulativeChannelNumber = 203222;
-const char * powerCumulativeWriteAPIKey = "33QK8SG054YRX6CB";
-const char * powerCumulativeReadAPIKey = "Z7LPAEKBJO56APU9";
-
-unsigned long powerRealtimeChannelNumber = 203224;
-const char * powerRealtimeWriteAPIKey = "L6WT1ZVB7POJE947";
-const char * powerRealtimeReadAPIKey = "48M7YBUGQFVBEZ3Q";
-
 unsigned long staticChannelNumber = 203226;
 const char * staticWriteAPIKey = "O0VIVXGA0Q7Q3HI1";
 const char * staticReadAPIKey = "4BJLHZM72HFNF71R";
@@ -172,14 +170,6 @@ const char * staticReadAPIKey = "4BJLHZM72HFNF71R";
 unsigned long voltageChannelNumber = 203228;
 const char * voltageWriteAPIKey = "DD8U0IJQVH32AXR3";
 const char * voltageReadAPIKey = "KFFC286643GSSAAT";
-
-unsigned long inverterCumulativeChannelNumber = 217341;
-const char * inverterCumulativeWriteAPIKey = "PMRIK4ECEHZSDWB9";
-const char * inverterCumulativeReadAPIKey = "U81EQ15HQUXOUOFM";
-
-unsigned long inverterRealtimeChannelNumber = 217342;
-const char * inverterRealtimeWriteAPIKey = "F3U8OCLMQUX9QLHV";
-const char * inverterRealtimeReadAPIKey = "CNGCV1JI5E8L71ZU";
 
 unsigned long powerHourlyChannelNumber = 285031;
 const char * powerHourlyWriteAPIKey = "380D5229W2K000NM";
@@ -192,6 +182,14 @@ const char * powerDailyReadAPIKey = "BS0SHRSNK04M5Y40";
 unsigned long powerMonthlyChannelNumber = 285033;
 const char * powerMonthlyWriteAPIKey = "9FS2WS3NC5YJVJB3";
 const char * powerMonthlyReadAPIKey = "0LPD6ZBN1C2H73JX";
+
+unsigned long powerRealtimeInverterChannelNumber = 285050;
+const char * powerRealtimeInverterWriteAPIKey = "XG720ZG2ETADWNYF";
+const char * powerRealtimeInverterReadAPIKey = "RHC0GB1Y6DN1GH3B";
+
+unsigned long powerRealtimeWattmeterChannelNumber = 285052;
+const char * powerRealtimeWattmeterWriteAPIKey = "7UADKCP2IJYUEEC0";
+const char * powerRealtimeWattmeterReadAPIKey = "VO23IEIOI7RSMPJC";
 
 unsigned long incomingChannelNumber = 203604;
 const char * incomingWriteAPIKey = "NGZUM98NSGJ4EAG9";
@@ -245,12 +243,13 @@ void setup()
 	for (byte channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
 		waterLevelChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
-		powerCumulativeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
-		powerRealtimeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
-		inverterCumulativeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
-		inverterRealtimeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 		staticChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 		voltageChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+		powerHourlyChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+		powerDailyChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+		powerMonthlyChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+		powerRealtimeInverterChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+		powerRealtimeWattmeterChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 		incomingChannelData[channelId] = DEFAULT_CHANNEL_VALUE_INT;
 	}
 	incomingDataFound = false;
@@ -342,29 +341,29 @@ void receive(const MyMessage &message)
 			switch (message.sensor)
 			{
 			case CURR_WATT_ID:
-				inverterRealtimeChannelData[INV_IN_CURR_WATT_IDX] = message.getFloat();
-				insertQueue(SEND_INVETER_REALTIME_DATA);
+				powerRealtimeInverterChannelData[INV_IN_CURR_WATT_IDX] = message.getFloat();
+				insertQueue(SEND_REALTIME_INVERTER_DATA);
 				lcdNodeMessage.setSensor(INV_IN_CURR_WATT_ID);
 				lcdNodeMessage.setType(V_WATT);
-				lcdNodeMessage.set(inverterRealtimeChannelData[INV_IN_CURR_WATT_IDX], 2);
+				lcdNodeMessage.set(powerRealtimeInverterChannelData[INV_IN_CURR_WATT_IDX], 2);
 				send(lcdNodeMessage);
 				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
-				inverterCumulativeChannelData[INV_IN_HOURLY_IDX] = message.getFloat();
-				insertQueue(SEND_INVETER_CUMMLATIVE_DATA);
+				powerHourlyChannelData[INV_IN_HOURLY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_HOURLY_DATA);
 				break;
 			case DAILY_WATT_CONSUMPTION_ID:
-				inverterCumulativeChannelData[INV_IN_DAILY_IDX] = message.getFloat();
-				insertQueue(SEND_INVETER_CUMMLATIVE_DATA);
+				powerDailyChannelData[INV_IN_DAILY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_DAILY_DATA);
 				break;
 			case MONTHLY_WATT_CONSUMPTION_ID:
-				inverterCumulativeChannelData[INV_IN_MONTHLY_IDX] = message.getFloat();
-				insertQueue(SEND_INVETER_CUMMLATIVE_DATA);
+				powerMonthlyChannelData[INV_IN_MONTHLY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_MONTHLY_DATA);
 				break;
 			case DELTA_WATT_CONSUMPTION_ID:
-				inverterCumulativeChannelData[INV_IN_OUT_DELTA_DAILY_IDX] = message.getFloat();
-				insertQueue(SEND_INVETER_CUMMLATIVE_DATA);
+				powerDailyChannelData[INV_IN_OUT_DELTA_DAILY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_DAILY_DATA);
 				break;
 			}
 			break;
@@ -372,32 +371,32 @@ void receive(const MyMessage &message)
 			switch (message.sensor)
 			{
 			case CURR_WATT_ID:
-				inverterRealtimeChannelData[INV_OUT_CURR_WATT_IDX] = message.getFloat();
-				insertQueue(SEND_INVETER_REALTIME_DATA);
+				powerRealtimeInverterChannelData[INV_OUT_CURR_WATT_IDX] = message.getFloat();
+				insertQueue(SEND_REALTIME_INVERTER_DATA);
 				lcdNodeMessage.setSensor(INV_OUT_CURR_WATT_ID);
 				lcdNodeMessage.setType(V_WATT);
-				lcdNodeMessage.set(inverterRealtimeChannelData[INV_OUT_CURR_WATT_IDX], 2);
+				lcdNodeMessage.set(powerRealtimeInverterChannelData[INV_OUT_CURR_WATT_IDX], 2);
 				send(lcdNodeMessage);
 				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
-				inverterCumulativeChannelData[INV_OUT_HOURLY_IDX] = message.getFloat();
-				insertQueue(SEND_INVETER_CUMMLATIVE_DATA);
+				powerHourlyChannelData[INV_OUT_HOURLY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_HOURLY_DATA);
 				break;
 			case DAILY_WATT_CONSUMPTION_ID:
-				inverterCumulativeChannelData[INV_OUT_DAILY_IDX] = message.getFloat();
-				insertQueue(SEND_INVETER_CUMMLATIVE_DATA);
+				powerDailyChannelData[INV_OUT_DAILY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_DAILY_DATA);
 				break;
 			case MONTHLY_WATT_CONSUMPTION_ID:
-				inverterCumulativeChannelData[INV_OUT_MONTHLY_IDX] = message.getFloat();
-				insertQueue(SEND_INVETER_CUMMLATIVE_DATA);
+				powerMonthlyChannelData[INV_OUT_MONTHLY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_MONTHLY_DATA);
 				break;
 			case DELTA_WATT_CONSUMPTION_ID:
-				inverterRealtimeChannelData[INV_IN_OUT_REAL_TIME_DELTA_IDX] = message.getFloat();
-				insertQueue(SEND_INVETER_REALTIME_DATA);
+				powerRealtimeInverterChannelData[INV_IN_OUT_REAL_TIME_DELTA_IDX] = message.getFloat();
+				insertQueue(SEND_REALTIME_INVERTER_DATA);
 				lcdNodeMessage.setSensor(INV_IN_OUT_DELTA_ID);
 				lcdNodeMessage.setType(V_KWH);
-				lcdNodeMessage.set(inverterRealtimeChannelData[INV_IN_OUT_REAL_TIME_DELTA_IDX], 2);
+				lcdNodeMessage.set(powerRealtimeInverterChannelData[INV_IN_OUT_REAL_TIME_DELTA_IDX], 2);
 				send(lcdNodeMessage);
 				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
@@ -407,29 +406,29 @@ void receive(const MyMessage &message)
 			switch (message.sensor)
 			{
 			case CURR_WATT_ID:
-				powerRealtimeChannelData[PH3_CURR_WATT_IDX] = message.getFloat();
-				insertQueue(SEND_POWER_REALTIME_DATA);
+				powerRealtimeWattmeterChannelData[PH3_CURR_WATT_IDX] = message.getFloat();
+				insertQueue(SEND_REALTIME_WATTMETER_DATA);
 				lcdNodeMessage.setSensor(PH3_CURR_WATT_ID);
 				lcdNodeMessage.setType(V_WATT);
-				lcdNodeMessage.set(powerRealtimeChannelData[PH3_CURR_WATT_IDX], 2);
+				lcdNodeMessage.set(powerRealtimeWattmeterChannelData[PH3_CURR_WATT_IDX], 2);
 				send(lcdNodeMessage);
 				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[PH3_HOURLY_IDX] = message.getFloat();
-				insertQueue(SEND_POWER_CUMMLATIVE_DATA);
+				powerHourlyChannelData[PH3_HOURLY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_HOURLY_DATA);
 				break;
 			case DAILY_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[PH3_DAILY_IDX] = message.getFloat();
-				insertQueue(SEND_POWER_CUMMLATIVE_DATA);
+				powerDailyChannelData[PH3_DAILY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_DAILY_DATA);
 				break;
 			case MONTHLY_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[PH3_MONTHLY_IDX] = message.getFloat();
-				insertQueue(SEND_POWER_CUMMLATIVE_DATA);
+				powerMonthlyChannelData[PH3_MONTHLY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_MONTHLY_DATA);
 				break;
 			case DELTA_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[PH3_PH1_DELTA_DAILY_IDX] = message.getFloat();
-				insertQueue(SEND_POWER_CUMMLATIVE_DATA);
+				powerDailyChannelData[PH3_PH1_DELTA_DAILY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_DAILY_DATA);
 				break;
 			}
 			break;
@@ -437,32 +436,32 @@ void receive(const MyMessage &message)
 			switch (message.sensor)
 			{
 			case CURR_WATT_ID:
-				powerRealtimeChannelData[PH1_CURR_WATT_IDX] = message.getFloat();
-				insertQueue(SEND_POWER_REALTIME_DATA);
+				powerRealtimeWattmeterChannelData[PH1_CURR_WATT_IDX] = message.getFloat();
+				insertQueue(SEND_REALTIME_WATTMETER_DATA);
 				lcdNodeMessage.setSensor(PH1_CURR_WATT_ID);
 				lcdNodeMessage.setType(V_WATT);
-				lcdNodeMessage.set(powerRealtimeChannelData[PH1_CURR_WATT_IDX], 2);
+				lcdNodeMessage.set(powerRealtimeWattmeterChannelData[PH1_CURR_WATT_IDX], 2);
 				send(lcdNodeMessage);
 				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case HOURLY_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[PH1_HOURLY_IDX] = message.getFloat();
-				insertQueue(SEND_POWER_CUMMLATIVE_DATA);
+				powerHourlyChannelData[PH1_HOURLY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_HOURLY_DATA);
 				break;
 			case DAILY_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[PH1_DAILY_IDX] = message.getFloat();
-				insertQueue(SEND_POWER_CUMMLATIVE_DATA);
+				powerDailyChannelData[PH1_DAILY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_DAILY_DATA);
 				break;
 			case MONTHLY_WATT_CONSUMPTION_ID:
-				powerCumulativeChannelData[PH1_MONTHLY_IDX] = message.getFloat();
-				insertQueue(SEND_POWER_CUMMLATIVE_DATA);
+				powerMonthlyChannelData[PH1_MONTHLY_IDX] = message.getFloat();
+				insertQueue(SEND_POWER_MONTHLY_DATA);
 				break;
 			case DELTA_WATT_CONSUMPTION_ID:
-				powerRealtimeChannelData[PH3_PH1_REAL_TIME_DELTA_IDX] = message.getFloat();
-				insertQueue(SEND_POWER_REALTIME_DATA);
+				powerRealtimeWattmeterChannelData[PH3_PH1_REAL_TIME_DELTA_IDX] = message.getFloat();
+				insertQueue(SEND_REALTIME_WATTMETER_DATA);
 				lcdNodeMessage.setSensor(PH3_PH1_DELTA_ID);
 				lcdNodeMessage.setType(V_KWH);
-				lcdNodeMessage.set(powerRealtimeChannelData[PH3_PH1_REAL_TIME_DELTA_IDX], 2);
+				lcdNodeMessage.set(powerRealtimeWattmeterChannelData[PH3_PH1_REAL_TIME_DELTA_IDX], 2);
 				send(lcdNodeMessage);
 				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
@@ -478,196 +477,6 @@ void processThingspeakData()
 	byte channelId;
 	switch (processQueue[processQueueHead])
 	{
-
-	case SEND_POWER_CUMMLATIVE_DATA:
-		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-		{
-			if (powerCumulativeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-			{
-				switch (channelId)
-				{
-				case PH3_HOURLY_IDX:
-					ThingSpeak.setField(PH3_HOURLY_FIELD, powerCumulativeChannelData[channelId]);
-					break;
-				case PH3_DAILY_IDX:
-					ThingSpeak.setField(PH3_DAILY_FIELD, powerCumulativeChannelData[channelId]);
-					break;
-				case PH3_MONTHLY_IDX:
-					ThingSpeak.setField(PH3_MONTHLY_FIELD, powerCumulativeChannelData[channelId]);
-					break;
-				case PH1_HOURLY_IDX:
-					ThingSpeak.setField(PH1_HOURLY_FIELD, powerCumulativeChannelData[channelId]);
-					break;
-				case PH1_DAILY_IDX:
-					ThingSpeak.setField(PH1_DAILY_FIELD, powerCumulativeChannelData[channelId]);
-					break;
-				case PH1_MONTHLY_IDX:
-					ThingSpeak.setField(PH1_MONTHLY_FIELD, powerCumulativeChannelData[channelId]);
-					break;
-				case PH3_PH1_DELTA_DAILY_IDX:
-					ThingSpeak.setField(PH3_PH1_DELTA_DAILY_FIELD, powerCumulativeChannelData[channelId]);
-					break;
-				}
-			}
-		}
-		if (ThingSpeak.writeFields(powerCumulativeChannelNumber, powerCumulativeWriteAPIKey) == OK_SUCCESS)
-		{
-			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-			{
-				if (powerCumulativeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-					powerCumulativeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
-			}
-		}
-		break;
-	case SEND_POWER_REALTIME_DATA:
-		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-		{
-			if (powerRealtimeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-			{
-				switch (channelId)
-				{
-				case PH3_CURR_WATT_IDX:
-					ThingSpeak.setField(PH3_CURR_WATT_FIELD, powerRealtimeChannelData[channelId]);
-					break;
-				case PH1_CURR_WATT_IDX:
-					ThingSpeak.setField(PH1_CURR_WATT_FIELD, powerRealtimeChannelData[channelId]);
-					break;
-				case PH3_PH1_REAL_TIME_DELTA_IDX:
-					ThingSpeak.setField(PH3_PH1_REAL_TIME_DELTA_FIELD, powerRealtimeChannelData[channelId]);
-					break;
-				}
-			}
-		}
-		if (ThingSpeak.writeFields(powerRealtimeChannelNumber, powerRealtimeWriteAPIKey) == OK_SUCCESS)
-		{
-			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-			{
-				if (powerRealtimeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-					powerRealtimeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
-			}
-		}
-		break;
-	case SEND_INVETER_CUMMLATIVE_DATA:
-		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-		{
-			if (inverterCumulativeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-			{
-				switch (channelId)
-				{
-				case INV_IN_HOURLY_IDX:
-					ThingSpeak.setField(INV_IN_HOURLY_FIELD, inverterCumulativeChannelData[channelId]);
-					break;
-				case INV_IN_DAILY_IDX:
-					ThingSpeak.setField(INV_IN_DAILY_FIELD, inverterCumulativeChannelData[channelId]);
-					break;
-				case INV_IN_MONTHLY_IDX:
-					ThingSpeak.setField(INV_IN_MONTHLY_FIELD, inverterCumulativeChannelData[channelId]);
-					break;
-				case INV_OUT_HOURLY_IDX:
-					ThingSpeak.setField(INV_OUT_HOURLY_FIELD, inverterCumulativeChannelData[channelId]);
-					break;
-				case INV_OUT_DAILY_IDX:
-					ThingSpeak.setField(INV_OUT_DAILY_FIELD, inverterCumulativeChannelData[channelId]);
-					break;
-				case INV_OUT_MONTHLY_IDX:
-					ThingSpeak.setField(INV_OUT_MONTHLY_FIELD, inverterCumulativeChannelData[channelId]);
-					break;
-				case INV_IN_OUT_DELTA_DAILY_IDX:
-					ThingSpeak.setField(INV_IN_OUT_DELTA_DAILY_FIELD, inverterCumulativeChannelData[channelId]);
-					break;
-				}
-			}
-		}
-		if (ThingSpeak.writeFields(inverterCumulativeChannelNumber, inverterCumulativeWriteAPIKey) == OK_SUCCESS)
-		{
-			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-			{
-				if (inverterCumulativeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-					inverterCumulativeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
-			}
-		}
-		break;
-	case SEND_INVETER_REALTIME_DATA:
-		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-		{
-			if (inverterRealtimeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-			{
-				switch (channelId)
-				{
-				case INV_IN_CURR_WATT_IDX:
-					ThingSpeak.setField(INV_IN_CURR_WATT_FIELD, inverterRealtimeChannelData[channelId]);
-					break;
-				case INV_OUT_CURR_WATT_IDX:
-					ThingSpeak.setField(INV_OUT_CURR_WATT_FIELD, inverterRealtimeChannelData[channelId]);
-					break;
-				case INV_IN_OUT_REAL_TIME_DELTA_IDX:
-					ThingSpeak.setField(INV_IN_OUT_REAL_TIME_DELTA_FIELD, inverterRealtimeChannelData[channelId]);
-					break;
-				}
-			}
-		}
-		if (ThingSpeak.writeFields(inverterRealtimeChannelNumber, inverterRealtimeWriteAPIKey) == OK_SUCCESS)
-		{
-			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-			{
-				if (inverterRealtimeChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-					inverterRealtimeChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
-			}
-		}
-		break;
-	case SEND_VOLTAGE_DATA:
-		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-		{
-			if (voltageChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-			{
-				switch (channelId)
-				{
-				case BATTERY_VOLT_IDX:
-					ThingSpeak.setField(BATTERY_VOLT_FIELD, voltageChannelData[channelId]);
-					break;
-				case SOLAR_VOLT_IDX:
-					ThingSpeak.setField(SOLAR_VOLT_FIELD, voltageChannelData[channelId]);
-					break;
-				}
-			}
-		}
-		if (ThingSpeak.writeFields(voltageChannelNumber, voltageWriteAPIKey) == OK_SUCCESS)
-		{
-			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-			{
-				if (voltageChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-					voltageChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
-			}
-		}
-		break;
-	case SEND_WATER_LEVEL_DATA:
-		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-		{
-			if (waterLevelChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-			{
-				switch (channelId)
-				{
-				case TANK_01_IDX:
-					ThingSpeak.setField(TANK_01_FIELD, waterLevelChannelData[channelId]);
-					break;
-				case TANK_02_IDX:
-					ThingSpeak.setField(TANK_02_FILED, waterLevelChannelData[channelId]);
-					break;
-				case TANK_03_IDX:
-					ThingSpeak.setField(TANK_03_FIELD, waterLevelChannelData[channelId]);
-					break;
-				}
-			}
-		}
-		if (ThingSpeak.writeFields(waterLevelChannelNumber, waterLevelWriteAPIKey) == OK_SUCCESS)
-		{
-			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
-			{
-				if (waterLevelChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
-					waterLevelChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
-			}
-		}
-		break;
 	case SEND_STATIC_DATA:
 		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 		{
@@ -699,6 +508,214 @@ void processThingspeakData()
 			{
 				if (staticChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
 					staticChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
+	case SEND_WATER_LEVEL_DATA:
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (waterLevelChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case TANK_01_IDX:
+					ThingSpeak.setField(TANK_01_FIELD, waterLevelChannelData[channelId]);
+					break;
+				case TANK_02_IDX:
+					ThingSpeak.setField(TANK_02_FILED, waterLevelChannelData[channelId]);
+					break;
+				case TANK_03_IDX:
+					ThingSpeak.setField(TANK_03_FIELD, waterLevelChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(waterLevelChannelNumber, waterLevelWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (waterLevelChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					waterLevelChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
+	case SEND_VOLTAGE_DATA:
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (voltageChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case BATTERY_VOLT_IDX:
+					ThingSpeak.setField(BATTERY_VOLT_FIELD, voltageChannelData[channelId]);
+					break;
+				case SOLAR_VOLT_IDX:
+					ThingSpeak.setField(SOLAR_VOLT_FIELD, voltageChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(voltageChannelNumber, voltageWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (voltageChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					voltageChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
+	case SEND_POWER_HOURLY_DATA:
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (powerHourlyChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case INV_IN_HOURLY_IDX:
+					ThingSpeak.setField(INV_IN_HOURLY_FIELD, powerHourlyChannelData[channelId]);
+					break;
+				case INV_OUT_HOURLY_IDX:
+					ThingSpeak.setField(INV_OUT_HOURLY_FIELD, powerHourlyChannelData[channelId]);
+					break;
+				case PH3_HOURLY_IDX:
+					ThingSpeak.setField(PH3_HOURLY_FIELD, powerHourlyChannelData[channelId]);
+					break;
+				case PH1_HOURLY_IDX:
+					ThingSpeak.setField(PH1_HOURLY_FIELD, powerHourlyChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(powerHourlyChannelNumber, powerHourlyWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (powerHourlyChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					powerHourlyChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
+	case SEND_POWER_DAILY_DATA:
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (powerDailyChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case INV_IN_DAILY_IDX:
+					ThingSpeak.setField(INV_IN_HOURLY_FIELD, powerDailyChannelData[channelId]);
+					break;
+				case INV_OUT_DAILY_IDX:
+					ThingSpeak.setField(INV_OUT_HOURLY_FIELD, powerDailyChannelData[channelId]);
+					break;
+				case PH3_DAILY_IDX:
+					ThingSpeak.setField(PH3_HOURLY_FIELD, powerDailyChannelData[channelId]);
+					break;
+				case PH1_DAILY_IDX:
+					ThingSpeak.setField(PH1_HOURLY_FIELD, powerDailyChannelData[channelId]);
+					break;
+				case INV_IN_OUT_DELTA_DAILY_IDX:
+					ThingSpeak.setField(INV_IN_OUT_DELTA_DAILY_FIELD, powerDailyChannelData[channelId]);
+					break;
+				case PH3_PH1_DELTA_DAILY_IDX:
+					ThingSpeak.setField(PH3_PH1_DELTA_DAILY_FIELD, powerDailyChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(powerDailyChannelNumber, powerDailyWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (powerDailyChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					powerDailyChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
+	case SEND_POWER_MONTHLY_DATA:
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (powerMonthlyChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case INV_IN_MONTHLY_IDX:
+					ThingSpeak.setField(INV_IN_MONTHLY_FIELD, powerMonthlyChannelData[channelId]);
+					break;
+				case INV_OUT_MONTHLY_IDX:
+					ThingSpeak.setField(INV_OUT_MONTHLY_FIELD, powerMonthlyChannelData[channelId]);
+					break;
+				case PH3_MONTHLY_IDX:
+					ThingSpeak.setField(PH3_MONTHLY_FIELD, powerMonthlyChannelData[channelId]);
+					break;
+				case PH1_MONTHLY_IDX:
+					ThingSpeak.setField(PH1_MONTHLY_FIELD, powerMonthlyChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(powerMonthlyChannelNumber, powerMonthlyWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (powerMonthlyChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					powerMonthlyChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
+	case SEND_REALTIME_INVERTER_DATA:
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (powerRealtimeInverterChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case INV_IN_CURR_WATT_IDX:
+					ThingSpeak.setField(INV_IN_CURR_WATT_FIELD, powerRealtimeInverterChannelData[channelId]);
+					break;
+				case INV_OUT_CURR_WATT_IDX:
+					ThingSpeak.setField(INV_OUT_CURR_WATT_FIELD, powerRealtimeInverterChannelData[channelId]);
+					break;
+				case INV_IN_OUT_REAL_TIME_DELTA_IDX:
+					ThingSpeak.setField(INV_IN_OUT_REAL_TIME_DELTA_FIELD, powerRealtimeInverterChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(powerRealtimeInverterChannelNumber, powerRealtimeInverterWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (powerRealtimeInverterChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					powerRealtimeInverterChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
+			}
+		}
+		break;
+	case SEND_REALTIME_WATTMETER_DATA:
+		for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+		{
+			if (powerRealtimeWattmeterChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+			{
+				switch (channelId)
+				{
+				case PH3_CURR_WATT_IDX:
+					ThingSpeak.setField(PH3_CURR_WATT_FIELD, powerRealtimeWattmeterChannelData[channelId]);
+					break;
+				case PH1_CURR_WATT_IDX:
+					ThingSpeak.setField(PH1_CURR_WATT_FIELD, powerRealtimeWattmeterChannelData[channelId]);
+					break;
+				case PH3_PH1_REAL_TIME_DELTA_IDX:
+					ThingSpeak.setField(PH3_PH1_REAL_TIME_DELTA_FIELD, powerRealtimeWattmeterChannelData[channelId]);
+					break;
+				}
+			}
+		}
+		if (ThingSpeak.writeFields(powerRealtimeWattmeterChannelNumber, powerRealtimeWattmeterWriteAPIKey) == OK_SUCCESS)
+		{
+			for (channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
+			{
+				if (powerRealtimeWattmeterChannelData[channelId] != DEFAULT_CHANNEL_VALUE)
+					powerRealtimeWattmeterChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
 			}
 		}
 		break;
