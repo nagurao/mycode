@@ -13,6 +13,8 @@
 #define MY_RADIO_NRF24
 //#define MY_REPEATER_FEATURE
 #define MY_NODE_ID BOREWELL_NODE_ID
+#define MY_PARENT_NODE_ID DB_REPEATER_NODE_ID
+#define MY_PARENT_NODE_IS_STATIC
 //#define MY_DEBUG 
 
 #include <MyNodes.h>
@@ -28,8 +30,8 @@ boolean borewellOn;
 boolean tank01LowLevel;
 boolean tank01HighLevel;
 
-int currentWaterLevel;
-int dryRunInitWaterLevel;
+float currentWaterLevel;
+float dryRunInitWaterLevel;
 
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 MyMessage borewellMotorMessage(BOREWELL_MOTOR_STATUS_ID, V_STATUS);
@@ -135,7 +137,7 @@ void receive(const MyMessage &message)
 		if (tank01HighLevel && borewellOn)
 			turnOffBorewell();
 	case V_VOLUME:
-		currentWaterLevel = message.getInt();
+		currentWaterLevel = message.getFloat();
 	}
 }
 
