@@ -4,9 +4,12 @@
 #include <Time.h>
 #include <SPI.h>
 
+#define NODE_HAS_TEMP_HUMIDITY
 #define MY_RADIO_NRF24
 //#define MY_REPEATER_FEATURE
-#define MY_NODE_ID 200
+#define MY_NODE_ID TEMP_AND_HUMIDITY_NODE_ID
+#define MY_PARENT_NODE_ID DB_REPEATER_NODE_ID
+#define MY_PARENT_NODE_IS_STATIC
 //#define MY_DEBUG
 
 #include <MyNodes.h>
@@ -14,12 +17,6 @@
 #include <MyConfig.h>
 
 #define APPLICATION_NAME "Temp & Humidity"
-
-#define HUMIDITY_ID 1
-#define TEMPERATURE_ID 2
-
-#define DHT_SENSOR_PIN 2
-#define SENSOR_TEMP_OFFSET 0
 
 MyMessage humidityMessage(HUMIDITY_ID, V_HUM);
 MyMessage temperatureMessage(TEMPERATURE_ID, V_TEMP);

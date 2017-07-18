@@ -36,6 +36,8 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 17 - Inverter Out
 18 - 3Phase Wattmeter
 19 - 1Phase Wattmeter
+20 - Temperature & Humidity 
+250 - Default Firmware Node
 254 - Wifi Node
 */
 
@@ -45,6 +47,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 #define BALCONY_REPEATER_NODE_ID 10
 #define DB_REPEATER_NODE_ID 15
+#define DEFAULT_FIRMWARE_NODE_ID 250
 
 #if defined LIGHT_NODE
 
@@ -304,6 +307,15 @@ char keys[1][2] = { ON,OFF };
 byte rowsPins[1] = { 6 };
 byte colsPins[2] = { 4,5 };
 
+#endif
+
+#if defined NODE_HAS_TEMP_HUMIDITY
+#define TEMP_AND_HUMIDITY_NODE_ID 20
+#define HUMIDITY_ID 1
+#define TEMPERATURE_ID 2
+
+#define DHT_SENSOR_PIN 2
+#define SENSOR_TEMP_OFFSET 0
 #endif
 
 # if defined WATER_TANK_NODE_IDS

@@ -73,9 +73,9 @@ void setup()
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 
-	waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
-	waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
-	hourlyTimer = Alarm.timerRepeat(ONE_HOUR, hourlyUpdate);
+	//waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
+	//waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
+	//hourlyTimer = Alarm.timerRepeat(ONE_HOUR, hourlyUpdate);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
@@ -117,7 +117,7 @@ void receive(const MyMessage &message)
 			Alarm.free(waterLowLevelRequestTimer);
 			sendWaterLowLevelRequest = false;
 			request(WATER_LOW_LEVEL_IND_ID, V_VAR1);
-			getWaterLevel();
+			//getWaterLevel();
 		}
 		break;
 	case V_VAR2:
@@ -135,6 +135,12 @@ void receive(const MyMessage &message)
 	}
 }
 
+void checkWaterLowLevelRequestStatus()
+{
+	if (!waterLowLevelReceived)
+		sendWaterLowLevelRequest = true;
+}
+/*
 void getWaterLevel()
 {
 	currWaterLevelValueDec = 0;
@@ -210,15 +216,10 @@ void sendWaterLevel(int waterLevel)
 	}
 }
 
-void checkWaterLowLevelRequestStatus()
-{
-	if (!waterLowLevelReceived)
-		sendWaterLowLevelRequest = true;
-}
-
 void hourlyUpdate()
 {
 	isHourlyUpdate = true;
 	getWaterLevel();
 	isHourlyUpdate = false;
 }
+*/
