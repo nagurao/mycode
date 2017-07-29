@@ -19,7 +19,7 @@
 //#define MY_REPEATER_FEATURE
 #define MY_NODE_ID THINGSPEAK_NODE_ID
 #define MY_PARENT_NODE_ID BALCONY_REPEATER_NODE_ID
-#define MY_DEBUG
+//#define MY_DEBUG
 
 #include <MyNodes.h>
 #include <MySensors.h>
@@ -154,7 +154,7 @@ float powerDailyChannelData[FIELDS_PER_CHANNEL];
 float powerMonthlyChannelData[FIELDS_PER_CHANNEL];
 float powerRealtimeInverterChannelData[FIELDS_PER_CHANNEL];
 float powerRealtimeWattmeterChannelData[FIELDS_PER_CHANNEL];
-int incomingChannelData[FIELDS_PER_CHANNEL];
+unsigned int incomingChannelData[FIELDS_PER_CHANNEL];
 
 int status = WL_IDLE_STATUS;
 WiFiClient  client;
@@ -776,8 +776,19 @@ void processIncomingData()
 				lightNodeMessage.setDestination(GATELIGHT_NODE_ID);
 				lightNodeMessage.setSensor(CURR_MODE_ID);
 				lightNodeMessage.setType(V_VAR1);
-				lightNodeMessage.set((incomingChannelData[channelId] == '1') ? 0 : 1);
-				send(lightNodeMessage);
+				switch (incomingChannelData[channelId])
+				{
+				case 1:
+					lightNodeMessage.set(STANDBY_MODE);
+					send(lightNodeMessage);
+					break;
+				case 2:
+					lightNodeMessage.set(DUSKLIGHT_MODE);
+					send(lightNodeMessage);
+					break;
+				}
+				//lightNodeMessage.set((incomingChannelData[channelId] == '1') ? 0 : 1);
+				//send(lightNodeMessage);
 				break;
 			case IN_BOREWELL_ON_IDX:
 				if (incomingChannelData[channelId] == 1)
@@ -788,14 +799,14 @@ void processIncomingData()
 					borewellNodeMessage.set(RELAY_ON);
 					send(borewellNodeMessage);
 				}
-				else
+				/*else
 				{
 					borewellNodeMessage.setDestination(BOREWELL_NODE_ID);
 					borewellNodeMessage.setSensor(BORE_ON_RELAY_ID);
 					borewellNodeMessage.setType(V_STATUS);
 					borewellNodeMessage.set(RELAY_OFF);
 					send(borewellNodeMessage);
-				}
+				}*/
 				break;
 			case IN_BOREWELL_OFF_IDX:
 				if (incomingChannelData[channelId] == 1)
@@ -877,6 +888,7 @@ void insertFetchAndProcessDataRequest()
 			channelId = FIELDS_PER_CHANNEL;
 		}
 	}
-	if(dataToProcess)
-		insertQueue(FETCH_AND_PROCESS_DATA);
+	if (dataToProcess)
+		processIncomingData();
+		//insertQueue(FETCH_AND_PROCESS_DATA);
 }

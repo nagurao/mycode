@@ -87,7 +87,7 @@ void loop()
 		{
 			MyMessage currModeMessage(CURR_MODE_ID, V_VAR1);
 			send(currModeMessage.set(DEFAULT_CURR_MODE));
-			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 	}
 
@@ -101,7 +101,7 @@ void loop()
 		{
 			MyMessage lightOnDurationMessage(LIGHT_DURATION_ID, V_VAR2);
 			send(lightOnDurationMessage.set(DEFAULT_LIGHT_ON_DURATION));
-			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 	}
 
@@ -110,29 +110,42 @@ void loop()
 
 void receive(const MyMessage &message)
 {
-	int newLightOnDuration;
+	int newLightOnDuration; 
+	MyMessage currModeMessage(CURR_MODE_ID, V_VAR1);
 	switch (message.type)
 	{
 	case V_VAR1:
 		if (currModeReceived)
 		{
-			switch (message.getInt())
+			switch (message.sender)
+			{
+			case THINGSPEAK_NODE_ID:
+				currMode = message.getLong();
+				break;
+			default:
+				currMode = message.getInt();
+				break;
+			}
+			switch (currMode)
 			{
 			case STANDBY_MODE:
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 				send(lightRelayMessage.set(RELAY_OFF));
-				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				send(thingspeakMessage.set(RELAY_OFF));
-				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-				currMode = message.getInt();
+				wait(WAIT_AFTER_SEND_MESSAGE);
+				send(currModeMessage.set(STANDBY_MODE));
+				wait(WAIT_AFTER_SEND_MESSAGE);
+				currMode = STANDBY_MODE;
 				break;
 			case DUSKLIGHT_MODE:
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 				send(lightRelayMessage.set(RELAY_ON));
-				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				send(thingspeakMessage.set(RELAY_ON));
-				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-				currMode = message.getInt();
+				wait(WAIT_AFTER_SEND_MESSAGE);
+				send(currModeMessage.set(DUSKLIGHT_MODE));
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			}
 		}
@@ -143,6 +156,7 @@ void receive(const MyMessage &message)
 			Alarm.free(currModeTimer);
 			sendCurrModeRequest = false;
 			request(CURR_MODE_ID, V_VAR1);
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 		break;
 	case V_VAR2:
@@ -153,7 +167,7 @@ void receive(const MyMessage &message)
 			lightOnDuration = newLightOnDuration;
 			MyMessage lightOnDurationMessage(LIGHT_DURATION_ID, V_VAR2);
 			send(lightOnDurationMessage.set(lightOnDuration));
-			Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 
 		if (!lightOnDurationReceived)
@@ -165,12 +179,13 @@ void receive(const MyMessage &message)
 				lightOnDuration = DEFAULT_LIGHT_ON_DURATION;
 				MyMessage lightOnDurationMessage(LIGHT_DURATION_ID, V_VAR2);
 				send(lightOnDurationMessage.set(lightOnDuration));
-				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 			}
 			lightOnDurationReceived = true;
 			Alarm.free(lightOnDurationTimer);
 			sendlightOnDurationRequest = false;
 			request(LIGHT_DURATION_ID, V_VAR2);
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 		break;
 	case V_VAR3:
@@ -180,21 +195,21 @@ void receive(const MyMessage &message)
 			{
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
 				send(lightRelayMessage.set(RELAY_ON));
-				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				send(thingspeakMessage.set(RELAY_ON));
-				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				send(staircaseLightRelayMessage.set(RELAY_ON));
-				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 			}
 			else
 			{
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_OFF);
 				send(lightRelayMessage.set(RELAY_OFF));
-				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				send(thingspeakMessage.set(RELAY_OFF));
-				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				send(staircaseLightRelayMessage.set(RELAY_OFF));
-				Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 			}
 		}
 		break;

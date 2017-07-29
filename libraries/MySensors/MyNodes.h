@@ -12,7 +12,7 @@
 #define FIVE_MINUTES 300
 #define HALF_HOUR 1800
 #define ONE_HOUR 3600
-#define REQUEST_INTERVAL 20
+#define REQUEST_INTERVAL 60
 #define HEARTBEAT_INTERVAL 600
 /*
 The following are the Node Ids assigned, populated here as comments for easy reference.
