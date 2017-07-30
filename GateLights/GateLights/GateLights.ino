@@ -9,6 +9,8 @@
 #define MY_RADIO_NRF24
 //#define MY_REPEATER_FEATURE
 #define MY_NODE_ID GATELIGHT_NODE_ID
+#define MY_PARENT_NODE_ID DB_REPEATER_NODE_ID
+#define MY_PARENT_NODE_IS_STATIC
 //#define MY_DEBUG 
 
 #include <MyNodes.h>
@@ -29,8 +31,7 @@ boolean sendCurrModeRequest;
 boolean sendlightOnDurationRequest;
 int lightOnDuration;
 
-AlarmId currModeTimer;
-AlarmId lightOnDurationTimer;
+AlarmId requestTimer;
 AlarmId heartbeatTimer;
 
 MyMessage lightRelayMessage(LIGHT_RELAY_ID, V_STATUS);
@@ -48,7 +49,7 @@ void setup()
 	currModeReceived = false;
 	lightOnDurationReceived = false;
 	sendCurrModeRequest = true;
-	sendlightOnDurationRequest = true;
+	sendlightOnDurationRequest = false;
 	staircaseLightRelayMessage.setDestination(STAIRCASE_LIGHT_NODE_ID);
 	staircaseLightRelayMessage.setType(V_STATUS);
 	staircaseLightRelayMessage.setSensor(LIGHT_RELAY_ID);
@@ -81,7 +82,7 @@ void loop()
 	{
 		sendCurrModeRequest = false;
 		request(CURR_MODE_ID, V_VAR1);
-		currModeTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkCurrModeRequestStatus);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkCurrModeRequestStatus);
 		currModeRequestCount++;
 		if (currModeRequestCount == 10)
 		{
@@ -95,7 +96,7 @@ void loop()
 	{
 		sendlightOnDurationRequest = false;
 		request(LIGHT_DURATION_ID, V_VAR2);
-		lightOnDurationTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkLightOnDurationRequest);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkLightOnDurationRequest);
 		lightOnDurationRequestCount++;
 		if (lightOnDurationRequestCount == 10)
 		{
@@ -111,7 +112,6 @@ void loop()
 void receive(const MyMessage &message)
 {
 	int newLightOnDuration; 
-	MyMessage currModeMessage(CURR_MODE_ID, V_VAR1);
 	switch (message.type)
 	{
 	case V_VAR1:
@@ -134,8 +134,6 @@ void receive(const MyMessage &message)
 				wait(WAIT_AFTER_SEND_MESSAGE);
 				send(thingspeakMessage.set(RELAY_OFF));
 				wait(WAIT_AFTER_SEND_MESSAGE);
-				send(currModeMessage.set(STANDBY_MODE));
-				wait(WAIT_AFTER_SEND_MESSAGE);
 				currMode = STANDBY_MODE;
 				break;
 			case DUSKLIGHT_MODE:
@@ -144,19 +142,21 @@ void receive(const MyMessage &message)
 				wait(WAIT_AFTER_SEND_MESSAGE);
 				send(thingspeakMessage.set(RELAY_ON));
 				wait(WAIT_AFTER_SEND_MESSAGE);
-				send(currModeMessage.set(DUSKLIGHT_MODE));
-				wait(WAIT_AFTER_SEND_MESSAGE);
+				currMode = DUSKLIGHT_MODE;
 				break;
 			}
+			MyMessage currModeMessage(CURR_MODE_ID, V_VAR1);
+			send(currModeMessage.set(currMode));
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 		else
 		{
 			currMode = message.getInt();
 			currModeReceived = true;
-			Alarm.free(currModeTimer);
-			sendCurrModeRequest = false;
+			Alarm.free(requestTimer);
 			request(CURR_MODE_ID, V_VAR1);
 			wait(WAIT_AFTER_SEND_MESSAGE);
+			sendlightOnDurationRequest = true;
 		}
 		break;
 	case V_VAR2:
@@ -182,8 +182,7 @@ void receive(const MyMessage &message)
 				wait(WAIT_AFTER_SEND_MESSAGE);
 			}
 			lightOnDurationReceived = true;
-			Alarm.free(lightOnDurationTimer);
-			sendlightOnDurationRequest = false;
+			Alarm.free(requestTimer);
 			request(LIGHT_DURATION_ID, V_VAR2);
 			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
