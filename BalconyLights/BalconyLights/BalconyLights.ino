@@ -143,6 +143,7 @@ void receive(const MyMessage &message)
 				send(staircaseLightRelayMessage.set(RELAY_OFF));
 				wait(WAIT_AFTER_SEND_MESSAGE);
 				currMode = STANDBY_MODE;
+				Alarm.free(sendLightStatusTimer);
 				break;
 			case DUSKLIGHT_MODE:
 				digitalWrite(LIGHT_RELAY_PIN, RELAY_ON);
@@ -153,6 +154,7 @@ void receive(const MyMessage &message)
 				send(staircaseLightRelayMessage.set(RELAY_ON));
 				wait(WAIT_AFTER_SEND_MESSAGE);
 				currMode = DUSKLIGHT_MODE;
+				sendLightStatusTimer = Alarm.timerRepeat(FIVE_MINUTES, sendLightStatus);
 				break;
 			}
 			MyMessage currModeMessage(CURR_MODE_ID, V_VAR1);

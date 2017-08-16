@@ -325,53 +325,19 @@ byte colsPins[2] = { 4,5 };
 #endif
 
 #if defined WATER_TANK_NODE
-#define MPX5050 0
-#define MPX5050_CONSTANT 0.018
 #define PRESSURE_SENSOR_PIN A0
 #define REFERENCE_VOLTAGE_PIN A1
 
 #define CURR_WATER_LEVEL_ID 1
 #define WATER_LOW_LEVEL_IND_ID 2
-#define TANK_DEPTH_ID 3
+#define ANALOG_TANK_EMPTY_ID 3
+#define ANALOG_TANK_FULL_ID 4
 
-#define WATER_FULL_LEVEL_ID 3
-#define WATER_EMPTY_LEVEL_ID 4
 #define DEFAULT_LOW_LEVEL 40
-#define DEFAULT_TANK_HEIGHT 180
-#define MAX_SENSORS 6
+
 #define RISING_LEVEL_POLL_DURATION 30
 #define DEFAULT_LEVEL_POLL_DURATION 300
 
-#define SENSOR_1_PIN 2
-#define SENSOR_2_PIN 3
-#define SENSOR_3_PIN 4
-#define SENSOR_4_PIN 5
-#define SENSOR_5_PIN 6
-#define SENSOR_6_PIN 7
-
-#define LEVEL_110 110
-#define LEVEL_100 100
-#define LEVEL_80 80
-#define LEVEL_60 60
-#define LEVEL_40 40
-#define LEVEL_20 20
-#define LEVEL_0 0
-
-#define HIGH_LEVEL 1
-#define NOT_HIGH_LEVEL 0
-#define LOW_LEVEL 1
-#define NOT_LOW_LEVEL 0
-
-byte sensorPinArray[MAX_SENSORS] = { SENSOR_1_PIN,
-SENSOR_2_PIN,
-SENSOR_3_PIN,
-SENSOR_4_PIN,
-SENSOR_5_PIN,
-SENSOR_6_PIN
-};
-
-byte sensorArray[MAX_SENSORS] = { 0,0,0,0,0,0 };
-byte binToDecArray[MAX_SENSORS] = { 1,2,4,8,16,32 };
 #endif
 
 #if defined NODE_HAS_ULTRASONIC_SENSOR

@@ -889,6 +889,6 @@ void insertFetchAndProcessDataRequest()
 		}
 	}
 	if (dataToProcess)
-		processIncomingData();
-		//insertQueue(FETCH_AND_PROCESS_DATA);
+		//processIncomingData();
+		insertQueue(FETCH_AND_PROCESS_DATA);
 }

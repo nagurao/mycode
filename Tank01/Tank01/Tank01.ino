@@ -1,4 +1,3 @@
-#include <MPXNNNN.h>
 #include <TimeAlarms.h>
 #include <TimeLib.h>
 #include <Time.h>
@@ -19,59 +18,64 @@
 
 #define APPLICATION_NAME "Tank 01"
 
+#define DEFAULT_ANALOG_TANK_EMPTY_VALUE 34
+#define DEFAULT_ANALOG_TANK_FULL_VALUE 80
+
 AlarmId heartbeatTimer;
-AlarmId gatewayRequestTimer;
-AlarmId waterLevelRisingTimer;
-AlarmId waterDefaultLevelTimer;
+AlarmId requestTimer;
+AlarmId pollingTimer;
 
 byte waterLowLevelInPercent;
-byte gatewayRequestCount;
+byte currWaterLevelPercent;
+byte prevWaterLevelPercent;
+
+int tankEmptyAnalogValue;
+int tankFullAnalogValue;
+
+byte requestCount;
 boolean waterLowLevelReceived;
 boolean sendWaterLowLevelRequest;
-
-byte tankHeight;
-boolean tankHeightReceived;
-boolean sendTankHeightRequest;
+boolean tankEmptyAnalogValueReceived;
+boolean sendTankEmptyAnalogValueRequest;
+boolean tankFullAnalogValueReceived;
+boolean sendTankFullAnalogValueRequest;
 
 MyMessage waterLevelMessage(CURR_WATER_LEVEL_ID,V_VOLUME);
 MyMessage lcdWaterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
 
+MyMessage waterLevelMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
+MyMessage waterLevelToBorewellMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
 MyMessage waterLowLevelMessage(WATER_LOW_LEVEL_IND_ID, V_VAR1);
-MyMessage lowLevelTankMessage(CURR_WATER_LEVEL_ID, V_VAR2);
-MyMessage highLevelTankMessage(CURR_WATER_LEVEL_ID, V_VAR3);
-MyMessage waterLevelTankMessage(CURR_WATER_LEVEL_ID, V_VOLUME);
-
+MyMessage analogValueMessage;
 MyMessage thingspeakMessage(WIFI_NODEMCU_ID, V_CUSTOM);
 
-MPXNNNN pressureSensor(MPX5050, PRESSURE_SENSOR_PIN, REFERENCE_VOLTAGE_PIN, MPX5050_CONSTANT);
+
 
 void before()
 {
-	pressureSensor.setErrorCount(25);
+	pinMode(PRESSURE_SENSOR_PIN, INPUT);
+	pinMode(REFERENCE_VOLTAGE_PIN, INPUT);
 }
 
 void setup()
 {
-	waterLowLevelInPercent = 0;
-	tankHeight = 0;
-	gatewayRequestCount = 0;
 	waterLowLevelReceived = false;
+	tankEmptyAnalogValueReceived = false;
+	tankFullAnalogValueReceived = false;
 	sendWaterLowLevelRequest = true;
-	tankHeightReceived = false;
-	sendTankHeightRequest = false;
-
+	sendTankEmptyAnalogValueRequest = false;
+	sendTankFullAnalogValueRequest = false;
+	requestCount = 0;
+	currWaterLevelPercent = 0;
+	prevWaterLevelPercent = 0;
 	lcdWaterLevelMessage.setDestination(LCD_NODE_ID);
-	lowLevelTankMessage.setDestination(BOREWELL_NODE_ID);
-	highLevelTankMessage.setDestination(BOREWELL_NODE_ID);
-	waterLevelTankMessage.setDestination(BOREWELL_NODE_ID);
+	waterLevelToBorewellMessage.setDestination(BOREWELL_NODE_ID);
 
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 	thingspeakMessage.setType(V_CUSTOM);
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 
-	//waterDefaultLevelTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
-	//waterLevelRisingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
-
+	pollingTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
@@ -80,9 +84,12 @@ void presentation()
 	sendSketchInfo(APPLICATION_NAME, __DATE__);
 	present(CURR_WATER_LEVEL_ID, S_WATER, "Tank 01 Water Level");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-	present(WATER_LOW_LEVEL_IND_ID, S_CUSTOM, "T1 Low Water Level %");
+	present(WATER_LOW_LEVEL_IND_ID, S_CUSTOM, "T1 Low Level %");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-	present(TANK_DEPTH_ID, S_CUSTOM, "Tank01 Height");
+	present(ANALOG_TANK_EMPTY_ID, S_CUSTOM, "T1 Analog Empty");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(ANALOG_TANK_FULL_ID, S_CUSTOM, "T1 Analog Full");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
 
 void loop() 
@@ -91,12 +98,44 @@ void loop()
 	{
 		sendWaterLowLevelRequest = false;
 		request(WATER_LOW_LEVEL_IND_ID, V_VAR1);
-		gatewayRequestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkWaterLowLevelRequestStatus);
-		gatewayRequestCount++;
-		if (gatewayRequestCount == 10)
+		wait(WAIT_AFTER_SEND_MESSAGE);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkWaterLowLevelRequestStatus);
+		requestCount++;
+		if (requestCount == 10)
 		{
 			MyMessage waterLowLevelMessage(WATER_LOW_LEVEL_IND_ID, V_VAR1);
 			send(waterLowLevelMessage.set(DEFAULT_LOW_LEVEL));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+		}
+	}
+	if (sendTankEmptyAnalogValueRequest)
+	{
+		sendTankEmptyAnalogValueRequest = false;
+		request(ANALOG_TANK_EMPTY_ID, V_VAR2);
+		wait(WAIT_AFTER_SEND_MESSAGE);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkTankEmptyAnalogValueRequestStatus);
+		requestCount++;
+		if (requestCount == 10)
+		{
+			analogValueMessage.setSensor(ANALOG_TANK_EMPTY_ID);
+			analogValueMessage.setType(V_VAR2);
+			send(analogValueMessage.set(DEFAULT_ANALOG_TANK_EMPTY_VALUE));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+		}
+	}
+	if (sendTankFullAnalogValueRequest)
+	{
+		sendTankFullAnalogValueRequest = false;
+		request(ANALOG_TANK_FULL_ID, V_VAR3);
+		wait(WAIT_AFTER_SEND_MESSAGE);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkTankFullAnalogValueRequestStatus);
+		requestCount++;
+		if (requestCount == 10)
+		{
+			analogValueMessage.setSensor(ANALOG_TANK_FULL_ID);
+			analogValueMessage.setType(V_VAR3);
+			send(analogValueMessage.set(DEFAULT_ANALOG_TANK_FULL_VALUE));
+			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 	}
 	Alarm.delay(1);
@@ -105,33 +144,86 @@ void receive(const MyMessage &message)
 {
 	switch (message.type)
 	{
-	case V_VAR1:	
-		waterLowLevelInPercent = message.getByte();
-		send(waterLowLevelMessage.set(message.getByte()));
-		if (!waterLowLevelReceived)
+	case V_VAR1:
+		if (message.getByte() > 0)
 		{
-			waterLowLevelReceived = true;
-			Alarm.free(gatewayRequestTimer);
-			sendWaterLowLevelRequest = false;
-			request(WATER_LOW_LEVEL_IND_ID, V_VAR1);
-			gatewayRequestCount = 0;
+			waterLowLevelInPercent = message.getByte();
+			send(waterLowLevelMessage.set(message.getByte()));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+			send(waterLevelToBorewellMessage.set(message.getByte()));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+			if (!waterLowLevelReceived)
+			{
+				waterLowLevelReceived = true;
+				Alarm.free(requestTimer);
+				request(WATER_LOW_LEVEL_IND_ID, V_VAR1);
+				requestCount = 0;
+				sendTankEmptyAnalogValueRequest = true;
+			}
 		}
 		break;
 	case V_VAR2:
+		if (message.getInt() > 0)
+		{
+			tankEmptyAnalogValue = message.getInt();
+			analogValueMessage.setSensor(ANALOG_TANK_EMPTY_ID);
+			analogValueMessage.setType(V_VAR2);
+			send(analogValueMessage.set(tankEmptyAnalogValue));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+			if (!tankEmptyAnalogValueReceived)
+			{
+				tankEmptyAnalogValueReceived = true;
+				Alarm.free(requestTimer);
+				request(ANALOG_TANK_EMPTY_ID, V_VAR2);
+				requestCount = 0;
+				sendTankFullAnalogValueRequest = true;
+			}
+		}
 		break;
 	case V_VAR3:
-		if (message.getInt())
+		if (message.getInt() > 0)
 		{
-			Alarm.disable(waterDefaultLevelTimer);
-			Alarm.enable(waterLevelRisingTimer);
+			tankFullAnalogValue = message.getInt();
+			analogValueMessage.setSensor(ANALOG_TANK_FULL_ID);
+			analogValueMessage.setType(V_VAR3);
+			send(analogValueMessage.set(tankFullAnalogValue));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+			if (!tankFullAnalogValueReceived)
+			{
+				tankFullAnalogValueReceived = true;
+				Alarm.free(requestTimer);
+				request(ANALOG_TANK_FULL_ID, V_VAR3);
+				requestCount = 0;
+			}
+		}
+		break;
+	case V_STATUS:
+		if (message.getByte())
+		{
+			Alarm.free(pollingTimer);
+			pollingTimer = Alarm.timerRepeat(RISING_LEVEL_POLL_DURATION, getWaterLevel);
 		}
 		else
 		{
-			Alarm.enable(waterDefaultLevelTimer);
-			Alarm.disable(waterLevelRisingTimer);
+			Alarm.free(pollingTimer);
+			pollingTimer = Alarm.timerRepeat(DEFAULT_LEVEL_POLL_DURATION, getWaterLevel);
 		}
-		break;
 	}
+}
+
+void getWaterLevel()
+{
+	float sensedInputVoltage = 0;
+	float thresholdVoltage = 0;
+	for (byte readCount = 1; readCount <= 10; readCount++)
+	{
+		thresholdVoltage = thresholdVoltage + analogRead(REFERENCE_VOLTAGE_PIN);
+		wait(WAIT_50MS);
+		sensedInputVoltage = sensedInputVoltage + analogRead(PRESSURE_SENSOR_PIN);
+		wait(WAIT_50MS);
+	}
+	thresholdVoltage = thresholdVoltage / 10;
+	sensedInputVoltage = sensedInputVoltage / 10;
 }
 
 void checkWaterLowLevelRequestStatus()
@@ -139,91 +231,15 @@ void checkWaterLowLevelRequestStatus()
 	if (!waterLowLevelReceived)
 		sendWaterLowLevelRequest = true;
 }
-/*
-void getWaterLevel()
+
+void checkTankEmptyAnalogValueRequestStatus()
 {
-	float waterColumnHeight;
-	waterColumnHeight = pressureSensor.readMPXNNNNInHeight();
-
-	currWaterLevelValueDec = 0;
-	for (byte sensorIndex = 0; sensorIndex < MAX_SENSORS; sensorIndex++)
-	{
-		sensorArray[sensorIndex] = 0;
-		sensorArray[sensorIndex] = digitalRead(sensorPinArray[sensorIndex]);
-		byte power = binToDecArray[sensorIndex] * sensorArray[sensorIndex];
-		currWaterLevelValueDec = currWaterLevelValueDec + power;
-		Alarm.delay(WAIT_5MS);
-	}
-
-	if (sensorArray[waterOverFlowLevelIndex] == LOW)
-		send(highLevelTankMessage.set(HIGH_LEVEL));
-	else
-		send(highLevelTankMessage.set(NOT_HIGH_LEVEL));
-
-	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-
-	switch (currWaterLevelValueDec)
-	{
-	case 0:
-		sendWaterLevel(LEVEL_110);
-		currWaterLevelValue = LEVEL_110;
-		break;
-	case 1:
-		sendWaterLevel(LEVEL_100);
-		currWaterLevelValue = LEVEL_100;
-		break;
-	case 3:
-		sendWaterLevel(LEVEL_80);
-		currWaterLevelValue = LEVEL_80;
-		break;
-	case 7:
-		sendWaterLevel(LEVEL_60);
-		currWaterLevelValue = LEVEL_60;
-		break;
-	case 15:
-		sendWaterLevel(LEVEL_40);
-		currWaterLevelValue = LEVEL_40;
-		break;
-	case 31:
-		sendWaterLevel(LEVEL_20);
-		currWaterLevelValue = LEVEL_20;
-		break;
-	case 63:
-		sendWaterLevel(LEVEL_0);
-		currWaterLevelValue = LEVEL_0;
-		break;
-	}
-
-	if (sensorArray[waterLowLevelIndex] == HIGH)
-		send(lowLevelTankMessage.set(LOW_LEVEL));
-	else
-		send(lowLevelTankMessage.set(NOT_LOW_LEVEL));
-
-	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-
-	prevWaterLevelValue = currWaterLevelValue;
-		
+	if (!tankEmptyAnalogValueReceived)
+		sendTankEmptyAnalogValueRequest = true;
 }
 
-void sendWaterLevel(int waterLevel)
+void checkTankFullAnalogValueRequestStatus()
 {
-	if ((waterLevel != prevWaterLevelValue) || isHourlyUpdate)
-	{
-		send(waterLevelMessage.set(waterLevel));
-		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-		send(lcdWaterLevelMessage.set(waterLevel));
-		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-		send(thingspeakMessage.set(waterLevel));
-		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-		send(waterLevelTankMessage.set(waterLevel));
-		Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-	}
+	if(!tankFullAnalogValueReceived)
+		sendTankFullAnalogValueRequest = true;
 }
-
-void hourlyUpdate()
-{
-	isHourlyUpdate = true;
-	getWaterLevel();
-	isHourlyUpdate = false;
-}
-*/
