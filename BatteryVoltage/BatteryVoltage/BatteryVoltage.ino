@@ -53,9 +53,9 @@ byte scaleFactorRequestCount;
 byte relayStatusRequestCount;
 
 float voltsPerBit;
-float prevSolarVoltage;
+//float prevSolarVoltage;
 float solarVoltage;
-float prevBatteryVoltage;
+//float prevBatteryVoltage;
 float batteryVoltage;
 float resistorR1Value;
 float resistorR2Value;
@@ -94,9 +94,9 @@ void setup()
 	relayStatusRequestCount = 0;
 
 	solarVoltage = 0;
-	prevSolarVoltage = 0;
+	//prevSolarVoltage = 0;
 	batteryVoltage = 0;
-	prevBatteryVoltage = 0;
+	//prevBatteryVoltage = 0;
 	solarNodeRequestCount = 0;
 	solarVoltageRequestCount = 0;
 	solarNodeUp = false;
@@ -107,7 +107,7 @@ void setup()
 	lcdVoltageMessage.setDestination(LCD_NODE_ID);
 	lcdVoltageMessage.setType(V_VOLTAGE);
 
-	thingspeakMessageTimer = Alarm.timerRepeat(HALF_HOUR, sendThingspeakMessage);
+	thingspeakMessageTimer = Alarm.timerRepeat(QUATER_HOUR, sendThingspeakMessage);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 
 }
@@ -317,7 +317,13 @@ void getBatteryVoltage()
 	else
 		batteryVoltage = (sensedInputVoltage * voltsPerBit) * scaleFactor;
 
-	if (prevBatteryVoltage != batteryVoltage)
+	send(batteryVoltageMessage.set(batteryVoltage, 5));
+	wait(WAIT_AFTER_SEND_MESSAGE);
+	lcdVoltageMessage.setSensor(BATTERY_VOLTAGE_ID);
+	send(lcdVoltageMessage.set(batteryVoltage, 5));
+	wait(WAIT_AFTER_SEND_MESSAGE);
+
+	/*if (prevBatteryVoltage != batteryVoltage)
 	{
 		send(batteryVoltageMessage.set(batteryVoltage, 5));
 		wait(WAIT_AFTER_SEND_MESSAGE);
@@ -325,7 +331,7 @@ void getBatteryVoltage()
 		send(lcdVoltageMessage.set(batteryVoltage, 5));
 		wait(WAIT_AFTER_SEND_MESSAGE);
 		prevBatteryVoltage = batteryVoltage;
-	}
+	}*/
 }
 
 void getSolarVoltage()
@@ -342,7 +348,13 @@ void checkSolarVolategRequestStatus()
 
 void sendSolarVoltage ()
 {
-	if (prevSolarVoltage != solarVoltage)
+	send(solarVoltageMessage.set(solarVoltage, 5));
+	wait(WAIT_AFTER_SEND_MESSAGE);
+	lcdVoltageMessage.setSensor(SOLAR_VOLTAGE_ID);
+	send(lcdVoltageMessage.set(solarVoltage, 5));
+	wait(WAIT_AFTER_SEND_MESSAGE);
+
+	/*if (prevSolarVoltage != solarVoltage)
 	{
 		send(solarVoltageMessage.set(solarVoltage, 5));
 		wait(WAIT_AFTER_SEND_MESSAGE);
@@ -350,7 +362,7 @@ void sendSolarVoltage ()
 		send(lcdVoltageMessage.set(solarVoltage, 5));
 		wait(WAIT_AFTER_SEND_MESSAGE);
 		prevSolarVoltage = solarVoltage;
-	}
+	}*/
 }
 
 void sendThingspeakMessage()

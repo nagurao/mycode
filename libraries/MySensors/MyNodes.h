@@ -10,6 +10,7 @@
 #define WAIT_50MS 50
 #define ONE_MINUTE 60
 #define FIVE_MINUTES 300
+#define QUATER_HOUR 900
 #define HALF_HOUR 1800
 #define ONE_HOUR 3600
 #define REQUEST_INTERVAL 60
