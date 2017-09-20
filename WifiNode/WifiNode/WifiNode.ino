@@ -217,6 +217,20 @@ ESP8266WebServer httpServer(80);
 ESP8266HTTPUpdateServer httpUpdater;
 #endif
 
+AlarmId requestTimer;
+AlarmId sunriseTimer;
+AlarmId sunsetTimer;
+byte currModeRequestCount;
+boolean sendSunriseRequest;
+boolean sendSunsetRequest;
+boolean sunriseTimeReceived;
+boolean sunsetTimeReceived;
+long sunriseMilliSeconds;
+long sunsetMilliSeconds;
+long sunriseSeconds;
+long sunsetSeconds;
+MyMessage sunriseTimeMessage(SUNRISE_TIME_ID, V_VAR1);
+MyMessage sunsetTimeMessage(SUNSET_TIME_ID, V_VAR2);
 void before()
 {
 #if defined OTA_UPDATE_FEATURE
@@ -240,6 +254,7 @@ void setup()
 	incomingDataTimer = Alarm.timerRepeat(FIVE_MINUTES, insertFetchAndProcessDataRequest);
 	Alarm.timerOnce(ONE_MINUTE, insertFetchAndProcessDataRequest);
 
+
 	for (byte channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
 		waterLevelChannelData[channelId] = DEFAULT_CHANNEL_VALUE;
@@ -258,11 +273,25 @@ void setup()
 	processQueueTail = 0;
 	for (byte index = 0; index < TYPES_OF_DATA; index++)
 		processQueue[index] = DEFAULT_QUEUE_VALUE;
+	
+	currModeRequestCount = 0;
+	sendSunriseRequest = true;
+	sendSunsetRequest = false;
+	sunriseTimeReceived = false;
+	sunsetTimeReceived = false;
+	sunriseMilliSeconds = DEFAULT_SUNRISE_SUNSET_TIME;
+	sunsetMilliSeconds = DEFAULT_SUNRISE_SUNSET_TIME;
+	sunriseSeconds = DEFAULT_SUNRISE_SUNSET_TIME;
+	sunsetSeconds = DEFAULT_SUNRISE_SUNSET_TIME;
 }
 
 void presentation()
 {
 	sendSketchInfo(APPLICATION_NAME, __DATE__);
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(SUNRISE_TIME_ID, S_CUSTOM, "Sunrise Time (ms)");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(SUNSET_TIME_ID, S_CUSTOM, "Sunset Time (ms)");
 }
 
 void loop()
@@ -270,6 +299,32 @@ void loop()
 #if defined OTA_UPDATE_FEATURE
 	httpServer.handleClient();
 #endif
+	if (sendSunriseRequest)
+	{
+		sendSunriseRequest = false;
+		request(SUNRISE_TIME_ID, V_VAR1);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkSunRiseRequestStatus);
+		currModeRequestCount++;
+		if (currModeRequestCount == 10)
+		{
+			send(sunriseTimeMessage.set(DEFAULT_SUNRISE_SUNSET_TIME));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+		}
+
+	}
+	if (sendSunsetRequest)
+	{
+		sendSunsetRequest = false;
+		request(SUNSET_TIME_ID, V_VAR2);
+		requestTimer = Alarm.timerOnce(REQUEST_INTERVAL, checkSunSetRequestStatus);
+		currModeRequestCount++;
+		if (currModeRequestCount == 10)
+		{
+			send(sunsetTimeMessage.set(DEFAULT_SUNRISE_SUNSET_TIME));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+		}
+	}
+	
 	Alarm.delay(1);
 }
 
@@ -468,6 +523,52 @@ void receive(const MyMessage &message)
 			}
 			break;
 		}
+		break;
+	case V_VAR1:
+		if (!sunriseTimeReceived)
+		{
+			sunriseTimeReceived = true;
+			sendSunsetRequest = true;
+			sunriseMilliSeconds = message.getLong();
+			Alarm.free(requestTimer);
+			request(SUNRISE_TIME_ID, V_VAR1);
+			wait(WAIT_AFTER_SEND_MESSAGE);
+		}
+		else
+			sunriseMilliSeconds = message.getLong();
+		if (sunriseMilliSeconds != 0)
+		{
+			sunriseSeconds = (sunriseMilliSeconds + HALF_HOUR_OFFSET_MS) / 1000;
+			int sunriseHr = hour(sunriseSeconds);
+			int sunriseMin = minute(sunriseSeconds);
+			int sunriseSecs = second(sunriseSeconds);
+			if (Alarm.isAllocated(sunriseTimer))
+				Alarm.free(sunriseTimer);
+			sunriseTimer = Alarm.alarmRepeat(sunriseHr, sunriseMin, sunriseSecs, sunriseTriggerMessage);
+		}
+		break;
+	case V_VAR2:
+		if (!sunsetTimeReceived)
+		{
+			sunsetTimeReceived = true;
+			sunsetMilliSeconds = message.getLong();
+			Alarm.free(requestTimer);
+			request(SUNSET_TIME_ID, V_VAR2);
+			wait(WAIT_AFTER_SEND_MESSAGE);
+		}
+		else
+			sunsetMilliSeconds = message.getLong();
+		if (sunsetMilliSeconds != 0)
+		{
+			sunsetSeconds = (sunsetMilliSeconds + HALF_HOUR_OFFSET_MS) / 1000;
+			int sunsetHr = hour(sunsetSeconds);
+			int sunsetMin = minute(sunsetSeconds);
+			int sunsetSecs = second(sunsetSeconds);
+			if (Alarm.isAllocated(sunsetTimer))
+				Alarm.free(sunsetTimer);
+			sunsetTimer = Alarm.alarmRepeat(sunsetHr, sunsetMin, sunsetSecs,sunsetTriggerMessage);
+		}
+			
 		break;
 	}
 }
@@ -771,6 +872,7 @@ void processIncomingData()
 					send(lightNodeMessage);
 					break;
 				}
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			case IN_GATE_LIGHT_OPER_MODE_IDX:
 				lightNodeMessage.setDestination(GATELIGHT_NODE_ID);
@@ -787,6 +889,7 @@ void processIncomingData()
 					send(lightNodeMessage);
 					break;
 				}
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				//lightNodeMessage.set((incomingChannelData[channelId] == '1') ? 0 : 1);
 				//send(lightNodeMessage);
 				break;
@@ -798,6 +901,7 @@ void processIncomingData()
 					borewellNodeMessage.setType(V_STATUS);
 					borewellNodeMessage.set(RELAY_ON);
 					send(borewellNodeMessage);
+					wait(WAIT_AFTER_SEND_MESSAGE);
 				}
 				/*else
 				{
@@ -816,6 +920,7 @@ void processIncomingData()
 					borewellNodeMessage.setType(V_STATUS);
 					borewellNodeMessage.set(RELAY_ON);
 					send(borewellNodeMessage);
+					wait(WAIT_AFTER_SEND_MESSAGE);
 				}
 				break;
 			case IN_SUMP_MOTOR_IDX:
@@ -823,6 +928,7 @@ void processIncomingData()
 				sumpMotorMessage.setSensor(RELAY_ID);
 				sumpMotorMessage.set((incomingChannelData[channelId] == 1) ? (byte)RELAY_ON : (byte)RELAY_OFF);
 				send(sumpMotorMessage);
+				wait(WAIT_AFTER_SEND_MESSAGE);
 				break;
 			}
 			ThingSpeak.setField(channelId + 1, DEFAULT_CHANNEL_VALUE_INT);
@@ -891,4 +997,58 @@ void insertFetchAndProcessDataRequest()
 	if (dataToProcess)
 		//processIncomingData();
 		insertQueue(FETCH_AND_PROCESS_DATA);
+}
+
+void checkSunRiseRequestStatus()
+{
+	if (!sunriseTimeReceived)
+		sendSunriseRequest = true;
+}
+
+void checkSunSetRequestStatus()
+{
+	if (!sunsetTimeReceived)
+		sendSunsetRequest = true;
+}
+
+void sunriseTriggerMessage()
+{
+	lightNodeMessage.setDestination(BALCONYLIGHT_NODE_ID);
+	lightNodeMessage.setSensor(CURR_MODE_ID);
+	lightNodeMessage.setType(V_VAR1);
+	lightNodeMessage.set(STANDBY_MODE);
+	send(lightNodeMessage);
+	wait(WAIT_AFTER_SEND_MESSAGE);
+
+	lightNodeMessage.setDestination(GATELIGHT_NODE_ID);
+	lightNodeMessage.setSensor(CURR_MODE_ID);
+	lightNodeMessage.setType(V_VAR1);
+	lightNodeMessage.set(STANDBY_MODE);
+	send(lightNodeMessage);
+	wait(WAIT_AFTER_SEND_MESSAGE);
+
+	uint32_t valueToSend = (sunriseSeconds * 1000) - HALF_HOUR_OFFSET_MS;
+	send(sunriseTimeMessage.set(valueToSend));
+	wait(WAIT_AFTER_SEND_MESSAGE);
+}
+
+void sunsetTriggerMessage()
+{
+	lightNodeMessage.setDestination(BALCONYLIGHT_NODE_ID);
+	lightNodeMessage.setSensor(CURR_MODE_ID);
+	lightNodeMessage.setType(V_VAR1);
+	lightNodeMessage.set(DUSKLIGHT_MODE);
+	send(lightNodeMessage);
+	wait(WAIT_AFTER_SEND_MESSAGE);
+
+	lightNodeMessage.setDestination(GATELIGHT_NODE_ID);
+	lightNodeMessage.setSensor(CURR_MODE_ID);
+	lightNodeMessage.setType(V_VAR1);
+	lightNodeMessage.set(DUSKLIGHT_MODE);
+	send(lightNodeMessage);
+	wait(WAIT_AFTER_SEND_MESSAGE);
+
+	uint32_t valueToSend = (sunsetSeconds * 1000) - HALF_HOUR_OFFSET_MS;
+	send(sunsetTimeMessage.set(valueToSend));
+	wait(WAIT_AFTER_SEND_MESSAGE);
 }

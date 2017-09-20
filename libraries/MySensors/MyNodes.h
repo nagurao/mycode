@@ -256,9 +256,13 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define BORE_ON_RELAY_ID 2
 #define BORE_OFF_RELAY_ID 3
 
-char ssid[] = "NAGU";          //  your network SSID (name) 
-char pass[] = "4ever.Nagu";   // your network password
+char ssid[] = "NAGU";   //  your network SSID (name) 
+char pass[] = "1234";   // your network password
 
+#define SUNRISE_TIME_ID 1
+#define SUNSET_TIME_ID 2
+#define HALF_HOUR_OFFSET_MS 1800000
+#define DEFAULT_SUNRISE_SUNSET_TIME 0
 #endif
 
 #if defined NODE_INTERACTS_WITH_WIFI_AND_LCD
