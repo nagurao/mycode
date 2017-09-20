@@ -220,15 +220,16 @@ ESP8266HTTPUpdateServer httpUpdater;
 AlarmId requestTimer;
 AlarmId sunriseTimer;
 AlarmId sunsetTimer;
+
 byte currModeRequestCount;
 boolean sendSunriseRequest;
 boolean sendSunsetRequest;
 boolean sunriseTimeReceived;
 boolean sunsetTimeReceived;
-long sunriseMilliSeconds;
-long sunsetMilliSeconds;
-long sunriseSeconds;
-long sunsetSeconds;
+uint32_t sunriseMilliSeconds;
+uint32_t sunsetMilliSeconds;
+uint32_t sunriseSeconds;
+uint32_t sunsetSeconds;
 MyMessage sunriseTimeMessage(SUNRISE_TIME_ID, V_VAR1);
 MyMessage sunsetTimeMessage(SUNSET_TIME_ID, V_VAR2);
 void before()
@@ -253,6 +254,8 @@ void setup()
 	thingspeakTimer = Alarm.timerRepeat(THINGSPEAK_INTERVAL, processThingspeakData);
 	incomingDataTimer = Alarm.timerRepeat(FIVE_MINUTES, insertFetchAndProcessDataRequest);
 	Alarm.timerOnce(ONE_MINUTE, insertFetchAndProcessDataRequest);
+	Alarm.timerRepeat(ONE_HOUR * 3, requestTime);
+	requestTime();
 
 
 	for (byte channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
@@ -536,6 +539,8 @@ void receive(const MyMessage &message)
 		}
 		else
 			sunriseMilliSeconds = message.getLong();
+		send(sunriseTimeMessage.set(sunriseMilliSeconds));
+		wait(WAIT_AFTER_SEND_MESSAGE);
 		if (sunriseMilliSeconds != 0)
 		{
 			sunriseSeconds = (sunriseMilliSeconds + HALF_HOUR_OFFSET_MS) / 1000;
@@ -558,6 +563,8 @@ void receive(const MyMessage &message)
 		}
 		else
 			sunsetMilliSeconds = message.getLong();
+		send(sunsetTimeMessage.set(sunsetMilliSeconds));
+		wait(WAIT_AFTER_SEND_MESSAGE);
 		if (sunsetMilliSeconds != 0)
 		{
 			sunsetSeconds = (sunsetMilliSeconds + HALF_HOUR_OFFSET_MS) / 1000;
@@ -1051,4 +1058,9 @@ void sunsetTriggerMessage()
 	uint32_t valueToSend = (sunsetSeconds * 1000) - HALF_HOUR_OFFSET_MS;
 	send(sunsetTimeMessage.set(valueToSend));
 	wait(WAIT_AFTER_SEND_MESSAGE);
+}
+
+void receiveTime(unsigned long controllerTime)
+{
+	setTime(controllerTime);
 }
