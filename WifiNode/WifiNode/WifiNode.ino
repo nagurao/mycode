@@ -226,12 +226,12 @@ boolean sendSunriseRequest;
 boolean sendSunsetRequest;
 boolean sunriseTimeReceived;
 boolean sunsetTimeReceived;
-uint32_t sunriseMilliSeconds;
-uint32_t sunsetMilliSeconds;
 uint32_t sunriseSeconds;
 uint32_t sunsetSeconds;
+char mytime[6];
 MyMessage sunriseTimeMessage(SUNRISE_TIME_ID, V_VAR1);
 MyMessage sunsetTimeMessage(SUNSET_TIME_ID, V_VAR2);
+
 void before()
 {
 #if defined OTA_UPDATE_FEATURE
@@ -282,8 +282,8 @@ void setup()
 	sendSunsetRequest = false;
 	sunriseTimeReceived = false;
 	sunsetTimeReceived = false;
-	sunriseMilliSeconds = DEFAULT_SUNRISE_SUNSET_TIME;
-	sunsetMilliSeconds = DEFAULT_SUNRISE_SUNSET_TIME;
+	sunriseSeconds = DEFAULT_SUNRISE_SUNSET_TIME;
+	sunsetSeconds = DEFAULT_SUNRISE_SUNSET_TIME;
 	sunriseSeconds = DEFAULT_SUNRISE_SUNSET_TIME;
 	sunsetSeconds = DEFAULT_SUNRISE_SUNSET_TIME;
 }
@@ -292,9 +292,16 @@ void presentation()
 {
 	sendSketchInfo(APPLICATION_NAME, __DATE__);
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-	present(SUNRISE_TIME_ID, S_CUSTOM, "Sunrise Time (ms)");
+	present(SUNRISE_TIME_ID, S_CUSTOM, "Sunrise Time (sec)");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-	present(SUNSET_TIME_ID, S_CUSTOM, "Sunset Time (ms)");
+	present(SUNSET_TIME_ID, S_CUSTOM, "Sunset Time (sec)");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(LAST_UPDATE_TIME_ID, S_CUSTOM, "Last Update");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(SUNRISE_TRIGGER_TIME_ID, S_CUSTOM, "Sunrise Trigger Time");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	present(SUNSET_TRIGGER_TIME_ID, S_CUSTOM, "Sunset Trigger Time");
+	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
 
 void loop()
@@ -532,48 +539,59 @@ void receive(const MyMessage &message)
 		{
 			sunriseTimeReceived = true;
 			sendSunsetRequest = true;
-			sunriseMilliSeconds = message.getLong();
+			sunriseSeconds = message.getLong();
 			Alarm.free(requestTimer);
 			request(SUNRISE_TIME_ID, V_VAR1);
 			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 		else
-			sunriseMilliSeconds = message.getLong();
-		send(sunriseTimeMessage.set(sunriseMilliSeconds));
+			sunriseSeconds = message.getLong();
+
+		send(sunriseTimeMessage.set(sunriseSeconds));
 		wait(WAIT_AFTER_SEND_MESSAGE);
-		if (sunriseMilliSeconds != 0)
+		if (sunriseSeconds != 0)
 		{
-			sunriseSeconds = (sunriseMilliSeconds + HALF_HOUR_OFFSET_MS) / 1000;
+			sunriseSeconds = (sunriseSeconds + HALF_HOUR_OFFSET) ;
 			int sunriseHr = hour(sunriseSeconds);
 			int sunriseMin = minute(sunriseSeconds);
 			int sunriseSecs = second(sunriseSeconds);
 			if (Alarm.isAllocated(sunriseTimer))
 				Alarm.free(sunriseTimer);
 			sunriseTimer = Alarm.alarmRepeat(sunriseHr, sunriseMin, sunriseSecs, sunriseTriggerMessage);
+			MyMessage sunriseTimeMessage(SUNRISE_TRIGGER_TIME_ID, V_VAR4);
+			formatTimeForGateway(sunriseHr, sunriseMin);
+			send(sunriseTimeMessage.set(mytime));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+			resetTimeForGateway();
 		}
 		break;
 	case V_VAR2:
 		if (!sunsetTimeReceived)
 		{
 			sunsetTimeReceived = true;
-			sunsetMilliSeconds = message.getLong();
+			sunsetSeconds = message.getLong();
 			Alarm.free(requestTimer);
 			request(SUNSET_TIME_ID, V_VAR2);
 			wait(WAIT_AFTER_SEND_MESSAGE);
 		}
 		else
-			sunsetMilliSeconds = message.getLong();
-		send(sunsetTimeMessage.set(sunsetMilliSeconds));
+			sunsetSeconds = message.getLong();
+		send(sunsetTimeMessage.set(sunsetSeconds));
 		wait(WAIT_AFTER_SEND_MESSAGE);
-		if (sunsetMilliSeconds != 0)
+		if (sunsetSeconds != 0)
 		{
-			sunsetSeconds = (sunsetMilliSeconds + HALF_HOUR_OFFSET_MS) / 1000;
+			sunsetSeconds = sunsetSeconds + HALF_HOUR_OFFSET;
 			int sunsetHr = hour(sunsetSeconds);
 			int sunsetMin = minute(sunsetSeconds);
 			int sunsetSecs = second(sunsetSeconds);
 			if (Alarm.isAllocated(sunsetTimer))
 				Alarm.free(sunsetTimer);
 			sunsetTimer = Alarm.alarmRepeat(sunsetHr, sunsetMin, sunsetSecs,sunsetTriggerMessage);
+			MyMessage sunsetTimeMessage(SUNSET_TRIGGER_TIME_ID, V_VAR5);
+			formatTimeForGateway(sunsetHr, sunsetMin);
+			send(sunsetTimeMessage.set(mytime));
+			wait(WAIT_AFTER_SEND_MESSAGE);
+			resetTimeForGateway();
 		}
 			
 		break;
@@ -1034,9 +1052,11 @@ void sunriseTriggerMessage()
 	send(lightNodeMessage);
 	wait(WAIT_AFTER_SEND_MESSAGE);
 
-	uint32_t valueToSend = (sunriseSeconds * 1000) - HALF_HOUR_OFFSET_MS;
+	uint32_t valueToSend = sunriseSeconds - HALF_HOUR_OFFSET;
 	send(sunriseTimeMessage.set(valueToSend));
 	wait(WAIT_AFTER_SEND_MESSAGE);
+	formatTimeForGateway(hour(), minute());
+	sendLastUpdateTime();
 }
 
 void sunsetTriggerMessage()
@@ -1055,12 +1075,45 @@ void sunsetTriggerMessage()
 	send(lightNodeMessage);
 	wait(WAIT_AFTER_SEND_MESSAGE);
 
-	uint32_t valueToSend = (sunsetSeconds * 1000) - HALF_HOUR_OFFSET_MS;
+	uint32_t valueToSend = sunsetSeconds - HALF_HOUR_OFFSET;
 	send(sunsetTimeMessage.set(valueToSend));
 	wait(WAIT_AFTER_SEND_MESSAGE);
+	formatTimeForGateway(hour(), minute());
+	sendLastUpdateTime();
 }
 
 void receiveTime(unsigned long controllerTime)
 {
 	setTime(controllerTime);
+	formatTimeForGateway(hour(), minute());
+	sendLastUpdateTime();
+}
+
+void formatTimeForGateway(byte hour, byte mins)
+{
+	mytime[0] = (hour / 10) + '0';
+	mytime[1] = (hour % 10) + '0';
+	mytime[2] = ':';
+	mytime[3] = (mins / 10) + '0';
+	mytime[4] = (mins % 10) + '0';
+	mytime[5] = '\0';
+}
+
+void resetTimeForGateway()
+{
+	mytime[0] = 0 + '0';
+	mytime[1] = 0 + '0';
+	mytime[2] = ':';
+	mytime[3] = 0 + '0';
+	mytime[4] = 0 + '0';
+	mytime[5] = '\0';
+
+}
+
+void sendLastUpdateTime()
+{
+	MyMessage gatewayTimeMessage(LAST_UPDATE_TIME_ID, V_VAR3);
+	send(gatewayTimeMessage.set(mytime));
+	wait(WAIT_AFTER_SEND_MESSAGE);
+	resetTimeForGateway();
 }
