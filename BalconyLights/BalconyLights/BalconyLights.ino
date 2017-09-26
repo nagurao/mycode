@@ -61,7 +61,6 @@ void setup()
 	thingspeakMessage.setSensor(WIFI_NODEMCU_ID);
 	currModeRequestCount = 0;
 	lightOnDurationRequestCount = 0;
-	//sendLightStatusTimer = Alarm.timerRepeat(FIVE_MINUTES, sendLightStatus);
 	heartbeatTimer = Alarm.timerRepeat(HEARTBEAT_INTERVAL, sendHeartbeat);
 }
 
@@ -155,7 +154,8 @@ void receive(const MyMessage &message)
 				send(staircaseLightRelayMessage.set(RELAY_ON));
 				wait(WAIT_AFTER_SEND_MESSAGE);
 				currMode = DUSKLIGHT_MODE;
-				sendLightStatusTimer = Alarm.timerRepeat(FIVE_MINUTES, sendLightStatus);
+				if(!Alarm.isAllocated(sendLightStatusTimer))
+					sendLightStatusTimer = Alarm.timerRepeat(FIVE_MINUTES, sendLightStatus);
 				break;
 			}
 			MyMessage currModeMessage(CURR_MODE_ID, V_VAR1);
