@@ -220,8 +220,10 @@ ESP8266HTTPUpdateServer httpUpdater;
 AlarmId requestTimer;
 AlarmId sunriseTimer;
 AlarmId sunsetTimer;
+AlarmId nightTimer;
 
 byte currModeRequestCount;
+boolean firstTime;
 boolean sendSunriseRequest;
 boolean sendSunsetRequest;
 boolean sunriseTimeReceived;
@@ -255,8 +257,6 @@ void setup()
 	incomingDataTimer = Alarm.timerRepeat(FIVE_MINUTES, insertFetchAndProcessDataRequest);
 	Alarm.timerOnce(ONE_MINUTE, insertFetchAndProcessDataRequest);
 	Alarm.timerRepeat(ONE_HOUR * 3, requestTime);
-	requestTime();
-
 
 	for (byte channelId = 0; channelId < FIELDS_PER_CHANNEL; channelId++)
 	{
@@ -286,6 +286,7 @@ void setup()
 	sunsetSeconds = DEFAULT_SUNRISE_SUNSET_TIME;
 	sunriseSeconds = DEFAULT_SUNRISE_SUNSET_TIME;
 	sunsetSeconds = DEFAULT_SUNRISE_SUNSET_TIME;
+	firstTime = true;
 }
 
 void presentation()
@@ -302,6 +303,7 @@ void presentation()
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(SUNSET_TRIGGER_TIME_ID, S_CUSTOM, "Sunset Trigger Time");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
+	requestTime();
 }
 
 void loop()
@@ -558,9 +560,9 @@ void receive(const MyMessage &message)
 			if (Alarm.isAllocated(sunriseTimer))
 				Alarm.free(sunriseTimer);
 			sunriseTimer = Alarm.alarmRepeat(sunriseHr, sunriseMin, sunriseSecs, sunriseTriggerMessage);
-			MyMessage sunriseTimeMessage(SUNRISE_TRIGGER_TIME_ID, V_VAR4);
+			MyMessage sunriseTriggerTimeMessage(SUNRISE_TRIGGER_TIME_ID, V_VAR4);
 			formatTimeForGateway(sunriseHr, sunriseMin);
-			send(sunriseTimeMessage.set(mytime));
+			send(sunriseTriggerTimeMessage.set(mytime));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			resetTimeForGateway();
 		}
@@ -580,16 +582,16 @@ void receive(const MyMessage &message)
 		wait(WAIT_AFTER_SEND_MESSAGE);
 		if (sunsetSeconds != 0)
 		{
-			sunsetSeconds = sunsetSeconds + HALF_HOUR_OFFSET;
+			sunsetSeconds = (sunsetSeconds + HALF_HOUR_OFFSET);
 			int sunsetHr = hour(sunsetSeconds);
 			int sunsetMin = minute(sunsetSeconds);
 			int sunsetSecs = second(sunsetSeconds);
 			if (Alarm.isAllocated(sunsetTimer))
 				Alarm.free(sunsetTimer);
 			sunsetTimer = Alarm.alarmRepeat(sunsetHr, sunsetMin, sunsetSecs,sunsetTriggerMessage);
-			MyMessage sunsetTimeMessage(SUNSET_TRIGGER_TIME_ID, V_VAR5);
+			MyMessage sunsetTriggerTimeMessage(SUNSET_TRIGGER_TIME_ID, V_VAR5);
 			formatTimeForGateway(sunsetHr, sunsetMin);
-			send(sunsetTimeMessage.set(mytime));
+			send(sunsetTriggerTimeMessage.set(mytime));
 			wait(WAIT_AFTER_SEND_MESSAGE);
 			resetTimeForGateway();
 		}
@@ -1082,11 +1084,36 @@ void sunsetTriggerMessage()
 	sendLastUpdateTime();
 }
 
+void nightTriggerMessage()
+{
+	lightNodeMessage.setDestination(BALCONYLIGHT_NODE_ID);
+	lightNodeMessage.setSensor(CURR_MODE_ID);
+	lightNodeMessage.setType(V_VAR1);
+	lightNodeMessage.set(DUSKLIGHT_MODE);
+	send(lightNodeMessage);
+	wait(WAIT_AFTER_SEND_MESSAGE);
+
+	lightNodeMessage.setDestination(GATELIGHT_NODE_ID);
+	lightNodeMessage.setSensor(CURR_MODE_ID);
+	lightNodeMessage.setType(V_VAR1);
+	lightNodeMessage.set(DUSKLIGHT_MODE);
+	send(lightNodeMessage);
+	wait(WAIT_AFTER_SEND_MESSAGE);
+
+	formatTimeForGateway(hour(), minute());
+	sendLastUpdateTime();
+}
+
 void receiveTime(unsigned long controllerTime)
 {
 	setTime(controllerTime);
 	formatTimeForGateway(hour(), minute());
 	sendLastUpdateTime();
+	if (firstTime)
+	{
+		firstTime = false;
+		nightTimer = Alarm.alarmRepeat(NIGHT_HH, NIGHT_MM, NIGHT_SS, nightTriggerMessage);
+	}
 }
 
 void formatTimeForGateway(byte hour, byte mins)
