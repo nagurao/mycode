@@ -1089,14 +1089,14 @@ void nightTriggerMessage()
 	lightNodeMessage.setDestination(BALCONYLIGHT_NODE_ID);
 	lightNodeMessage.setSensor(CURR_MODE_ID);
 	lightNodeMessage.setType(V_VAR1);
-	lightNodeMessage.set(DUSKLIGHT_MODE);
+	lightNodeMessage.set(STANDBY_MODE);
 	send(lightNodeMessage);
 	wait(WAIT_AFTER_SEND_MESSAGE);
 
 	lightNodeMessage.setDestination(GATELIGHT_NODE_ID);
 	lightNodeMessage.setSensor(CURR_MODE_ID);
 	lightNodeMessage.setType(V_VAR1);
-	lightNodeMessage.set(DUSKLIGHT_MODE);
+	lightNodeMessage.set(STANDBY_MODE);
 	send(lightNodeMessage);
 	wait(WAIT_AFTER_SEND_MESSAGE);
 
