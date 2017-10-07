@@ -156,6 +156,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #define BATTERY_VOLTAGE_ID 4
 #define SOLAR_VOLTAGE_ID 5
 #define RESET_RELAY_ID 6
+#define RAW_VALUE_ID 7
 
 #define VOLTAGE_SENSE_PIN A0
 #define THRESHOLD_VOLTAGE_PIN A1

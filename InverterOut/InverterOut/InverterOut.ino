@@ -123,8 +123,6 @@ void presentation()
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(RESET_TYPE_ID, S_CUSTOM, "Reset Consumption");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-	present(INCOMING_REQUEST_ID, S_CUSTOM, "Request Data");
-	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
 
 void loop()

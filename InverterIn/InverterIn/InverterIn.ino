@@ -30,6 +30,7 @@ byte pulseCountRequestCount;
 
 boolean sendBlinksPerWattHourRequest;
 boolean blinksPerWattHourReceived;
+boolean monthReset;
 byte blinksPerWattHourCount;
 long blinksPerWattHour;
 float pulseFactor;
@@ -44,6 +45,7 @@ float accumulatedKWH;
 float hourlyConsumptionInitKWH;
 float dailyConsumptionInitKWH;
 float monthlyConsumptionInitKWH;
+float monthlyResetKWH;
 float unitsPerHour;
 float unitsPerDay;
 float unitsPerMonth;
@@ -84,6 +86,7 @@ void setup()
 	hourlyConsumptionInitKWH = 0.00;
 	dailyConsumptionInitKWH = 0.00;
 	monthlyConsumptionInitKWH = 0.00;
+	monthlyResetKWH = 0.00;
 	unitsPerHour = 0.00;
 	unitsPerDay = 0.00;
 	unitsPerMonth = 0.00;
@@ -91,6 +94,7 @@ void setup()
 	accumulationsStatus = GET_HOURLY_KWH;
 	accumulationStatusCount = 0;
 	firstTime = true;
+	monthReset = false;
 	thingspeakMessage.setDestination(THINGSPEAK_NODE_ID);
 }
 
@@ -115,8 +119,6 @@ void presentation()
 	present(BLINKS_PER_KWH_ID, S_CUSTOM, "Pulses per KWH");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 	present(RESET_TYPE_ID, S_CUSTOM, "Reset Consumption");
-	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
-	present(INCOMING_REQUEST_ID, S_CUSTOM, "Request Data");
 	Alarm.delay(WAIT_AFTER_SEND_MESSAGE);
 }
 
@@ -267,6 +269,7 @@ void receive(const MyMessage &message)
 		case MONTHLY_WATT_CONSUMPTION_ID:
 			monthlyConsumptionInitKWH = accumulatedKWH - message.getFloat();
 			unitsPerMonth = monthlyConsumptionInitKWH;
+			monthlyResetKWH = monthlyConsumptionInitKWH;
 			accumulationStatusCount = 0;
 			accumulationsStatus = ALL_DONE;
 			Alarm.free(accumulationTimer);
@@ -375,6 +378,7 @@ void resetMonth()
 	MyMessage resetTypeMessage(RESET_TYPE_ID, V_VAR3);
 	send(resetTypeMessage.set(RESET_NONE));
 	wait(WAIT_AFTER_SEND_MESSAGE);
+	monthReset = true;
 }
 
 void resetAll()
@@ -415,7 +419,16 @@ void sendAccumulationData()
 	send(thingspeakMessage.set(currWatt, 5));
 	wait(WAIT_AFTER_SEND_MESSAGE);
 
-	float deltaKWH = accumulatedKWH - monthlyConsumptionInitKWH;
+	float deltaKWH;
+	if (resetMonth)
+	{
+		monthReset = false;
+		deltaKWH = accumulatedKWH - monthlyResetKWH;
+		monthlyResetKWH = monthlyConsumptionInitKWH;
+	}
+	else
+		deltaKWH = accumulatedKWH - monthlyConsumptionInitKWH;
+
 	MyMessage realtimeDeltaConsumptionMessage(DELTA_WATT_CONSUMPTION_ID, V_KWH);
 	realtimeDeltaConsumptionMessage.setDestination(INV_OUT_NODE_ID);
 	realtimeDeltaConsumptionMessage.setSensor(DELTA_WATT_CONSUMPTION_ID);
