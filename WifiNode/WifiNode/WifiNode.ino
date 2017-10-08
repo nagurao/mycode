@@ -553,7 +553,7 @@ void receive(const MyMessage &message)
 		wait(WAIT_AFTER_SEND_MESSAGE);
 		if (sunriseSeconds != 0)
 		{
-			sunriseSeconds = (sunriseSeconds + HALF_HOUR_OFFSET) ;
+			sunriseSeconds = (sunriseSeconds + QUATER_HOUR_OFFSET) ;
 			int sunriseHr = hour(sunriseSeconds);
 			int sunriseMin = minute(sunriseSeconds);
 			int sunriseSecs = second(sunriseSeconds);
@@ -582,7 +582,7 @@ void receive(const MyMessage &message)
 		wait(WAIT_AFTER_SEND_MESSAGE);
 		if (sunsetSeconds != 0)
 		{
-			sunsetSeconds = (sunsetSeconds + HALF_HOUR_OFFSET);
+			sunsetSeconds = (sunsetSeconds + QUATER_HOUR_OFFSET);
 			int sunsetHr = hour(sunsetSeconds);
 			int sunsetMin = minute(sunsetSeconds);
 			int sunsetSecs = second(sunsetSeconds);
@@ -1054,7 +1054,7 @@ void sunriseTriggerMessage()
 	send(lightNodeMessage);
 	wait(WAIT_AFTER_SEND_MESSAGE);
 
-	uint32_t valueToSend = sunriseSeconds - HALF_HOUR_OFFSET;
+	uint32_t valueToSend = sunriseSeconds - QUATER_HOUR_OFFSET;
 	send(sunriseTimeMessage.set(valueToSend));
 	wait(WAIT_AFTER_SEND_MESSAGE);
 	formatTimeForGateway(hour(), minute());
@@ -1077,7 +1077,7 @@ void sunsetTriggerMessage()
 	send(lightNodeMessage);
 	wait(WAIT_AFTER_SEND_MESSAGE);
 
-	uint32_t valueToSend = sunsetSeconds - HALF_HOUR_OFFSET;
+	uint32_t valueToSend = sunsetSeconds - QUATER_HOUR_OFFSET;
 	send(sunsetTimeMessage.set(valueToSend));
 	wait(WAIT_AFTER_SEND_MESSAGE);
 	formatTimeForGateway(hour(), minute());
