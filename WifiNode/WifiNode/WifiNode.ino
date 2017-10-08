@@ -233,6 +233,7 @@ uint32_t sunsetSeconds;
 char mytime[6];
 MyMessage sunriseTimeMessage(SUNRISE_TIME_ID, V_VAR1);
 MyMessage sunsetTimeMessage(SUNSET_TIME_ID, V_VAR2);
+MyMessage resetRelayMessage(RESET_RELAY_ID, V_STATUS);
 
 void before()
 {
@@ -1054,6 +1055,13 @@ void sunriseTriggerMessage()
 	send(lightNodeMessage);
 	wait(WAIT_AFTER_SEND_MESSAGE);
 
+	resetRelayMessage.setDestination(BATT_VOLTAGE_NODE_ID);
+	resetRelayMessage.setSensor(RESET_RELAY_ID);
+	resetRelayMessage.setType(V_STATUS);
+	resetRelayMessage.set(RELAY_ON);
+	send(resetRelayMessage);
+	wait(WAIT_AFTER_SEND_MESSAGE);
+
 	uint32_t valueToSend = sunriseSeconds - QUATER_HOUR_OFFSET;
 	send(sunriseTimeMessage.set(valueToSend));
 	wait(WAIT_AFTER_SEND_MESSAGE);
@@ -1075,6 +1083,13 @@ void sunsetTriggerMessage()
 	lightNodeMessage.setType(V_VAR1);
 	lightNodeMessage.set(DUSKLIGHT_MODE);
 	send(lightNodeMessage);
+	wait(WAIT_AFTER_SEND_MESSAGE);
+
+	resetRelayMessage.setDestination(BATT_VOLTAGE_NODE_ID);
+	resetRelayMessage.setSensor(RESET_RELAY_ID);
+	resetRelayMessage.setType(V_STATUS);
+	resetRelayMessage.set(RELAY_OFF);
+	send(resetRelayMessage);
 	wait(WAIT_AFTER_SEND_MESSAGE);
 
 	uint32_t valueToSend = sunsetSeconds - QUATER_HOUR_OFFSET;
