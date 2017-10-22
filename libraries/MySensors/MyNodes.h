@@ -8,6 +8,7 @@
 #define WAIT_5MS 5
 #define WAIT_10MS 10
 #define WAIT_50MS 50
+#define WAIT_1SEC 1000
 #define ONE_MINUTE 60
 #define FIVE_MINUTES 300
 #define QUATER_HOUR 900
@@ -38,23 +39,47 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 18 - 3Phase Wattmeter
 19 - 1Phase Wattmeter
 20 - Temperature & Humidity 
+21 - SMS Node
 250 - Default Firmware Node
 254 - Wifi Node
 */
 
+#define BALCONYLIGHT_NODE_ID 1
+#define STAIRCASE_LIGHT_NODE_ID 2
+#define GATELIGHT_NODE_ID 3
+#define TANK_01_NODE_ID 4
+#define TANK_02_NODE_ID 5
+#define TANK_03_NODE_ID 6
+#define BOREWELL_NODE_ID 7
+#define SUMP_MOTOR_NODE_ID 8
+#define TAP_MOTOR_NODE_ID 9
+#define BALCONY_REPEATER_NODE_ID 10
+#define LCD_NODE_ID 11
+#define BATT_VOLTAGE_NODE_ID 12
+#define SOLAR_VOLTAGE_NODE_ID 13
+#define REMOTE_CONTROLLER_NODE_ID 14
+#define DB_REPEATER_NODE_ID 15
+#define INV_IN_NODE_ID 16
+#define INV_OUT_NODE_ID 17
+#define PH3_NODE_ID 18
+#define PH1_NODE_ID 19
+#define TEMP_AND_HUMIDITY_NODE_ID 20
+#define SMS_NODE_ID 21
+
+// Default Firmware Node details
+#define DEFAULT_FIRMWARE_NODE_ID 250
 // NodeMCU Wifi Node details
 #define THINGSPEAK_NODE_ID 254
 #define WIFI_NODEMCU_ID 1
 
-#define BALCONY_REPEATER_NODE_ID 10
-#define DB_REPEATER_NODE_ID 15
-#define DEFAULT_FIRMWARE_NODE_ID 250
+
+
 
 #if defined LIGHT_NODE
 
-#define BALCONYLIGHT_NODE_ID 1
-#define STAIRCASE_LIGHT_NODE_ID 2
-#define GATELIGHT_NODE_ID 3
+//#define BALCONYLIGHT_NODE_ID 1
+//#define STAIRCASE_LIGHT_NODE_ID 2
+//#define GATELIGHT_NODE_ID 3
 
 #define LIGHT_RELAY_ID 1
 #define CURR_MODE_ID 2
@@ -69,25 +94,25 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 // Overhead Tank 01
 #if defined TANK_01_NODE
-#define TANK_01_NODE_ID 4
+//#define TANK_01_NODE_ID 4
 #define DRY_RUN_POLL_DURATION 900
-#define BOREWELL_NODE_ID 7
+//#define BOREWELL_NODE_ID 7
 #endif
 
 // Overhead Tank 02
 #if defined TANK_02_NODE
-#define TANK_02_NODE_ID 5
-#define SUMP_MOTOR_NODE_ID 8
+//#define TANK_02_NODE_ID 5
+//#define SUMP_MOTOR_NODE_ID 8
 #endif
 
 //Underground Tank
 #if defined TANK_03_NODE
-#define TANK_03_NODE_ID 6
+//#define TANK_03_NODE_ID 6
 
 #endif
 
 #if defined BOREWELL_NODE
-#define BOREWELL_NODE_ID 7
+//#define BOREWELL_NODE_ID 7
 #define BOREWELL_MOTOR_STATUS_ID 1
 #define BORE_ON_RELAY_ID 2
 #define BORE_OFF_RELAY_ID 3
@@ -100,8 +125,8 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #endif
 
 #if defined SUMP_RELATED_NODE
-#define SUMP_MOTOR_NODE_ID 8
-#define TAP_MOTOR_NODE_ID 9
+//#define SUMP_MOTOR_NODE_ID 8
+//#define TAP_MOTOR_NODE_ID 9
 
 #define CURR_WATER_LEVEL_ID 1
 #define RELAY_ID 1
@@ -111,8 +136,8 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #endif
 
 #if defined REPEATER_NODE
-#define BALCONY_REPEATER_NODE_ID 10
-#define DB_REPEATER_NODE_ID 15
+//#define BALCONY_REPEATER_NODE_ID 10
+//#define DB_REPEATER_NODE_ID 15
 #endif
 
 #if defined STATUS_LEDS
@@ -123,12 +148,12 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 #if defined LCD_NODE
 
-#define LCD_NODE_ID 11
-#define BATT_VOLTAGE_NODE_ID 12
-#define INV_IN_NODE_ID 16
-#define INV_OUT_NODE_ID 17
-#define PH3_NODE_ID 18
-#define PH1_NODE_ID 19
+//#define LCD_NODE_ID 11
+//#define BATT_VOLTAGE_NODE_ID 12
+//#define INV_IN_NODE_ID 16
+//#define INV_OUT_NODE_ID 17
+//#define PH3_NODE_ID 18
+//#define PH1_NODE_ID 19
 #define CURR_WATT_ID 1
 #define BATTERY_VOLTAGE_ID 4
 #define SOLAR_VOLTAGE_ID 5
@@ -147,8 +172,8 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #endif
 
 #if defined SOLAR_BATT_VOLTAGE_NODE
-#define BATT_VOLTAGE_NODE_ID 12
-#define SOLAR_VOLTAGE_NODE_ID 13
+//#define BATT_VOLTAGE_NODE_ID 12
+//#define SOLAR_VOLTAGE_NODE_ID 13
 
 #define R1_VALUE_ID 1
 #define R2_VALUE_ID 2
@@ -166,7 +191,7 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #endif
 
 #if defined REMOTE_CONTROLLER_NODE
-#define REMOTE_CONTROLLER_NODE_ID 14
+//#define REMOTE_CONTROLLER_NODE_ID 14
 #define KEYPAD_ID 1
 #define SCL_PIN 3
 #define SDA_PIN 4
@@ -186,11 +211,11 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 
 #if defined WATT_METER_NODE
 
-#define INV_IN_NODE_ID 16
-#define INV_OUT_NODE_ID 17
-#define PH3_NODE_ID 18
-#define PH1_NODE_ID 19
-#define BATT_VOLTAGE_NODE_ID 12
+//#define INV_IN_NODE_ID 16
+//#define INV_OUT_NODE_ID 17
+//#define PH3_NODE_ID 18
+//#define PH1_NODE_ID 19
+//#define BATT_VOLTAGE_NODE_ID 12
 
 #define ZERO_PULSE 0
 #define ACCUMULATION_FREQUENCY_SECS 30
@@ -233,21 +258,21 @@ The following are the Node Ids assigned, populated here as comments for easy ref
 #endif
 
 #if defined WIFI_NODE
-#define BALCONYLIGHT_NODE_ID 1
-#define STAIRCASE_LIGHT_NODE_ID 2
-#define GATELIGHT_NODE_ID 3
-#define TANK_01_NODE_ID 4
-#define TANK_02_NODE_ID 5
-#define TANK_03_NODE_ID 6
-#define BOREWELL_NODE_ID 7
-#define SUMP_MOTOR_NODE_ID 8
-#define LCD_NODE_ID 11
-#define BATT_VOLTAGE_NODE_ID 12
-#define SOLAR_VOLTAGE_NODE_ID 13
-#define INV_IN_NODE_ID 16
-#define INV_OUT_NODE_ID 17
-#define PH3_NODE_ID 18
-#define PH1_NODE_ID 19
+//#define BALCONYLIGHT_NODE_ID 1
+//#define STAIRCASE_LIGHT_NODE_ID 2
+//#define GATELIGHT_NODE_ID 3
+//#define TANK_01_NODE_ID 4
+//#define TANK_02_NODE_ID 5
+//#define TANK_03_NODE_ID 6
+//#define BOREWELL_NODE_ID 7
+//#define SUMP_MOTOR_NODE_ID 8
+//#define LCD_NODE_ID 11
+//#define BATT_VOLTAGE_NODE_ID 12
+//#define SOLAR_VOLTAGE_NODE_ID 13
+//#define INV_IN_NODE_ID 16
+//#define INV_OUT_NODE_ID 17
+//#define PH3_NODE_ID 18
+//#define PH1_NODE_ID 19
 
 #define STANDBY_MODE 0
 #define DUSKLIGHT_MODE 1
@@ -272,6 +297,34 @@ char pass[] = "1234";   // your network password
 #define NIGHT_HH 23
 #define NIGHT_MM 46
 #define NIGHT_SS 00
+#endif
+
+#if defined SMS_NODE
+
+#define USER_ADMIN_ID 1
+#define SMS_TEXT_ID 2
+
+#define FONA_RX 2
+#define FONA_TX 3
+#define FONA_RST 4
+
+#define MAXSMSLENGTH 30
+#define MAXMSGLENGTH 22
+#define MAXNUMBERLENGTH 13
+#define MAXNODEID 254
+#define MAXSENSORID 99
+#define SIM800L_OK "SIM800L OK"
+#define SIM800L_ERROR "SIM800L Error"
+
+#define CONFIRM_MESSAGE "Admin request processed"
+#define INVALID_MESSAGE "Invalid SMS from Admin"
+#define UNKNOWN_MESSAGE "SMS from "
+
+#define RELAY_ID 1
+#define CURR_MODE_ID 2
+#define BORE_ON_RELAY_ID 2
+#define BORE_OFF_RELAY_ID 3
+
 #endif
 
 #if defined NODE_INTERACTS_WITH_WIFI_AND_LCD
@@ -324,7 +377,7 @@ byte colsPins[2] = { 4,5 };
 #endif
 
 #if defined NODE_HAS_TEMP_HUMIDITY
-#define TEMP_AND_HUMIDITY_NODE_ID 20
+//#define TEMP_AND_HUMIDITY_NODE_ID 20
 #define HUMIDITY_ID 1
 #define TEMPERATURE_ID 2
 
@@ -333,9 +386,9 @@ byte colsPins[2] = { 4,5 };
 #endif
 
 # if defined WATER_TANK_NODE_IDS
-#define TANK_01_NODE_ID 4
-#define TANK_02_NODE_ID 5
-#define TANK_03_NODE_ID 6
+//#define TANK_01_NODE_ID 4
+//#define TANK_02_NODE_ID 5
+//#define TANK_03_NODE_ID 6
 #endif
 
 #if defined WATER_TANK_NODE
